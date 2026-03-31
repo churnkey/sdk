@@ -1,6 +1,14 @@
 {
   "name": "@churnkey/node",
   "version": "0.1.0",
+  "description": "Server-side SDK for Churnkey. Generate session tokens for use with @churnkey/react.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/churnkey/churnkey-sdk.git",
+    "directory": "packages/node"
+  },
+  "keywords": ["churnkey", "node", "server", "subscription", "retention", "cancel-flow"],
   "type": "module",
   "exports": {
     ".": {
@@ -24,6 +32,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0"
   }

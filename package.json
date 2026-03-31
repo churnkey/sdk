@@ -6,11 +6,13 @@
     "dev": "turbo dev",
     "test": "turbo test",
     "typecheck": "turbo typecheck",
-    "lint": "turbo lint"
+    "lint": "biome check .",
+    "lint:fix": "biome check --write ."
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
+    "@biomejs/biome": "^2.4.10",
     "@changesets/cli": "^2.27.0",
+    "turbo": "^2.0.0",
     "typescript": "^5.5.0"
   },
   "packageManager": "pnpm@9.15.0"

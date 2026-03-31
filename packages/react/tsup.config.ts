@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup'
+import { copyFileSync } from 'node:fs'
 
 export default defineConfig({
   entry: {
@@ -13,4 +14,7 @@ export default defineConfig({
   treeshake: true,
   splitting: true,
   external: ['react', 'react-dom'],
+  onSuccess: () => {
+    copyFileSync('src/styles/cancel-flow.css', 'dist/styles.css')
+  },
 })

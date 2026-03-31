@@ -1,24 +1,68 @@
-import type { ReactElement, ReactNode } from 'react'
+import type { ComponentType, ReactElement, ReactNode } from 'react'
+import type { EmbedCustomer } from './api-types'
 
-// ---------------------------------------------------------------------------
-// Offer types (discriminated union)
-// ---------------------------------------------------------------------------
+// --- Offers ---
 
-export type OfferConfig =
-  | { type: 'discount'; percent: number; months: number; couponId?: string }
-  | { type: 'pause'; months: number; interval?: 'month' | 'week'; datePicker?: boolean }
-  | { type: 'plan_change'; plans: Plan[]; currentPlanId?: string }
-  | { type: 'trial_extension'; days: number }
-  | { type: 'contact'; url?: string; label?: string }
-  | { type: 'redirect'; url: string; label: string }
+export interface DiscountOffer {
+  type: 'discount'
+  percent: number
+  months: number
+  couponId?: string
+}
+export interface PauseOffer {
+  type: 'pause'
+  months: number
+  interval?: 'month' | 'week'
+  datePicker?: boolean
+}
+export interface PlanChangeOffer {
+  type: 'plan_change'
+  plans: Plan[]
+  currentPlanId?: string
+}
+export interface TrialExtensionOffer {
+  type: 'trial_extension'
+  days: number
+}
+export interface ContactOffer {
+  type: 'contact'
+  url?: string
+  label?: string
+}
+export interface RedirectOffer {
+  type: 'redirect'
+  url: string
+  label: string
+}
 
-export type AcceptedOffer =
-  | { type: 'discount'; percent: number; months: number; couponId?: string; reasonId: string; decisionId?: string }
-  | { type: 'pause'; months: number; interval: 'month' | 'week'; reasonId: string; decisionId?: string }
-  | { type: 'plan_change'; planId: string; planName: string; planPrice: number; reasonId: string; decisionId?: string }
-  | { type: 'trial_extension'; days: number; reasonId: string; decisionId?: string }
-  | { type: 'contact'; url?: string; reasonId: string; decisionId?: string }
-  | { type: 'redirect'; url: string; reasonId: string; decisionId?: string }
+export interface CustomOfferConfig {
+  type: string
+  data?: Record<string, unknown>
+}
+
+export type BuiltInOfferConfig =
+  | DiscountOffer
+  | PauseOffer
+  | PlanChangeOffer
+  | TrialExtensionOffer
+  | ContactOffer
+  | RedirectOffer
+export type OfferConfig = BuiltInOfferConfig | CustomOfferConfig
+
+export type OfferDecision = OfferConfig & { copy: OfferCopy; decisionId?: string }
+
+export interface OfferCopy {
+  headline: string
+  body: string
+  cta: string
+  declineCta: string
+}
+
+export type AcceptedOffer = OfferConfig & {
+  reasonId: string
+  decisionId?: string
+  result?: Record<string, unknown>
+}
 
 export interface Plan {
   id: string
@@ -29,9 +73,7 @@ export interface Plan {
   features?: string[]
 }
 
-// ---------------------------------------------------------------------------
-// Reason config
-// ---------------------------------------------------------------------------
+// --- Reasons ---
 
 export interface ReasonConfig {
   id: string
@@ -40,11 +82,7 @@ export interface ReasonConfig {
   offer?: OfferConfig
 }
 
-// ---------------------------------------------------------------------------
-// Step types (discriminated union)
-// ---------------------------------------------------------------------------
-
-export type Step = SurveyStep | OfferStep | FeedbackStep | ConfirmStep | SuccessStep
+// --- Steps ---
 
 export interface SurveyStep {
   type: 'survey'
@@ -89,9 +127,19 @@ export interface SuccessStep {
   classNames?: SuccessClassNames
 }
 
-// ---------------------------------------------------------------------------
-// Per-step classNames
-// ---------------------------------------------------------------------------
+export interface CustomStepConfig {
+  type: string
+  title?: string
+  description?: string
+  data?: Record<string, unknown>
+}
+
+export type BuiltInStep = SurveyStep | OfferStep | FeedbackStep | ConfirmStep | SuccessStep
+export type Step = BuiltInStep | CustomStepConfig
+
+export type BuiltInStepType = 'survey' | 'offer' | 'feedback' | 'confirm' | 'success'
+
+// --- Per-step classNames ---
 
 export interface SurveyClassNames {
   root?: string
@@ -146,9 +194,7 @@ export interface SuccessClassNames {
   closeButton?: string
 }
 
-// ---------------------------------------------------------------------------
-// Structural classNames
-// ---------------------------------------------------------------------------
+// --- Structural classNames ---
 
 export interface StructuralClassNames {
   overlay?: string
@@ -159,9 +205,7 @@ export interface StructuralClassNames {
   progressFill?: string
 }
 
-// ---------------------------------------------------------------------------
-// Appearance / theming
-// ---------------------------------------------------------------------------
+// --- Appearance ---
 
 export interface ThemeVariables {
   colorPrimary: string
@@ -183,9 +227,22 @@ export interface Appearance {
   variables?: Partial<ThemeVariables>
 }
 
-// ---------------------------------------------------------------------------
-// Component override registry
-// ---------------------------------------------------------------------------
+export interface CustomStepProps {
+  step: CustomStepConfig
+  customer: EmbedCustomer | null
+  onNext: (result?: Record<string, unknown>) => void
+  onBack: () => void
+}
+
+export interface CustomOfferProps {
+  offer: OfferDecision
+  customer: EmbedCustomer | null
+  onAccept: (result?: Record<string, unknown>) => Promise<void>
+  onDecline: () => void
+  isProcessing: boolean
+}
+
+// --- Component overrides ---
 
 export interface ComponentOverrides {
   // Structural
@@ -194,7 +251,7 @@ export interface ComponentOverrides {
   Footer?: (props: FooterProps) => ReactElement
   ProgressBar?: (props: ProgressBarProps) => ReactElement
 
-  // Step-level (replace entire step)
+  // Step-level (replace entire built-in step)
   Survey?: (props: SurveyStepProps) => ReactElement
   Offer?: (props: OfferStepProps) => ReactElement
   Feedback?: (props: FeedbackStepProps) => ReactElement
@@ -210,9 +267,9 @@ export interface ComponentOverrides {
   TrialExtensionDetails?: (props: TrialExtensionDetailsProps) => ReactElement
 }
 
-// ---------------------------------------------------------------------------
-// Structural component props
-// ---------------------------------------------------------------------------
+export type CustomComponents = Record<string, ComponentType<CustomStepProps> | ComponentType<CustomOfferProps>>
+
+// --- Structural component props ---
 
 export interface ModalProps {
   open: boolean
@@ -244,9 +301,7 @@ export interface ProgressBarProps {
   className?: string
 }
 
-// ---------------------------------------------------------------------------
-// Step component props
-// ---------------------------------------------------------------------------
+// --- Step component props ---
 
 export interface SurveyStepProps {
   title: string
@@ -304,9 +359,7 @@ export interface SuccessStepProps {
   classNames?: SuccessClassNames
 }
 
-// ---------------------------------------------------------------------------
-// Sub-component props
-// ---------------------------------------------------------------------------
+// --- Sub-component props ---
 
 export interface ReasonButtonProps {
   reason: ReasonConfig
@@ -358,32 +411,10 @@ export interface TrialExtensionDetailsProps {
   newEndDate: string
 }
 
-// ---------------------------------------------------------------------------
-// Offer decision (what the server or config resolved)
-// ---------------------------------------------------------------------------
-
-export interface OfferDecision {
-  type: OfferConfig['type']
-  params: Record<string, unknown>
-  copy: OfferCopy
-  decisionId?: string
-}
-
-export interface OfferCopy {
-  headline: string
-  body: string
-  cta: string
-  declineCta: string
-}
-
-// ---------------------------------------------------------------------------
-// Flow state (what the machine exposes)
-// ---------------------------------------------------------------------------
-
-export type StepType = 'survey' | 'offer' | 'feedback' | 'confirm' | 'success'
+// --- Flow state ---
 
 export interface FlowState {
-  step: StepType
+  step: string
   selectedReason: string | null
   recommendation: OfferDecision | null
   alternatives: OfferDecision[]
@@ -391,11 +422,10 @@ export interface FlowState {
   outcome: 'saved' | 'cancelled' | null
   isProcessing: boolean
   error: Error | null
+  customer: EmbedCustomer | null
 }
 
-// ---------------------------------------------------------------------------
-// Flow config (input to the machine)
-// ---------------------------------------------------------------------------
+// --- Flow config ---
 
 export interface FlowConfig {
   session?: string
@@ -406,9 +436,7 @@ export interface FlowConfig {
   onStepChange?: (step: string, prevStep: string) => void
 }
 
-// ---------------------------------------------------------------------------
-// Resolved flow config (internal, after token decode / config merge)
-// ---------------------------------------------------------------------------
+// --- Resolved flow config (internal) ---
 
 export interface ResolvedFlowConfig {
   reasons: ReasonConfig[]
@@ -419,16 +447,16 @@ export interface ResolvedFlowConfig {
   onStepChange?: (step: string, prevStep: string) => void
 }
 
-// ---------------------------------------------------------------------------
-// CancelFlow component props (top-level)
-// ---------------------------------------------------------------------------
+// --- CancelFlow props ---
 
 export interface CancelFlowProps {
   session?: string
   steps?: Step[]
+  apiBaseUrl?: string
   appearance?: Appearance
   classNames?: StructuralClassNames
   components?: Partial<ComponentOverrides>
+  customComponents?: CustomComponents
   layout?: {
     desktop?: 'modal' | 'inline' | 'drawer'
     mobile?: 'sheet' | 'fullscreen' | 'inline'

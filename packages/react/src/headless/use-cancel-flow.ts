@@ -1,45 +1,67 @@
-import { useSyncExternalStore, useMemo, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { ChurnkeyApi } from '../core/api'
 import { CancelFlowMachine } from '../core/machine'
+import { decodeSessionToken } from '../core/token'
 import type { FlowConfig } from '../core/types'
 
 export function useCancelFlow(config: FlowConfig) {
-  const machine = useMemo(
-    () => new CancelFlowMachine(config),
-    // Recreate only when session token changes.
-    // For local mode, the machine is created once.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config.session],
-  )
+  const [machine] = useState(() => new CancelFlowMachine(config))
+  const [state, setState] = useState(() => machine.getSnapshot())
+  const [isLoading, setIsLoading] = useState(!!config.session)
+  const [loadError, setLoadError] = useState<Error | null>(null)
 
-  const subscribe = useCallback(
-    (cb: () => void) => machine.subscribe(cb),
-    [machine],
-  )
+  useEffect(() => {
+    setState(machine.getSnapshot())
+    return machine.subscribe(() => setState(machine.getSnapshot()))
+  }, [machine])
 
-  const getSnapshot = useCallback(
-    () => machine.snapshot,
-    [machine],
-  )
+  const loadConfig = useCallback(() => {
+    if (!config.session) return
+    let cancelled = false
 
-  const state = useSyncExternalStore(subscribe, getSnapshot)
+    const creds = decodeSessionToken(config.session)
+    const api = new ChurnkeyApi(creds)
+    api
+      .fetchConfig()
+      .then((embedData) => {
+        if (cancelled) return
+        machine.initializeFromEmbed(embedData, api, creds, {
+          onAccept: config.onAccept,
+          onCancel: config.onCancel,
+          onClose: config.onClose,
+          onStepChange: config.onStepChange,
+        })
+        setIsLoading(false)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        setLoadError(err instanceof Error ? err : new Error(String(err)))
+        setIsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [config.session, config.onAccept, config.onCancel, config.onClose, config.onStepChange, machine])
+
+  useEffect(() => {
+    return loadConfig()
+  }, [loadConfig])
 
   return {
-    // State
     ...state,
-
-    // Computed
+    isLoading,
+    loadError,
     reasons: machine.reasons,
     stepIndex: machine.stepIndex,
     totalSteps: machine.totalSteps,
-
-    // Actions
-    selectReason: machine.selectReason.bind(machine),
-    setFeedback: machine.setFeedback.bind(machine),
-    accept: machine.accept.bind(machine),
-    decline: machine.decline.bind(machine),
-    cancel: machine.cancel.bind(machine),
-    next: machine.next.bind(machine),
-    back: machine.back.bind(machine),
-    close: machine.close.bind(machine),
+    selectReason: machine.selectReason,
+    setFeedback: machine.setFeedback,
+    accept: machine.accept,
+    decline: machine.decline,
+    cancel: machine.cancel,
+    next: machine.next,
+    back: machine.back,
+    close: machine.close,
   }
 }

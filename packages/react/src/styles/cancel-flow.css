@@ -1,0 +1,445 @@
+/* Churnkey Cancel Flow */
+
+@keyframes ck-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@layer ck {
+  /* --- CSS Custom Property Defaults --- */
+  .ck-cancel-flow {
+    --ck-color-primary: #2563eb;
+    --ck-color-primary-hover: #1d4ed8;
+    --ck-color-bg: #ffffff;
+    --ck-color-text: #1a1a2e;
+    --ck-color-text-secondary: #64748b;
+    --ck-color-border: #e2e8f0;
+    --ck-color-danger: #ef4444;
+    --ck-color-danger-hover: #dc2626;
+    --ck-color-success: #10b981;
+    --ck-font-family: system-ui, -apple-system, sans-serif;
+    --ck-font-size: 15px;
+    --ck-border-radius: 12px;
+
+    font-family: var(--ck-font-family);
+    font-size: var(--ck-font-size);
+    color: var(--ck-color-text);
+    line-height: 1.5;
+  }
+
+  /* --- Scoped Reset --- */
+  .ck-cancel-flow *,
+  .ck-cancel-flow *::before,
+  .ck-cancel-flow *::after {
+    box-sizing: border-box;
+    margin: 0;
+  }
+
+  /* --- Overlay --- */
+  .ck-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+  }
+
+  /* --- Focus --- */
+  .ck-cancel-flow :focus-visible {
+    outline: 2px solid var(--ck-color-primary);
+    outline-offset: 2px;
+  }
+
+  .ck-modal:focus {
+    outline: none;
+  }
+
+  /* --- Modal --- */
+  .ck-modal {
+    background: var(--ck-color-bg);
+    border-radius: var(--ck-border-radius);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  /* --- Header --- */
+  .ck-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 24px 24px 0;
+  }
+
+  .ck-header-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ck-header-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ck-color-text);
+    line-height: 1.3;
+  }
+
+  .ck-header-description {
+    font-size: 14px;
+    color: var(--ck-color-text-secondary);
+    margin-top: 4px;
+  }
+
+  .ck-header-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    color: var(--ck-color-text-secondary);
+    cursor: pointer;
+    border-radius: 8px;
+    flex-shrink: 0;
+    margin-left: 8px;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+
+  .ck-header-close:hover {
+    background: var(--ck-color-border);
+    color: var(--ck-color-text);
+  }
+
+  /* --- Progress Bar --- */
+  .ck-progress {
+    height: 3px;
+    background: var(--ck-color-border);
+    margin: 16px 24px 0;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .ck-progress-fill {
+    height: 100%;
+    background: var(--ck-color-primary);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  /* --- Content Area --- */
+  .ck-content {
+    padding: 20px 24px 24px;
+  }
+
+  /* --- Error Banner --- */
+  .ck-error {
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    background: color-mix(in srgb, var(--ck-color-danger) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ck-color-danger) 20%, transparent);
+    border-radius: var(--ck-border-radius);
+  }
+
+  .ck-error-message {
+    font-size: 14px;
+    color: var(--ck-color-danger);
+    font-weight: 500;
+  }
+
+  /* --- Steps (shared) --- */
+  .ck-step {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ck-step-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ck-color-text);
+    margin-bottom: 4px;
+  }
+
+  .ck-step-description {
+    font-size: 14px;
+    color: var(--ck-color-text-secondary);
+    margin-bottom: 16px;
+  }
+
+  /* --- Buttons --- */
+  .ck-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: inherit;
+    border: none;
+    border-radius: var(--ck-border-radius);
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      opacity 0.15s;
+    width: 100%;
+  }
+
+  .ck-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ck-button-primary {
+    background: var(--ck-color-primary);
+    color: #ffffff;
+  }
+
+  .ck-button-primary:hover:not(:disabled) {
+    background: var(--ck-color-primary-hover);
+  }
+
+  .ck-button-secondary {
+    background: var(--ck-color-border);
+    color: var(--ck-color-text);
+  }
+
+  .ck-button-secondary:hover:not(:disabled) {
+    background: #d1d5db;
+  }
+
+  .ck-button-danger {
+    background: var(--ck-color-danger);
+    color: #ffffff;
+  }
+
+  .ck-button-danger:hover:not(:disabled) {
+    background: var(--ck-color-danger-hover);
+  }
+
+  .ck-button-link {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ck-color-text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 4px;
+    transition: color 0.15s;
+  }
+
+  .ck-button-link:hover {
+    color: var(--ck-color-text);
+  }
+
+  /* --- Survey Step --- */
+  .ck-reason-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .ck-reason-button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-family: inherit;
+    border: 1.5px solid var(--ck-color-border);
+    border-radius: var(--ck-border-radius);
+    background: var(--ck-color-bg);
+    color: var(--ck-color-text);
+    cursor: pointer;
+    transition:
+      border-color 0.15s,
+      background 0.15s;
+  }
+
+  .ck-reason-button:hover {
+    border-color: var(--ck-color-primary);
+  }
+
+  .ck-reason-button--selected {
+    border-color: var(--ck-color-primary);
+    background: color-mix(in srgb, var(--ck-color-primary) 5%, transparent);
+  }
+
+  .ck-reason-label {
+    font-weight: 500;
+  }
+
+  /* --- Offer Step --- */
+  .ck-offer-card {
+    text-align: center;
+  }
+
+  .ck-offer-headline {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ck-color-text);
+    margin-bottom: 8px;
+  }
+
+  .ck-offer-body {
+    font-size: 15px;
+    color: var(--ck-color-text-secondary);
+    margin-bottom: 20px;
+  }
+
+  .ck-offer-details {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .ck-offer-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    background: color-mix(in srgb, var(--ck-color-success) 10%, transparent);
+    color: var(--ck-color-success);
+    border-radius: 100px;
+  }
+
+  .ck-offer-duration {
+    font-size: 14px;
+    color: var(--ck-color-text-secondary);
+  }
+
+  /* --- Plan Change Grid --- */
+  .ck-plan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  .ck-plan-card {
+    padding: 14px;
+    border: 1.5px solid var(--ck-color-border);
+    border-radius: var(--ck-border-radius);
+    background: var(--ck-color-bg);
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .ck-plan-card:hover {
+    border-color: var(--ck-color-primary);
+  }
+
+  .ck-plan-name {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ck-color-text);
+    margin-bottom: 4px;
+  }
+
+  .ck-plan-price {
+    display: block;
+    font-size: 14px;
+    color: var(--ck-color-text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .ck-plan-features {
+    list-style: none;
+    padding: 0;
+    font-size: 13px;
+    color: var(--ck-color-text-secondary);
+  }
+
+  .ck-plan-features li::before {
+    content: "\2713 ";
+    color: var(--ck-color-success);
+  }
+
+  /* --- Contact / Redirect Links --- */
+  .ck-offer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ck-color-primary);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .ck-offer-link:hover {
+    color: var(--ck-color-primary-hover);
+    text-decoration: underline;
+  }
+
+  /* --- Feedback Step --- */
+  .ck-textarea {
+    display: block;
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    line-height: 1.5;
+    border: 1.5px solid var(--ck-color-border);
+    border-radius: var(--ck-border-radius);
+    background: var(--ck-color-bg);
+    color: var(--ck-color-text);
+    resize: vertical;
+    margin-bottom: 16px;
+    transition: border-color 0.15s;
+  }
+
+  .ck-textarea:focus {
+    outline: none;
+    border-color: var(--ck-color-primary);
+  }
+
+  .ck-textarea::placeholder {
+    color: var(--ck-color-text-secondary);
+  }
+
+  .ck-character-count {
+    font-size: 13px;
+    color: var(--ck-color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  /* --- Confirm Step --- */
+  .ck-step-confirm {
+    text-align: center;
+  }
+
+  .ck-period-end {
+    font-size: 14px;
+    color: var(--ck-color-text-secondary);
+    margin-bottom: 20px;
+  }
+
+  /* --- Success Step --- */
+  .ck-step-success {
+    text-align: center;
+    padding: 12px 0;
+  }
+
+  .ck-success-icon {
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: center;
+  }
+}

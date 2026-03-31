@@ -1,5 +1,5 @@
-// Main barrel export — everything from core + headless
-// Components will be added in Phase 2
+// Main barrel export — everything
 
+export * from './components/index'
 export * from './core/index'
 export * from './headless/index'

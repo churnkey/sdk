@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { CancelFlowMachine } from '../../src/core/machine'
 
 const baseConfig = {
@@ -28,7 +28,7 @@ describe('CancelFlowMachine', () => {
   describe('initialization', () => {
     it('starts on survey step', () => {
       const machine = new CancelFlowMachine(baseConfig)
-      expect(machine.snapshot.step).toBe('survey')
+      expect(machine.getSnapshot().step).toBe('survey')
     })
 
     it('exposes reasons from config', () => {
@@ -39,12 +39,12 @@ describe('CancelFlowMachine', () => {
 
     it('has null selected reason initially', () => {
       const machine = new CancelFlowMachine(baseConfig)
-      expect(machine.snapshot.selectedReason).toBeNull()
+      expect(machine.getSnapshot().selectedReason).toBeNull()
     })
 
     it('has null recommendation initially', () => {
       const machine = new CancelFlowMachine(baseConfig)
-      expect(machine.snapshot.recommendation).toBeNull()
+      expect(machine.getSnapshot().recommendation).toBeNull()
     })
   })
 
@@ -52,28 +52,28 @@ describe('CancelFlowMachine', () => {
     it('selects a reason and populates recommendation when offer exists', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('expensive')
-      expect(machine.snapshot.selectedReason).toBe('expensive')
-      expect(machine.snapshot.recommendation).not.toBeNull()
-      expect(machine.snapshot.recommendation!.type).toBe('discount')
+      expect(machine.getSnapshot().selectedReason).toBe('expensive')
+      expect(machine.getSnapshot().recommendation).not.toBeNull()
+      expect(machine.getSnapshot().recommendation!.type).toBe('discount')
     })
 
     it('selects a reason with null recommendation when no offer', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('missing')
-      expect(machine.snapshot.selectedReason).toBe('missing')
-      expect(machine.snapshot.recommendation).toBeNull()
+      expect(machine.getSnapshot().selectedReason).toBe('missing')
+      expect(machine.getSnapshot().recommendation).toBeNull()
     })
 
     it('ignores unknown reason ids', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('nonexistent')
-      expect(machine.snapshot.selectedReason).toBeNull()
+      expect(machine.getSnapshot().selectedReason).toBeNull()
     })
 
     it('generates default copy for discount offer', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('expensive')
-      const copy = machine.snapshot.recommendation!.copy
+      const copy = machine.getSnapshot().recommendation!.copy
       expect(copy.headline).toContain('20%')
       expect(copy.cta).toBeTruthy()
       expect(copy.declineCta).toBeTruthy()
@@ -82,7 +82,7 @@ describe('CancelFlowMachine', () => {
     it('generates default copy for pause offer', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('not-using')
-      const copy = machine.snapshot.recommendation!.copy
+      const copy = machine.getSnapshot().recommendation!.copy
       expect(copy.headline).toContain('break')
       expect(copy.body).toContain('2 months')
     })
@@ -93,14 +93,14 @@ describe('CancelFlowMachine', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('expensive')
       machine.next()
-      expect(machine.snapshot.step).toBe('offer')
+      expect(machine.getSnapshot().step).toBe('offer')
     })
 
     it('skips offer step when reason has no offer', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('missing')
       machine.next()
-      expect(machine.snapshot.step).toBe('feedback')
+      expect(machine.getSnapshot().step).toBe('feedback')
     })
 
     it('navigates from offer to feedback', () => {
@@ -108,7 +108,7 @@ describe('CancelFlowMachine', () => {
       machine.selectReason('expensive')
       machine.next() // -> offer
       machine.next() // -> feedback
-      expect(machine.snapshot.step).toBe('feedback')
+      expect(machine.getSnapshot().step).toBe('feedback')
     })
 
     it('navigates from feedback to confirm', () => {
@@ -116,7 +116,7 @@ describe('CancelFlowMachine', () => {
       machine.selectReason('missing')
       machine.next() // -> feedback
       machine.next() // -> confirm
-      expect(machine.snapshot.step).toBe('confirm')
+      expect(machine.getSnapshot().step).toBe('confirm')
     })
   })
 
@@ -126,7 +126,7 @@ describe('CancelFlowMachine', () => {
       machine.selectReason('expensive')
       machine.next() // -> offer
       machine.back()
-      expect(machine.snapshot.step).toBe('survey')
+      expect(machine.getSnapshot().step).toBe('survey')
     })
 
     it('goes back from feedback to offer when offer exists', () => {
@@ -135,7 +135,7 @@ describe('CancelFlowMachine', () => {
       machine.next() // -> offer
       machine.next() // -> feedback
       machine.back()
-      expect(machine.snapshot.step).toBe('offer')
+      expect(machine.getSnapshot().step).toBe('offer')
     })
 
     it('goes back from feedback to survey when no offer', () => {
@@ -143,7 +143,7 @@ describe('CancelFlowMachine', () => {
       machine.selectReason('missing')
       machine.next() // -> feedback
       machine.back()
-      expect(machine.snapshot.step).toBe('survey')
+      expect(machine.getSnapshot().step).toBe('survey')
     })
 
     it('goes back from confirm to feedback', () => {
@@ -152,13 +152,13 @@ describe('CancelFlowMachine', () => {
       machine.next() // -> feedback
       machine.next() // -> confirm
       machine.back()
-      expect(machine.snapshot.step).toBe('feedback')
+      expect(machine.getSnapshot().step).toBe('feedback')
     })
 
     it('does nothing when on survey', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.back()
-      expect(machine.snapshot.step).toBe('survey')
+      expect(machine.getSnapshot().step).toBe('survey')
     })
   })
 
@@ -177,7 +177,7 @@ describe('CancelFlowMachine', () => {
       const machine = new CancelFlowMachine(noFeedbackConfig)
       machine.selectReason('missing')
       machine.next()
-      expect(machine.snapshot.step).toBe('confirm')
+      expect(machine.getSnapshot().step).toBe('confirm')
     })
 
     it('goes back from confirm to survey when no feedback and no offer', () => {
@@ -185,7 +185,7 @@ describe('CancelFlowMachine', () => {
       machine.selectReason('missing')
       machine.next() // -> confirm
       machine.back()
-      expect(machine.snapshot.step).toBe('survey')
+      expect(machine.getSnapshot().step).toBe('survey')
     })
   })
 
@@ -205,25 +205,28 @@ describe('CancelFlowMachine', () => {
           reasonId: 'expensive',
         }),
       )
-      expect(machine.snapshot.step).toBe('success')
-      expect(machine.snapshot.outcome).toBe('saved')
+      expect(machine.getSnapshot().step).toBe('success')
+      expect(machine.getSnapshot().outcome).toBe('saved')
     })
 
     it('sets isProcessing during accept', async () => {
       let resolveAccept: () => void
       const onAccept = vi.fn(
-        () => new Promise<void>((resolve) => { resolveAccept = resolve }),
+        () =>
+          new Promise<void>((resolve) => {
+            resolveAccept = resolve
+          }),
       )
       const machine = new CancelFlowMachine({ ...baseConfig, onAccept })
       machine.selectReason('expensive')
       machine.next()
 
       const acceptPromise = machine.accept()
-      expect(machine.snapshot.isProcessing).toBe(true)
+      expect(machine.getSnapshot().isProcessing).toBe(true)
 
       resolveAccept!()
       await acceptPromise
-      expect(machine.snapshot.isProcessing).toBe(false)
+      expect(machine.getSnapshot().isProcessing).toBe(false)
     })
 
     it('handles accept errors', async () => {
@@ -234,9 +237,9 @@ describe('CancelFlowMachine', () => {
       machine.next()
       await machine.accept()
 
-      expect(machine.snapshot.isProcessing).toBe(false)
-      expect(machine.snapshot.error).toBe(error)
-      expect(machine.snapshot.step).toBe('offer') // stays on offer
+      expect(machine.getSnapshot().isProcessing).toBe(false)
+      expect(machine.getSnapshot().error).toBe(error)
+      expect(machine.getSnapshot().step).toBe('offer') // stays on offer
     })
 
     it('does nothing without a recommendation', async () => {
@@ -253,7 +256,7 @@ describe('CancelFlowMachine', () => {
       machine.selectReason('expensive')
       machine.next() // -> offer
       machine.decline()
-      expect(machine.snapshot.step).toBe('feedback')
+      expect(machine.getSnapshot().step).toBe('feedback')
     })
   })
 
@@ -267,8 +270,8 @@ describe('CancelFlowMachine', () => {
       await machine.cancel()
 
       expect(onCancel).toHaveBeenCalled()
-      expect(machine.snapshot.step).toBe('success')
-      expect(machine.snapshot.outcome).toBe('cancelled')
+      expect(machine.getSnapshot().step).toBe('success')
+      expect(machine.getSnapshot().outcome).toBe('cancelled')
     })
 
     it('handles cancel errors', async () => {
@@ -280,8 +283,8 @@ describe('CancelFlowMachine', () => {
       machine.next()
       await machine.cancel()
 
-      expect(machine.snapshot.error).toBe(error)
-      expect(machine.snapshot.step).toBe('confirm') // stays on confirm
+      expect(machine.getSnapshot().error).toBe(error)
+      expect(machine.getSnapshot().step).toBe('confirm') // stays on confirm
     })
   })
 
@@ -289,7 +292,7 @@ describe('CancelFlowMachine', () => {
     it('updates feedback text', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.setFeedback('Great product but too expensive')
-      expect(machine.snapshot.feedback).toBe('Great product but too expensive')
+      expect(machine.getSnapshot().feedback).toBe('Great product but too expensive')
     })
   })
 
@@ -386,6 +389,253 @@ describe('CancelFlowMachine', () => {
         ],
       })
       expect(machine.getStepConfig('feedback')).toBeUndefined()
+    })
+  })
+
+  describe('token mode initialization', () => {
+    it('initializes from embed data via initializeFromEmbed', () => {
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder' })
+      // Machine starts with empty config
+      expect(machine.reasons).toHaveLength(0)
+
+      const embedData = {
+        blueprint: {
+          _id: 'bp_1',
+          steps: [
+            {
+              stepType: 'SURVEY' as const,
+              enabled: true,
+              header: 'Why cancel?',
+              survey: {
+                choices: [
+                  { guid: 'r1', value: 'Too expensive' },
+                  { guid: 'r2', value: 'Not using it' },
+                ],
+              },
+            },
+            {
+              stepType: 'CONFIRM' as const,
+              enabled: true,
+            },
+          ],
+        },
+        coupons: [],
+        offerPlans: [],
+        customer: null,
+        sessions: [],
+      }
+
+      const mockApi = {} as any
+      const mockCreds = {
+        appId: 'app_1',
+        customerId: 'cus_1',
+        authHash: 'hash',
+        mode: 'live' as const,
+        issuedAt: 0,
+      }
+
+      machine.initializeFromEmbed(embedData, mockApi, mockCreds, {})
+
+      expect(machine.reasons).toHaveLength(2)
+      expect(machine.reasons[0].id).toBe('r1')
+      expect(machine.reasons[0].label).toBe('Too expensive')
+      expect(machine.getSnapshot().step).toBe('survey')
+    })
+
+    it('resets state when initialized from embed', () => {
+      const machine = new CancelFlowMachine({
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      machine.next() // -> confirm
+
+      const embedData = {
+        blueprint: {
+          _id: 'bp_1',
+          steps: [
+            {
+              stepType: 'SURVEY' as const,
+              enabled: true,
+              survey: { choices: [{ guid: 'x', value: 'X' }] },
+            },
+            { stepType: 'CONFIRM' as const, enabled: true },
+          ],
+        },
+        coupons: [],
+        offerPlans: [],
+        customer: null,
+        sessions: [],
+      }
+
+      machine.initializeFromEmbed(
+        embedData,
+        {} as any,
+        { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+        {},
+      )
+
+      expect(machine.getSnapshot().step).toBe('survey')
+      expect(machine.getSnapshot().selectedReason).toBeNull()
+    })
+  })
+
+  describe('custom steps', () => {
+    const customConfig = {
+      steps: [
+        {
+          type: 'survey' as const,
+          reasons: [
+            { id: 'seats', label: 'Too many seats', offer: { type: 'change-seats', data: { minSeats: 1 } } },
+            { id: 'other', label: 'Other' },
+          ],
+        },
+        { type: 'nps', title: 'Quick question', data: { scale: 10 } },
+        { type: 'feedback' as const },
+        { type: 'confirm' as const },
+      ],
+    }
+
+    it('navigates through custom steps in order', () => {
+      const machine = new CancelFlowMachine(customConfig)
+      machine.selectReason('other')
+      machine.next() // survey → nps (no offer, so skip offer)
+      expect(machine.getSnapshot().step).toBe('nps')
+
+      machine.next() // nps → feedback
+      expect(machine.getSnapshot().step).toBe('feedback')
+
+      machine.next() // feedback → confirm
+      expect(machine.getSnapshot().step).toBe('confirm')
+    })
+
+    it('inserts implicit offer step before custom steps when reason has offer', () => {
+      const machine = new CancelFlowMachine(customConfig)
+      machine.selectReason('seats')
+      machine.next() // survey → offer (implicit)
+      expect(machine.getSnapshot().step).toBe('offer')
+
+      machine.next() // offer → nps
+      expect(machine.getSnapshot().step).toBe('nps')
+    })
+
+    it('back navigation works through custom steps', () => {
+      const machine = new CancelFlowMachine(customConfig)
+      machine.selectReason('other')
+      machine.next() // → nps
+      machine.next() // → feedback
+      machine.back() // → nps
+      expect(machine.getSnapshot().step).toBe('nps')
+
+      machine.back() // → survey
+      expect(machine.getSnapshot().step).toBe('survey')
+    })
+
+    it('tracks correct step count with custom steps', () => {
+      const machine = new CancelFlowMachine(customConfig)
+      machine.selectReason('other')
+      // survey + nps + feedback + confirm = 4
+      expect(machine.totalSteps).toBe(4)
+    })
+
+    it('tracks correct step count with custom steps and offer', () => {
+      const machine = new CancelFlowMachine(customConfig)
+      machine.selectReason('seats')
+      // survey + offer + nps + feedback + confirm = 5
+      expect(machine.totalSteps).toBe(5)
+    })
+
+    it('fires onStepChange for custom step transitions', () => {
+      const onStepChange = vi.fn()
+      const machine = new CancelFlowMachine({ ...customConfig, onStepChange })
+      machine.selectReason('other')
+      machine.next()
+      expect(onStepChange).toHaveBeenCalledWith('nps', 'survey')
+    })
+  })
+
+  describe('custom offer types', () => {
+    it('creates OfferDecision for custom offer types', () => {
+      const config = {
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [
+              {
+                id: 'seats',
+                label: 'Too many seats',
+                offer: { type: 'change-seats', data: { minSeats: 1, pricePerSeat: 10 } },
+              },
+            ],
+          },
+          { type: 'confirm' as const },
+        ],
+      }
+      const machine = new CancelFlowMachine(config)
+      machine.selectReason('seats')
+
+      const rec = machine.getSnapshot().recommendation
+      expect(rec).not.toBeNull()
+      expect(rec!.type).toBe('change-seats')
+      expect((rec as any).data).toEqual({ minSeats: 1, pricePerSeat: 10 })
+      expect(rec!.copy.headline).toBeTruthy() // gets default copy
+    })
+
+    it('accept builds AcceptedOffer for custom types', async () => {
+      const onAccept = vi.fn()
+      const config = {
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [{ id: 'seats', label: 'Too many seats', offer: { type: 'change-seats', data: { minSeats: 1 } } }],
+          },
+          { type: 'confirm' as const },
+        ],
+        onAccept,
+      }
+      const machine = new CancelFlowMachine(config)
+      machine.selectReason('seats')
+      machine.next() // → offer
+      await machine.accept()
+
+      expect(onAccept).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'change-seats',
+          reasonId: 'seats',
+        }),
+      )
+    })
+  })
+
+  describe('customer exposure', () => {
+    it('exposes customer as null in local mode', () => {
+      const machine = new CancelFlowMachine(baseConfig)
+      expect(machine.getSnapshot().customer).toBeNull()
+    })
+
+    it('exposes customer from embed data in token mode', () => {
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder' })
+      const mockCustomer = { id: 'cus_123', email: 'test@example.com' }
+
+      machine.initializeFromEmbed(
+        {
+          blueprint: {
+            _id: 'bp_1',
+            steps: [
+              { stepType: 'SURVEY' as const, enabled: true, survey: { choices: [{ guid: 'r1', value: 'Test' }] } },
+              { stepType: 'CONFIRM' as const, enabled: true },
+            ],
+          },
+          coupons: [],
+          offerPlans: [],
+          customer: mockCustomer as any,
+          sessions: [],
+        },
+        {} as any,
+        { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+        {},
+      )
+
+      expect(machine.getSnapshot().customer).toEqual(mockCustomer)
     })
   })
 })
