@@ -1,8 +1,8 @@
 # @churnkey/react
 
-A production-ready cancel flow for React. Beautiful out of the box, fully customizable, extensible with custom step and offer types.
+Drop-in cancel flow for React. Looks great out of the box, fully customizable, works with any billing system.
 
-Works standalone (free, open source) or with [Churnkey](https://churnkey.co) for AI-powered retention.
+Free and open source. Optionally connects to [Churnkey](https://churnkey.co) for analytics and AI-powered retention.
 
 ## Install
 
@@ -16,75 +16,63 @@ npm install @churnkey/react
 import { CancelFlow } from '@churnkey/react'
 import '@churnkey/react/styles.css'
 
-function Settings() {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <>
-      <button onClick={() => setOpen(true)}>Cancel subscription</button>
-      {open && (
-        <CancelFlow
-          steps={[
-            {
-              type: 'survey',
-              title: 'Why are you leaving?',
-              reasons: [
-                { id: 'expensive', label: 'Too expensive',
-                  offer: { type: 'discount', percent: 20, months: 3 } },
-                { id: 'not-using', label: 'Not using it enough',
-                  offer: { type: 'pause', months: 2 } },
-                { id: 'missing', label: 'Missing features' },
-              ],
-            },
-            { type: 'feedback', title: 'Anything else?' },
-            { type: 'confirm' },
-          ]}
-          onAccept={async (offer) => {
-            if (offer.type === 'discount') await applyDiscount(offer.couponId)
-            if (offer.type === 'pause') await pauseSubscription(offer.months)
-          }}
-          onCancel={async () => await cancelSubscription()}
-          onClose={() => setOpen(false)}
-        />
-      )}
-    </>
-  )
-}
+<CancelFlow
+  steps={[
+    {
+      type: 'survey',
+      title: 'Why are you leaving?',
+      reasons: [
+        { id: 'expensive', label: 'Too expensive',
+          offer: { type: 'discount', percent: 20, months: 3 } },
+        { id: 'not-using', label: 'Not using it enough',
+          offer: { type: 'pause', months: 2 } },
+        { id: 'missing', label: 'Missing features' },
+      ],
+    },
+    { type: 'feedback', title: 'Anything else?' },
+    { type: 'confirm' },
+  ]}
+  onAccept={async (offer) => {
+    if (offer.type === 'discount') await applyDiscount(offer)
+    if (offer.type === 'pause') await pauseSubscription(offer)
+  }}
+  onCancel={async () => await cancelSubscription()}
+  onClose={() => setOpen(false)}
+/>
 ```
 
-## Customization levels
+That's it. You get a modal with a survey, personalized offers, feedback collection, and a confirmation step. No account required, no data sent anywhere.
 
-### 1. Appearance API
+## Theming
+
+Four built-in themes with dark mode support:
 
 ```tsx
 <CancelFlow
+  appearance={{ theme: 'minimal', colorScheme: 'dark' }}
   steps={steps}
-  appearance={{
-    theme: 'minimal',
-    variables: { colorPrimary: '#7c3aed', borderRadius: '16px' },
-  }}
   onAccept={handleOffer}
   onCancel={handleCancel}
 />
 ```
 
-### 2. className overrides
+Override individual variables, or use `classNames` for Tailwind/CSS modules:
 
 ```tsx
 <CancelFlow
+  appearance={{ theme: 'rounded', variables: { colorPrimary: '#7c3aed' } }}
+  classNames={{ modal: 'max-w-lg shadow-2xl' }}
   steps={steps}
-  classNames={{
-    modal: 'max-w-lg rounded-2xl shadow-2xl',
-    overlay: 'bg-black/60 backdrop-blur-sm',
-  }}
   onAccept={handleOffer}
   onCancel={handleCancel}
 />
 ```
 
-### 3. Component overrides
+Themes: `default`, `minimal`, `rounded`, `corporate`. Each has light and dark variants.
 
-Replace any sub-component while keeping the flow logic:
+## Component overrides
+
+Replace any part of the UI while keeping the flow logic:
 
 ```tsx
 <CancelFlow
@@ -93,7 +81,7 @@ Replace any sub-component while keeping the flow logic:
     ReasonButton: ({ reason, isSelected, onSelect }) => (
       <button
         onClick={() => onSelect(reason.id)}
-        className={isSelected ? 'selected' : ''}
+        className={isSelected ? 'border-blue-500' : 'border-gray-200'}
       >
         {reason.label}
       </button>
@@ -104,9 +92,11 @@ Replace any sub-component while keeping the flow logic:
 />
 ```
 
-### 4. Custom step and offer types
+Overridable: `Modal`, `Header`, `Survey`, `Offer`, `Feedback`, `Confirm`, `Success`, `ReasonButton`, `OfferCard`, and all offer detail components.
 
-Define your own step types with custom rendering:
+## Custom steps and offers
+
+The step system is open. Define any step type and register a component for it:
 
 ```tsx
 <CancelFlow
@@ -115,7 +105,7 @@ Define your own step types with custom rendering:
       { id: 'seats', label: 'Too many seats',
         offer: { type: 'change-seats', data: { minSeats: 1 } } },
     ]},
-    { type: 'nps', title: 'Quick question', data: { scale: 10 } },
+    { type: 'nps', title: 'One quick question', data: { scale: 10 } },
     { type: 'feedback' },
     { type: 'confirm' },
   ]}
@@ -132,44 +122,48 @@ Define your own step types with custom rendering:
 />
 ```
 
-### 5. Headless hook
+Custom steps navigate like built-in ones. Custom offers appear when a reason with that offer type is selected. Both record to analytics.
 
-Full UI control — bring your own components:
+## Headless mode
+
+Skip the UI entirely and build your own:
 
 ```tsx
 import { useCancelFlow } from '@churnkey/react/headless'
 
 function MyCancelPage() {
-  const flow = useCancelFlow({
-    steps,
-    onAccept: handleOffer,
-    onCancel: handleCancel,
-  })
+  const flow = useCancelFlow({ steps, onAccept: handleOffer, onCancel: handleCancel })
 
-  return (
-    <div>
-      {flow.step === 'survey' && flow.reasons.map((r) => (
-        <button key={r.id} onClick={() => flow.selectReason(r.id)}>
-          {r.label}
-        </button>
-      ))}
-      {flow.step === 'offer' && (
-        <>
-          <p>{flow.recommendation.copy.headline}</p>
-          <button onClick={flow.accept}>Accept</button>
-          <button onClick={flow.decline}>No thanks</button>
-        </>
-      )}
-    </div>
-  )
+  if (flow.step === 'survey') {
+    return (
+      <div>
+        {flow.reasons.map((r) => (
+          <button key={r.id} onClick={() => flow.selectReason(r.id)}>{r.label}</button>
+        ))}
+        <button onClick={flow.next} disabled={!flow.selectedReason}>Continue</button>
+      </div>
+    )
+  }
+
+  if (flow.step === 'offer' && flow.recommendation) {
+    return (
+      <div>
+        <h2>{flow.recommendation.copy.headline}</h2>
+        <button onClick={flow.accept}>Accept</button>
+        <button onClick={flow.decline}>No thanks</button>
+      </div>
+    )
+  }
+
+  // ... feedback, confirm, success
 }
 ```
 
-## Connect to Churnkey
+The hook gives you `step`, `reasons`, `recommendation`, `feedback`, `outcome`, `isProcessing`, and all the actions (`selectReason`, `next`, `back`, `accept`, `decline`, `cancel`, `close`).
 
-### Analytics (no backend work)
+## Add analytics
 
-Add `appId` and `customer` to enable session recording and dashboard analytics. Steps and offers are still defined in your code.
+Sign up at [churnkey.co](https://churnkey.co), get an app ID, and add two props. The SDK starts recording sessions — you get cancel reason breakdowns, save rates, and offer effectiveness on the Churnkey dashboard.
 
 ```tsx
 <CancelFlow
@@ -181,7 +175,7 @@ Add `appId` and `customer` to enable session recording and dashboard analytics. 
 />
 ```
 
-For richer analytics (revenue, plan segmentation), add `subscriptions` using the [Churnkey Direct format](https://docs.churnkey.co/billing-providers/direct-connect/direct):
+For revenue analytics, pass subscription data:
 
 ```tsx
 <CancelFlow
@@ -199,40 +193,40 @@ For richer analytics (revenue, plan segmentation), add `subscriptions` using the
 />
 ```
 
-### Connected (billing actions + server config)
+No backend changes. Your steps and callbacks stay the same.
 
-Add a session token to let Churnkey execute billing actions and provide server-driven flow config.
+## Let Churnkey handle billing
 
-**Server:**
+Generate a token on your server and Churnkey will apply discounts, pause subscriptions, and execute cancellations via your billing provider.
 
 ```typescript
+// Server
 import { Churnkey } from '@churnkey/node'
 
-const ck = new Churnkey({ appId: 'app_...', apiKey: 'sk_...' })
+const ck = new Churnkey({ appId: 'app_xxx', apiKey: 'sk_xxx' })
 const token = ck.createToken({ customerId: 'cus_123' })
 ```
 
-**Client:**
-
 ```tsx
+// Client
 <CancelFlow
   appId="app_xxx"
   customer={{ id: 'cus_123', email: 'jane@acme.com' }}
   subscriptions={[...]}
   session={token}
-  onAccept={async (offer) => { /* runs AFTER the SDK applies the offer */ }}
-  onCancel={async () => { /* runs AFTER the SDK cancels */ }}
+  onAccept={async (offer) => console.log('Applied:', offer)}
+  onCancel={async () => router.push('/goodbye')}
 />
 ```
 
-Each step adds props. No step removes or changes them. Custom components and appearance settings carry over unchanged.
+The flow config comes from the Churnkey dashboard. Your theme, component overrides, and custom steps still work.
 
-## Subpath exports
+## Imports
 
 ```tsx
-import { CancelFlow } from '@churnkey/react'              // everything
-import { useCancelFlow } from '@churnkey/react/headless'   // hook only, no UI
-import { CancelFlowMachine } from '@churnkey/react/core'   // state machine, no React
+import { CancelFlow } from '@churnkey/react'              // drop-in component
+import { useCancelFlow } from '@churnkey/react/headless'   // headless hook
+import { CancelFlowMachine } from '@churnkey/react/core'   // state machine (no React)
 ```
 
 ## License

@@ -1,6 +1,8 @@
 # @churnkey/node
 
-Server-side SDK for [Churnkey](https://churnkey.co). Generate session tokens for use with `@churnkey/react`.
+Server-side token generation for [Churnkey](https://churnkey.co). Lets Churnkey execute billing actions (apply discounts, pause subscriptions, cancel) on behalf of your customers.
+
+You only need this package if you want Churnkey to handle billing operations. For analytics-only, `@churnkey/react` works without a token.
 
 ## Install
 
@@ -18,35 +20,47 @@ const ck = new Churnkey({
   apiKey: process.env.CHURNKEY_API_KEY,
 })
 
-// Generate a token for a customer
 const token = ck.createToken({ customerId: 'cus_123' })
+```
 
-// For multi-subscription customers, specify the subscription
+Pass the token to your frontend:
+
+```tsx
+<CancelFlow
+  appId="app_xxx"
+  customer={{ id: 'cus_123', email: 'jane@acme.com' }}
+  session={token}
+  onAccept={async (offer) => console.log('Applied:', offer)}
+  onCancel={async () => router.push('/goodbye')}
+/>
+```
+
+For multi-subscription customers:
+
+```typescript
 const token = ck.createToken({
   customerId: 'cus_123',
   subscriptionId: 'sub_456',
 })
 ```
 
-Pass the token to your frontend and use it with `@churnkey/react`:
-
-```tsx
-<CancelFlow session={token} onAccept={...} onCancel={...} />
-```
-
-The token is a credential envelope (not a JWT). It authenticates the SDK to fetch config and execute actions via the Churnkey API. Token creation is a local HMAC computation — no API call.
+Token creation is a local HMAC computation. No API call, no latency.
 
 ## API
 
-### `new Churnkey(config)`
+### `new Churnkey({ appId, apiKey })`
 
-- `config.appId` — Your Churnkey app ID
-- `config.apiKey` — Your Churnkey API key (secret, server-side only)
+| Param | Description |
+|-------|-------------|
+| `appId` | Your Churnkey app ID |
+| `apiKey` | Your Churnkey API key (secret — server-side only) |
 
-### `ck.createToken(params)`
+### `ck.createToken({ customerId, subscriptionId? })`
 
-- `params.customerId` — The payment provider customer ID (e.g. Stripe `cus_...`)
-- `params.subscriptionId` — (optional) Specific subscription ID for multi-sub customers
+| Param | Description |
+|-------|-------------|
+| `customerId` | Payment provider customer ID (e.g. Stripe `cus_...`) |
+| `subscriptionId` | Optional. Targets a specific subscription for multi-sub customers. |
 
 Returns a `ck_`-prefixed token string.
 
