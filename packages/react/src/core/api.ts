@@ -1,5 +1,6 @@
 import type { EmbedResponse } from './api-types'
 import type { SessionCredentials } from './token'
+import type { DirectCustomer, DirectSubscription } from './types'
 
 const DEFAULT_BASE_URL = 'https://api.churnkey.co/v1'
 
@@ -7,7 +8,15 @@ export interface SessionPayload {
   blueprintId?: string
   customer?: {
     id: string
+    email?: string
     subscriptionId?: string
+    planId?: string
+    planPrice?: number
+    currency?: string
+    billingInterval?: string
+    created?: string
+    onTrial?: boolean
+    customAttributes?: Record<string, unknown>
   }
   canceled?: boolean
   surveyChoiceId?: string
@@ -116,5 +125,49 @@ export class ChurnkeyApi {
 
   async createSession(payload: SessionPayload): Promise<void> {
     await this.request(`${this.baseUrl}/api/sessions`, payload)
+  }
+}
+
+export class AnalyticsClient {
+  private appId: string
+  private baseUrl: string
+
+  constructor(appId: string, baseUrl?: string) {
+    this.appId = appId
+    this.baseUrl = baseUrl ?? DEFAULT_BASE_URL
+  }
+
+  async createSession(payload: SessionPayload): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/sessions/sdk`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-ck-app': this.appId,
+      },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) return // analytics failures are silent
+  }
+}
+
+export function directDataToSessionCustomer(
+  customer: DirectCustomer,
+  subscriptions?: DirectSubscription[],
+): SessionPayload['customer'] {
+  const sub = subscriptions?.[0]
+  const item = sub?.items[0]
+  const price = item?.price
+
+  return {
+    id: customer.id,
+    email: customer.email,
+    subscriptionId: sub?.id,
+    planId: price?.id,
+    planPrice: price?.amount.value,
+    currency: price?.amount.currency ?? customer.currency ?? 'usd',
+    billingInterval: price?.interval?.toUpperCase(),
+    created: sub?.start != null ? String(sub.start instanceof Date ? sub.start.toISOString() : sub.start) : undefined,
+    onTrial: sub?.status.name === 'trial',
+    customAttributes: customer.metadata,
   }
 }

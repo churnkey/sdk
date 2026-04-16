@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { darkDefaults, themes } from './themes'
+import { themes } from './themes'
 import type { Appearance, ThemeVariables } from './types'
 
 export const BUILT_IN_STEP_TYPES: readonly string[] = ['survey', 'offer', 'feedback', 'confirm', 'success']
@@ -26,10 +26,9 @@ export function appearanceToStyle(
   appearance?: Appearance,
   resolvedScheme: 'light' | 'dark' = 'light',
 ): CSSProperties | undefined {
-  const dark = resolvedScheme === 'dark' ? darkDefaults : undefined
-  const themeVars = appearance?.theme ? themes[appearance.theme] : undefined
-  // dark defaults → theme preset → explicit overrides
-  const merged = { ...dark, ...themeVars, ...appearance?.variables }
+  const theme = appearance?.theme ? themes[appearance.theme] : undefined
+  const themeVars = theme?.[resolvedScheme] ?? theme?.light
+  const merged = { ...themeVars, ...appearance?.variables }
 
   if (Object.keys(merged).length === 0) return undefined
 

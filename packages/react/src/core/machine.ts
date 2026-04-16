@@ -1,10 +1,13 @@
 import type { ChurnkeyApi, SessionPayload } from './api'
+import { AnalyticsClient, directDataToSessionCustomer } from './api'
 import type { BlueprintSurveyChoice, EmbedResponse } from './api-types'
 import type { SessionCredentials } from './token'
 import { buildOfferDecision, defaultOfferCopy, transformEmbedResponse } from './transform'
 import type {
   AcceptedOffer,
   BuiltInOfferConfig,
+  DirectCustomer,
+  DirectSubscription,
   FlowConfig,
   FlowState,
   OfferConfig,
@@ -29,6 +32,9 @@ export class CancelFlowMachine {
   private listeners: Set<() => void> = new Set()
 
   private apiClient: ChurnkeyApi | null = null
+  private analyticsClient: AnalyticsClient | null = null
+  private directCustomer: DirectCustomer | null = null
+  private directSubscriptions: DirectSubscription[] | null = null
   private creds: SessionCredentials | null = null
   private embedData: EmbedResponse | null = null
   private blueprintId: string | null = null
@@ -38,6 +44,11 @@ export class CancelFlowMachine {
 
   constructor(config: FlowConfig) {
     this.config = this.resolveConfig(config)
+    if (config.appId && config.customer) {
+      this.analyticsClient = new AnalyticsClient(config.appId)
+      this.directCustomer = config.customer
+      this.directSubscriptions = config.subscriptions ?? null
+    }
     const firstStep = this.config.steps[0]?.type ?? 'survey'
     this.state = {
       step: firstStep,
@@ -351,26 +362,37 @@ export class CancelFlowMachine {
   }
 
   private recordOutcome(outcome: 'saved' | 'cancelled'): void {
-    if (!this.isTokenMode() || !this.apiClient || !this.creds) return
+    const client = this.apiClient ?? this.analyticsClient
+    if (!client) return
 
     this.finalizeStepView(this.state.step)
 
     const selectedReason = this.config.reasons.find((r) => r.id === this.state.selectedReason)
     const rec = this.state.recommendation
 
+    const customer = this.creds
+      ? {
+          id: this.creds.customerId,
+          subscriptionId: this.creds.subscriptionId,
+          ...(this.directCustomer
+            ? directDataToSessionCustomer(this.directCustomer, this.directSubscriptions ?? undefined)
+            : {}),
+        }
+      : this.directCustomer
+        ? directDataToSessionCustomer(this.directCustomer, this.directSubscriptions ?? undefined)
+        : undefined
+
     const payload: SessionPayload = {
       blueprintId: this.blueprintId ?? undefined,
-      customer: {
-        id: this.creds.customerId,
-        subscriptionId: this.creds.subscriptionId,
-      },
+      customer,
       canceled: outcome === 'cancelled',
       surveyChoiceId: this.state.selectedReason ?? undefined,
       surveyChoiceValue: selectedReason?.label,
       feedback: this.state.feedback || undefined,
       presentedOffers: this.presentedOffers,
       stepsViewed: this.stepsViewed,
-      mode: this.creds.mode === 'test' ? 'TEST' : 'LIVE',
+      mode: this.creds?.mode === 'test' ? 'TEST' : 'LIVE',
+      provider: this.isTokenMode() ? undefined : 'sdk-react',
       embedVersion: 'sdk-react',
     }
 
@@ -401,6 +423,6 @@ export class CancelFlowMachine {
       }
     }
 
-    this.apiClient.createSession(payload).catch(() => {})
+    client.createSession(payload).catch(() => {})
   }
 }

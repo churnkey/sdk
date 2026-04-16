@@ -606,6 +606,144 @@ describe('CancelFlowMachine', () => {
     })
   })
 
+  describe('analytics mode (appId + customer)', () => {
+    it('records session when appId and customer are present', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123', email: 'test@example.com' },
+        subscriptions: [
+          {
+            id: 'sub_456',
+            start: '2024-06-01',
+            status: { name: 'active' as const, currentPeriod: { start: '2025-04-01', end: '2025-05-01' } },
+            items: [{ price: { id: 'price_pro', amount: { value: 2999 } } }],
+          },
+        ],
+        steps: [
+          { type: 'survey' as const, reasons: [{ id: 'expensive', label: 'Too expensive' }] },
+          { type: 'confirm' as const },
+        ],
+      })
+      machine.selectReason('expensive')
+      machine.next() // → confirm
+      await machine.cancel()
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/api/sessions/sdk'),
+        expect.objectContaining({ method: 'POST' }),
+      )
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.customer.id).toBe('cus_123')
+      expect(body.customer.email).toBe('test@example.com')
+      expect(body.customer.subscriptionId).toBe('sub_456')
+      expect(body.customer.planId).toBe('price_pro')
+      expect(body.customer.planPrice).toBe(2999)
+      expect(body.canceled).toBe(true)
+      expect(body.embedVersion).toBe('sdk-react')
+      fetchSpy.mockRestore()
+    })
+
+    it('maps subscription billing interval to session field', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        subscriptions: [
+          {
+            id: 'sub_456',
+            start: '2024-06-01',
+            status: { name: 'active' as const, currentPeriod: { start: '2025-04-01', end: '2025-05-01' } },
+            items: [{ price: { id: 'price_pro', amount: { value: 9900, currency: 'eur' }, interval: 'year' } }],
+          },
+        ],
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.cancel()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.customer.billingInterval).toBe('YEAR')
+      expect(body.customer.currency).toBe('eur')
+      expect(body.customer.planPrice).toBe(9900)
+      fetchSpy.mockRestore()
+    })
+
+    it('detects trial status from subscription', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        subscriptions: [
+          {
+            id: 'sub_456',
+            start: '2024-06-01',
+            status: { name: 'trial' as const, trial: { start: '2025-04-01', end: '2025-04-14' } },
+            items: [{ price: { id: 'price_pro', amount: { value: 2999 } } }],
+          },
+        ],
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.cancel()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.customer.onTrial).toBe(true)
+      fetchSpy.mockRestore()
+    })
+
+    it('does not record session without appId', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.cancel()
+
+      expect(fetchSpy).not.toHaveBeenCalled()
+      fetchSpy.mockRestore()
+    })
+
+    it('records accepted offer in analytics mode', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        subscriptions: [
+          {
+            id: 'sub_456',
+            start: '2024-06-01',
+            status: { name: 'active' as const, currentPeriod: { start: '2025-04-01', end: '2025-05-01' } },
+            items: [{ price: { id: 'price_pro', amount: { value: 2999 } } }],
+          },
+        ],
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [
+              { id: 'expensive', label: 'Too expensive', offer: { type: 'discount' as const, percent: 20, months: 3 } },
+            ],
+          },
+          { type: 'confirm' as const },
+        ],
+        onAccept: vi.fn(),
+      })
+      machine.selectReason('expensive')
+      machine.next() // → offer
+      await machine.accept()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.canceled).toBe(false)
+      expect(body.acceptedOffer.offerType).toBe('DISCOUNT')
+      expect(body.acceptedOffer.couponAmount).toBe(20)
+      fetchSpy.mockRestore()
+    })
+  })
+
   describe('customer exposure', () => {
     it('exposes customer as null in local mode', () => {
       const machine = new CancelFlowMachine(baseConfig)

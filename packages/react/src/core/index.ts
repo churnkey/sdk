@@ -1,8 +1,8 @@
 export type { SessionPayload } from './api'
-export { ChurnkeyApi } from './api'
+export { AnalyticsClient, ChurnkeyApi } from './api'
 export { calculateDiscountedPrice, formatPrice } from './format'
 export { CancelFlowMachine } from './machine'
-export { darkDefaults, themes } from './themes'
+export { themes } from './themes'
 export type { SessionCredentials } from './token'
 export { decodeSessionToken } from './token'
 export type {
@@ -23,6 +23,9 @@ export type {
   CustomOfferProps,
   CustomStepConfig,
   CustomStepProps,
+  DirectCustomer,
+  DirectSubscription,
+  DirectSubscriptionItem,
   DiscountDetailsProps,
   DiscountOffer,
   FeedbackClassNames,
@@ -47,7 +50,6 @@ export type {
   Plan,
   PlanChangeGridProps,
   PlanChangeOffer,
-  ProgressBarProps,
   ReasonButtonProps,
   // Reasons
   ReasonConfig,
@@ -56,6 +58,7 @@ export type {
   // Steps
   Step,
   StructuralClassNames,
+  SubscriptionStatus,
   SuccessClassNames,
   SuccessStep,
   SuccessStepProps,

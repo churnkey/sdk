@@ -201,8 +201,6 @@ export interface StructuralClassNames {
   modal?: string
   header?: string
   footer?: string
-  progressBar?: string
-  progressFill?: string
 }
 
 // --- Appearance ---
@@ -249,7 +247,6 @@ export interface ComponentOverrides {
   Modal?: (props: ModalProps) => ReactElement
   Header?: (props: HeaderProps) => ReactElement
   Footer?: (props: FooterProps) => ReactElement
-  ProgressBar?: (props: ProgressBarProps) => ReactElement
 
   // Step-level (replace entire built-in step)
   Survey?: (props: SurveyStepProps) => ReactElement
@@ -292,12 +289,6 @@ export interface FooterProps {
   onNext?: () => void
   backLabel?: string
   nextLabel?: string
-  className?: string
-}
-
-export interface ProgressBarProps {
-  current: number
-  total: number
   className?: string
 }
 
@@ -425,9 +416,73 @@ export interface FlowState {
   customer: EmbedCustomer | null
 }
 
+// --- Customer + subscription data (Direct format) ---
+
+export interface DirectCustomer {
+  id: string
+  email?: string
+  name?: string
+  lastName?: string
+  phone?: string
+  currency?: string
+  metadata?: Record<string, unknown>
+}
+
+export type SubscriptionStatus =
+  | { name: 'active'; currentPeriod: { start: Date | string; end: Date | string } }
+  | {
+      name: 'trial'
+      trial: { start: Date | string; end: Date | string }
+      currentPeriod?: { start: Date | string; end: Date | string }
+    }
+  | {
+      name: 'paused'
+      pause: { start: Date | string; end?: Date | string }
+      currentPeriod?: { start: Date | string; end: Date | string }
+    }
+  | { name: 'canceled'; canceledAt: Date | string }
+  | { name: 'unpaid'; currentPeriod?: { start: Date | string; end: Date | string } }
+
+export interface DirectSubscription {
+  id: string
+  start: Date | string
+  status: SubscriptionStatus
+  items: DirectSubscriptionItem[]
+  end?: Date | string
+  discounts?: Array<{
+    id?: string
+    coupon?: {
+      id?: string
+      percentOff?: number
+      amountOff?: number
+      currency?: string
+      duration?: 'once' | 'repeating' | 'forever'
+      durationInMonths?: number
+    }
+  }>
+  metadata?: Record<string, unknown>
+}
+
+export interface DirectSubscriptionItem {
+  id?: string
+  price: {
+    id: string
+    name?: string
+    productId?: string
+    amount: { value: number; currency?: string }
+    interval?: 'day' | 'week' | 'month' | 'year'
+    intervalCount?: number
+  }
+  quantity?: number
+  product?: { id?: string; name?: string }
+}
+
 // --- Flow config ---
 
 export interface FlowConfig {
+  appId?: string
+  customer?: DirectCustomer
+  subscriptions?: DirectSubscription[]
   session?: string
   steps?: Step[]
   onAccept?: (offer: AcceptedOffer) => Promise<void>
@@ -450,6 +505,9 @@ export interface ResolvedFlowConfig {
 // --- CancelFlow props ---
 
 export interface CancelFlowProps {
+  appId?: string
+  customer?: DirectCustomer
+  subscriptions?: DirectSubscription[]
   session?: string
   steps?: Step[]
   apiBaseUrl?: string

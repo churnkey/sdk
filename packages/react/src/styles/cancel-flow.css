@@ -118,22 +118,6 @@
     color: var(--ck-color-text);
   }
 
-  /* --- Progress Bar --- */
-  .ck-progress {
-    height: 3px;
-    background: var(--ck-color-border);
-    margin: 16px 24px 0;
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .ck-progress-fill {
-    height: 100%;
-    background: var(--ck-color-primary);
-    border-radius: 2px;
-    transition: width 0.3s ease;
-  }
-
   /* --- Content Area --- */
   .ck-content {
     padding: 20px 24px 24px;

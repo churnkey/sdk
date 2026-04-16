@@ -8,4 +8,3 @@ export { DefaultReasonButton, DefaultSurvey } from './steps/default-survey'
 export { DefaultHeader } from './structural/default-header'
 // Structural
 export { DefaultModal } from './structural/default-modal'
-export { DefaultProgressBar } from './structural/default-progress-bar'

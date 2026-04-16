@@ -167,29 +167,65 @@ function MyCancelPage() {
 
 ## Connect to Churnkey
 
-Add a session token to get AI-powered offer selection, analytics, and session recording. The component API stays the same.
+### Analytics (no backend work)
 
-**Server (Node.js):**
+Add `appId` and `customer` to enable session recording and dashboard analytics. Steps and offers are still defined in your code.
+
+```tsx
+<CancelFlow
+  appId="app_xxx"
+  customer={{ id: 'cus_123' }}
+  steps={steps}
+  onAccept={handleOffer}
+  onCancel={handleCancel}
+/>
+```
+
+For richer analytics (revenue, plan segmentation), add `subscriptions` using the [Churnkey Direct format](https://docs.churnkey.co/billing-providers/direct-connect/direct):
+
+```tsx
+<CancelFlow
+  appId="app_xxx"
+  customer={{ id: 'cus_123', email: 'jane@acme.com' }}
+  subscriptions={[{
+    id: 'sub_456',
+    start: '2024-06-01',
+    status: { name: 'active', currentPeriod: { start: '2025-04-01', end: '2025-05-01' } },
+    items: [{ price: { id: 'price_pro', amount: { value: 2999 } } }],
+  }]}
+  steps={steps}
+  onAccept={handleOffer}
+  onCancel={handleCancel}
+/>
+```
+
+### Connected (billing actions + server config)
+
+Add a session token to let Churnkey execute billing actions and provide server-driven flow config.
+
+**Server:**
 
 ```typescript
 import { Churnkey } from '@churnkey/node'
 
 const ck = new Churnkey({ appId: 'app_...', apiKey: 'sk_...' })
 const token = ck.createToken({ customerId: 'cus_123' })
-// Pass token to the frontend
 ```
 
 **Client:**
 
 ```tsx
 <CancelFlow
+  appId="app_xxx"
+  customer={{ id: 'cus_123', email: 'jane@acme.com' }}
+  subscriptions={[...]}
   session={token}
-  onAccept={async (offer) => { /* runs after the SDK applies the offer */ }}
-  onCancel={async () => { /* runs after the SDK cancels */ }}
+  onAccept={async (offer) => { /* runs AFTER the SDK applies the offer */ }}
+  onCancel={async () => { /* runs AFTER the SDK cancels */ }}
 />
 ```
 
-In connected mode, the SDK fetches your cancel flow config from Churnkey, executes offers via the API, and records session outcomes for analytics. Your custom components and appearance settings carry over unchanged.
+Each step adds props. No step removes or changes them. Custom components and appearance settings carry over unchanged.
 
 ## Subpath exports
 

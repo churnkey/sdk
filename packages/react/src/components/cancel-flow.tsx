@@ -23,7 +23,6 @@ import { DefaultSuccess } from './steps/default-success'
 import { DefaultSurvey } from './steps/default-survey'
 import { DefaultHeader } from './structural/default-header'
 import { DefaultModal } from './structural/default-modal'
-import { DefaultProgressBar } from './structural/default-progress-bar'
 
 export function CancelFlow(props: CancelFlowProps) {
   if (props.session) return <TokenCancelFlow {...props} />
@@ -33,6 +32,9 @@ export function CancelFlow(props: CancelFlowProps) {
 // Local mode — steps defined in props
 
 function LocalCancelFlow({
+  appId,
+  customer,
+  subscriptions,
   steps,
   appearance,
   classNames,
@@ -43,7 +45,9 @@ function LocalCancelFlow({
   onClose,
   onStepChange,
 }: CancelFlowProps) {
-  const [machine] = useState(() => new CancelFlowMachine({ steps, onAccept, onCancel, onClose, onStepChange }))
+  const [machine] = useState(
+    () => new CancelFlowMachine({ appId, customer, subscriptions, steps, onAccept, onCancel, onClose, onStepChange }),
+  )
   const [state, setState] = useState<FlowState>(() => machine.getSnapshot())
 
   useEffect(() => {
@@ -202,7 +206,6 @@ function FlowShell({ machine, state, appearance, classNames, components, customC
 
   const Modal = components?.Modal ?? DefaultModal
   const Header = components?.Header ?? DefaultHeader
-  const ProgressBar = components?.ProgressBar ?? DefaultProgressBar
   const stepConfig = machine.getStepConfig(state.step)
   const title =
     stepConfig && 'title' in stepConfig ? (stepConfig.title ?? defaultTitles[state.step]) : defaultTitles[state.step]
@@ -220,7 +223,6 @@ function FlowShell({ machine, state, appearance, classNames, components, customC
           onClose={machine.close}
           className={classNames?.header}
         />
-        <ProgressBar current={machine.stepIndex} total={machine.totalSteps} className={classNames?.progressBar} />
         <div className="ck-content">
           {state.error && (
             <div className="ck-error" role="alert">

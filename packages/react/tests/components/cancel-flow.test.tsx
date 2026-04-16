@@ -57,11 +57,6 @@ describe('CancelFlow', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
-  it('shows a progress bar', () => {
-    renderFlow()
-    expect(screen.getByRole('progressbar')).toBeInTheDocument()
-  })
-
   it('continue button is disabled until a reason is selected', () => {
     renderFlow()
     const continueBtn = screen.getByText('Continue')
