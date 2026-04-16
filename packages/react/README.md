@@ -1,16 +1,18 @@
 # @churnkey/react
 
-Drop-in cancel flow for React. Looks great out of the box, fully customizable, works with any billing system.
+A cancel flow component for React. Survey, offers, feedback, and confirmation. Ready to use out of the box, fully customizable when you need it.
 
-Free and open source. Optionally connects to [Churnkey](https://churnkey.co) for analytics and AI-powered retention.
+Open source. Optionally connects to [Churnkey](https://churnkey.co) for analytics and AI-powered retention.
 
-## Install
+## Installation
 
 ```bash
 npm install @churnkey/react
 ```
 
-## Quick start
+## Create a cancel flow
+
+Import the component and the stylesheet, define your steps, and handle the result.
 
 ```tsx
 import { CancelFlow } from '@churnkey/react'
@@ -41,11 +43,11 @@ import '@churnkey/react/styles.css'
 />
 ```
 
-That's it. You get a modal with a survey, personalized offers, feedback collection, and a confirmation step. No account required, no data sent anywhere.
+When a customer selects "Too expensive," the SDK shows them the discount offer. If they accept, your `onAccept` handler runs. If they decline all offers and confirm, `onCancel` runs.
 
-## Theming
+## Change the look
 
-Four built-in themes with dark mode support:
+Pick a theme, override variables, or both. Four themes ship with light and dark variants.
 
 ```tsx
 <CancelFlow
@@ -56,23 +58,27 @@ Four built-in themes with dark mode support:
 />
 ```
 
-Override individual variables, or use `classNames` for Tailwind/CSS modules:
+You can override individual tokens on top of any theme:
 
 ```tsx
-<CancelFlow
-  appearance={{ theme: 'rounded', variables: { colorPrimary: '#7c3aed' } }}
-  classNames={{ modal: 'max-w-lg shadow-2xl' }}
-  steps={steps}
-  onAccept={handleOffer}
-  onCancel={handleCancel}
-/>
+appearance={{
+  theme: 'rounded',
+  variables: { colorPrimary: '#7c3aed', borderRadius: '20px' },
+}}
 ```
 
-Themes: `default`, `minimal`, `rounded`, `corporate`. Each has light and dark variants.
+For class-based styling (Tailwind, CSS modules), use `classNames`:
 
-## Component overrides
+```tsx
+classNames={{
+  modal: 'max-w-lg shadow-2xl',
+  overlay: 'bg-black/60 backdrop-blur-sm',
+}}
+```
 
-Replace any part of the UI while keeping the flow logic:
+## Replace components
+
+Swap out any piece of the UI. The SDK handles navigation and state; you handle rendering.
 
 ```tsx
 <CancelFlow
@@ -81,7 +87,7 @@ Replace any part of the UI while keeping the flow logic:
     ReasonButton: ({ reason, isSelected, onSelect }) => (
       <button
         onClick={() => onSelect(reason.id)}
-        className={isSelected ? 'border-blue-500' : 'border-gray-200'}
+        className={isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
       >
         {reason.label}
       </button>
@@ -92,11 +98,11 @@ Replace any part of the UI while keeping the flow logic:
 />
 ```
 
-Overridable: `Modal`, `Header`, `Survey`, `Offer`, `Feedback`, `Confirm`, `Success`, `ReasonButton`, `OfferCard`, and all offer detail components.
+You can replace `Modal`, `Header`, `Survey`, `Offer`, `Feedback`, `Confirm`, `Success`, `ReasonButton`, `OfferCard`, and each offer detail component.
 
-## Custom steps and offers
+## Add custom steps
 
-The step system is open. Define any step type and register a component for it:
+The step system is open. Use any string as a step type, then register a component for it.
 
 ```tsx
 <CancelFlow
@@ -122,11 +128,11 @@ The step system is open. Define any step type and register a component for it:
 />
 ```
 
-Custom steps navigate like built-in ones. Custom offers appear when a reason with that offer type is selected. Both record to analytics.
+Custom steps navigate like built-in ones. Custom offers appear when a matching reason is selected. Both record to analytics when connected to Churnkey.
 
-## Headless mode
+## Go headless
 
-Skip the UI entirely and build your own:
+Use the hook directly if you want full control over the UI.
 
 ```tsx
 import { useCancelFlow } from '@churnkey/react/headless'
@@ -159,11 +165,11 @@ function MyCancelPage() {
 }
 ```
 
-The hook gives you `step`, `reasons`, `recommendation`, `feedback`, `outcome`, `isProcessing`, and all the actions (`selectReason`, `next`, `back`, `accept`, `decline`, `cancel`, `close`).
+The hook returns the current state (`step`, `reasons`, `recommendation`, `feedback`, `outcome`, `isProcessing`) and actions (`selectReason`, `next`, `back`, `accept`, `decline`, `cancel`, `close`).
 
 ## Add analytics
 
-Sign up at [churnkey.co](https://churnkey.co), get an app ID, and add two props. The SDK starts recording sessions — you get cancel reason breakdowns, save rates, and offer effectiveness on the Churnkey dashboard.
+Create a free account at [churnkey.co](https://churnkey.co) and pass your app ID. The SDK records each session so you can see why customers cancel, which offers work, and what your save rate looks like.
 
 ```tsx
 <CancelFlow
@@ -175,7 +181,7 @@ Sign up at [churnkey.co](https://churnkey.co), get an app ID, and add two props.
 />
 ```
 
-For revenue analytics, pass subscription data:
+Only `customer.id` is required. For revenue metrics, pass subscription data too:
 
 ```tsx
 <CancelFlow
@@ -193,11 +199,11 @@ For revenue analytics, pass subscription data:
 />
 ```
 
-No backend changes. Your steps and callbacks stay the same.
+Your steps and callbacks don't change. No backend work required.
 
 ## Let Churnkey handle billing
 
-Generate a token on your server and Churnkey will apply discounts, pause subscriptions, and execute cancellations via your billing provider.
+Connect your billing provider (Stripe, Chargebee, etc.) in the Churnkey dashboard and Churnkey can apply discounts, pause subscriptions, and cancel on your behalf. Generate a token on your server to authenticate the session.
 
 ```typescript
 // Server
@@ -219,14 +225,14 @@ const token = ck.createToken({ customerId: 'cus_123' })
 />
 ```
 
-The flow config comes from the Churnkey dashboard. Your theme, component overrides, and custom steps still work.
+In this mode, the cancel flow is configured from the Churnkey dashboard. Your theme, custom components, and appearance settings carry over.
 
 ## Imports
 
 ```tsx
 import { CancelFlow } from '@churnkey/react'              // drop-in component
 import { useCancelFlow } from '@churnkey/react/headless'   // headless hook
-import { CancelFlowMachine } from '@churnkey/react/core'   // state machine (no React)
+import { CancelFlowMachine } from '@churnkey/react/core'   // state machine, no React
 ```
 
 ## License

@@ -1,16 +1,16 @@
 # @churnkey/node
 
-Server-side token generation for [Churnkey](https://churnkey.co). Lets Churnkey execute billing actions (apply discounts, pause subscriptions, cancel) on behalf of your customers.
+Generate session tokens for `@churnkey/react`. A token lets Churnkey apply discounts, pause subscriptions, and execute cancellations through your billing provider.
 
-You only need this package if you want Churnkey to handle billing operations. For analytics-only, `@churnkey/react` works without a token.
+You only need this package when you want Churnkey to handle billing operations. For analytics-only integration, `@churnkey/react` works without a token.
 
-## Install
+## Installation
 
 ```bash
 npm install @churnkey/node
 ```
 
-## Usage
+## Generate a token
 
 ```typescript
 import { Churnkey } from '@churnkey/node'
@@ -23,7 +23,7 @@ const ck = new Churnkey({
 const token = ck.createToken({ customerId: 'cus_123' })
 ```
 
-Pass the token to your frontend:
+Pass it to the frontend:
 
 ```tsx
 <CancelFlow
@@ -35,7 +35,11 @@ Pass the token to your frontend:
 />
 ```
 
-For multi-subscription customers:
+Token creation is a local HMAC computation. No network call, no latency.
+
+## Multi-subscription customers
+
+Target a specific subscription:
 
 ```typescript
 const token = ck.createToken({
@@ -44,23 +48,21 @@ const token = ck.createToken({
 })
 ```
 
-Token creation is a local HMAC computation. No API call, no latency.
-
-## API
+## Reference
 
 ### `new Churnkey({ appId, apiKey })`
 
-| Param | Description |
-|-------|-------------|
+| Parameter | Description |
+|-----------|-------------|
 | `appId` | Your Churnkey app ID |
-| `apiKey` | Your Churnkey API key (secret — server-side only) |
+| `apiKey` | Your Churnkey API key. Keep this on the server. |
 
 ### `ck.createToken({ customerId, subscriptionId? })`
 
-| Param | Description |
-|-------|-------------|
-| `customerId` | Payment provider customer ID (e.g. Stripe `cus_...`) |
-| `subscriptionId` | Optional. Targets a specific subscription for multi-sub customers. |
+| Parameter | Description |
+|-----------|-------------|
+| `customerId` | The customer ID from your billing provider (e.g. Stripe `cus_...`) |
+| `subscriptionId` | Optional. Targets a specific subscription for customers with multiple. |
 
 Returns a `ck_`-prefixed token string.
 
