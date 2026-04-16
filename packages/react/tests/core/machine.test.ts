@@ -479,6 +479,80 @@ describe('CancelFlowMachine', () => {
     })
   })
 
+  describe('steps + session merge', () => {
+    const mockCreds = { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 }
+
+    const embedData = {
+      blueprint: {
+        _id: 'bp_1',
+        steps: [
+          {
+            stepType: 'SURVEY' as const,
+            enabled: true,
+            header: 'Server title',
+            survey: { choices: [{ guid: 'r1', value: 'Too expensive' }] },
+          },
+          { stepType: 'FREEFORM' as const, enabled: true, header: 'Server feedback' },
+          { stepType: 'CONFIRM' as const, enabled: true, header: 'Server confirm' },
+        ],
+      },
+      coupons: [],
+      offerPlans: [],
+      customer: null,
+      sessions: [],
+    }
+
+    it('local steps override server step config by type', () => {
+      const machine = new CancelFlowMachine({
+        session: 'ck_placeholder',
+        steps: [{ type: 'confirm' as const, title: 'Are you really sure?' }],
+      })
+      machine.initializeFromEmbed(embedData, {} as any, mockCreds, {})
+
+      const confirmConfig = machine.getStepConfig('confirm')
+      expect(confirmConfig).toBeDefined()
+      expect((confirmConfig as any).title).toBe('Are you really sure?')
+    })
+
+    it('server steps not overridden are preserved', () => {
+      const machine = new CancelFlowMachine({
+        session: 'ck_placeholder',
+        steps: [{ type: 'confirm' as const, title: 'Custom confirm' }],
+      })
+      machine.initializeFromEmbed(embedData, {} as any, mockCreds, {})
+
+      // Survey and feedback should come from server
+      expect(machine.getStepConfig('survey')).toBeDefined()
+      expect(machine.getStepConfig('feedback')).toBeDefined()
+      expect(machine.reasons).toHaveLength(1)
+      expect(machine.reasons[0].label).toBe('Too expensive')
+    })
+
+    it('local custom steps are appended after server steps', () => {
+      const machine = new CancelFlowMachine({
+        session: 'ck_placeholder',
+        steps: [{ type: 'nps', title: 'Rate us', data: { scale: 10 } }],
+      })
+      machine.initializeFromEmbed(embedData, {} as any, mockCreds, {})
+
+      const npsConfig = machine.getStepConfig('nps')
+      expect(npsConfig).toBeDefined()
+      expect((npsConfig as any).title).toBe('Rate us')
+
+      // Server steps still present
+      expect(machine.getStepConfig('survey')).toBeDefined()
+      expect(machine.getStepConfig('confirm')).toBeDefined()
+    })
+
+    it('does not merge when only session is provided (no local steps)', () => {
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder' })
+      machine.initializeFromEmbed(embedData, {} as any, mockCreds, {})
+
+      const confirmConfig = machine.getStepConfig('confirm')
+      expect((confirmConfig as any).title).toBe('Server confirm')
+    })
+  })
+
   describe('custom steps', () => {
     const customConfig = {
       steps: [

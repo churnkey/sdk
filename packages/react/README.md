@@ -227,6 +227,23 @@ const token = ck.createToken({ customerId: 'cus_123' })
 
 In this mode, the cancel flow is configured from the Churnkey dashboard. Your theme, custom components, and appearance settings carry over.
 
+You can pass both `session` and `steps` to override specific server config:
+
+```tsx
+<CancelFlow
+  session={token}
+  steps={[
+    { type: 'confirm', title: 'We hate to see you go' },
+    { type: 'nps', title: 'Quick question', data: { scale: 10 } },
+  ]}
+  customComponents={{ 'nps': NpsStep }}
+  onAccept={handleOffer}
+  onCancel={handleCancel}
+/>
+```
+
+Local steps override by type. Steps not in the server config are appended.
+
 ## Imports
 
 ```tsx

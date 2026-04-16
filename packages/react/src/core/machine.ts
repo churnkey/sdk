@@ -38,11 +38,15 @@ export class CancelFlowMachine {
   private creds: SessionCredentials | null = null
   private embedData: EmbedResponse | null = null
   private blueprintId: string | null = null
+  private localSteps: Step[] | null = null
   private stepsViewed: Array<{ stepType: string; start: string; end?: string; duration?: number }> = []
   private presentedOffers: Array<{ guid?: string }> = []
   private stepEnteredAt: number = Date.now()
 
   constructor(config: FlowConfig) {
+    if (config.session && config.steps) {
+      this.localSteps = config.steps
+    }
     this.config = this.resolveConfig(config)
     if (config.appId && config.customer) {
       this.analyticsClient = new AnalyticsClient(config.appId)
@@ -217,6 +221,10 @@ export class CancelFlowMachine {
     this.blueprintId = result.blueprintId
     this.config = result.config
 
+    if (this.localSteps) {
+      this.config = this.mergeLocalSteps(this.config, this.localSteps)
+    }
+
     const firstStep = this.config.steps[0]?.type ?? 'survey'
     this.setState({
       step: firstStep,
@@ -277,6 +285,32 @@ export class CancelFlowMachine {
       onCancel: config.onCancel,
       onClose: config.onClose,
       onStepChange: config.onStepChange,
+    }
+  }
+
+  private mergeLocalSteps(serverConfig: ResolvedFlowConfig, localSteps: Step[]): ResolvedFlowConfig {
+    const localByType = new Map(localSteps.map((s) => [s.type, s]))
+
+    // Override matching server steps with local config, keep server order
+    const merged = serverConfig.steps.map((serverStep) => {
+      const local = localByType.get(serverStep.type)
+      if (!local) return serverStep
+      localByType.delete(serverStep.type)
+      return { ...serverStep, ...local }
+    })
+
+    // Append local steps that aren't in the server config (custom steps)
+    for (const [, step] of localByType) {
+      merged.push(step)
+    }
+
+    // Re-extract reasons if the survey step was overridden
+    const surveyStep = merged.find((s): s is SurveyStep => s.type === 'survey')
+
+    return {
+      ...serverConfig,
+      steps: merged,
+      reasons: surveyStep?.reasons ?? serverConfig.reasons,
     }
   }
 
