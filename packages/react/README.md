@@ -128,7 +128,7 @@ The step system is open. Use any string as a step type, then register a componen
 />
 ```
 
-Custom steps navigate like built-in ones. Custom offers appear when a matching reason is selected. Both record to analytics when connected to Churnkey.
+Custom steps navigate like built-in ones. Custom offers appear when a matching reason is selected. Whatever you pass to `onNext(result)` or `onAccept(result)` shows up on `offer.result` in your `onAccept` handler, and is recorded with the session for analytics (as `customStepResults[stepType]` for steps, `acceptedOffer.customOfferResult` for offers).
 
 ## Go headless
 
@@ -200,6 +200,23 @@ Only `customer.id` is required. For revenue metrics, pass subscription data too:
 ```
 
 Your steps and callbacks don't change. No backend work required.
+
+Sessions are recorded when the customer accepts an offer, confirms cancellation, or closes the modal before completing (abandoned). Data from custom steps passed via `onNext(result)` is captured alongside the session.
+
+To keep staging traffic out of your production analytics, pass `mode="test"`:
+
+```tsx
+<CancelFlow
+  appId="app_xxx"
+  customer={{ id: 'cus_123' }}
+  mode={process.env.NODE_ENV === 'production' ? 'live' : 'test'}
+  steps={steps}
+  onAccept={handleOffer}
+  onCancel={handleCancel}
+/>
+```
+
+Defaults to `'live'`. In token mode, the token's mode takes precedence — it's server-signed and can't be overridden client-side.
 
 ## Let Churnkey handle billing
 

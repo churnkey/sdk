@@ -625,6 +625,50 @@ describe('CancelFlowMachine', () => {
       machine.next()
       expect(onStepChange).toHaveBeenCalledWith('nps', 'survey')
     })
+
+    it('captures custom step results via next()', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [
+          { type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] },
+          { type: 'nps', title: 'Rate us', data: { scale: 10 } },
+          { type: 'confirm' as const },
+        ],
+      })
+      machine.selectReason('a')
+      machine.next() // survey → nps
+      machine.next({ npsScore: 8 }) // nps → confirm (with result)
+      await machine.cancel()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.customStepResults).toEqual({ nps: { npsScore: 8 } })
+      fetchSpy.mockRestore()
+    })
+
+    it('ignores non-plain-object results (e.g. events passed via onClick={next})', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      // Native DOM event (React 16 / non-React callers)
+      machine.next(new Event('click') as unknown as Record<string, unknown>)
+      // Class instance — mirrors React 17+ SyntheticEvent, which is NOT instanceof Event
+      class SyntheticEvent {
+        target = {}
+      }
+      machine.next(new SyntheticEvent() as unknown as Record<string, unknown>)
+      await machine.cancel()
+
+      // Payload must serialize cleanly — no circular structure from an event leaking in
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.customStepResults).toBeUndefined()
+      fetchSpy.mockRestore()
+    })
   })
 
   describe('custom offer types', () => {
@@ -678,9 +722,142 @@ describe('CancelFlowMachine', () => {
         }),
       )
     })
+
+    it('ignores non-plain-object accept(result) (e.g. onClick={accept} passing a MouseEvent)', async () => {
+      const onAccept = vi.fn()
+      const machine = new CancelFlowMachine({
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [{ id: 'a', label: 'A', offer: { type: 'discount' as const, percent: 20, months: 3 } }],
+          },
+          { type: 'confirm' as const },
+        ],
+        onAccept,
+      })
+      machine.selectReason('a')
+      machine.next()
+      // Class-instance with a non-Object prototype — same shape isPlainObject
+      // rejects when a React SyntheticEvent is accidentally passed.
+      class FakeSyntheticEvent {
+        nativeEvent = {}
+        preventDefault() {}
+      }
+      await machine.accept(new FakeSyntheticEvent() as unknown as Record<string, unknown>)
+
+      const acceptedOffer = onAccept.mock.calls[0][0]
+      expect(acceptedOffer.result).toBeUndefined()
+    })
+
+    it('forwards accept(result) through to onAccept as acceptedOffer.result', async () => {
+      const onAccept = vi.fn()
+      const machine = new CancelFlowMachine({
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [{ id: 'seats', label: 'Too many seats', offer: { type: 'change-seats', data: {} } }],
+          },
+          { type: 'confirm' as const },
+        ],
+        onAccept,
+      })
+      machine.selectReason('seats')
+      machine.next() // → offer
+      await machine.accept({ seats: 3, previousSeats: 10 })
+
+      expect(onAccept).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'change-seats',
+          reasonId: 'seats',
+          result: { seats: 3, previousSeats: 10 },
+        }),
+      )
+    })
+
+    it('omits result field on acceptedOffer when accept() is called without args', async () => {
+      const onAccept = vi.fn()
+      const machine = new CancelFlowMachine({
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [{ id: 'a', label: 'A', offer: { type: 'discount' as const, percent: 20, months: 3 } }],
+          },
+          { type: 'confirm' as const },
+        ],
+        onAccept,
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.accept()
+
+      const acceptedOffer = onAccept.mock.calls[0][0]
+      expect(acceptedOffer.result).toBeUndefined()
+    })
   })
 
   describe('analytics mode (appId + customer)', () => {
+    it('records session with only appId and customer.id (no subscriptions)', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.cancel()
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/api/sessions/sdk'),
+        expect.objectContaining({ method: 'POST' }),
+      )
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.customer.id).toBe('cus_123')
+      expect(body.customer.currency).toBeUndefined()
+      expect(body.customer.onTrial).toBeUndefined()
+      expect(body.canceled).toBe(true)
+      fetchSpy.mockRestore()
+    })
+
+    it('records abort session when modal is closed before completion', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      machine.close()
+
+      await new Promise((r) => setTimeout(r, 0))
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/api/sessions/sdk'),
+        expect.objectContaining({ method: 'POST' }),
+      )
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.aborted).toBe(true)
+      expect(body.canceled).toBe(false)
+      fetchSpy.mockRestore()
+    })
+
+    it('does not record abort after outcome is already set', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.cancel()
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+
+      machine.close()
+      await new Promise((r) => setTimeout(r, 0))
+      expect(fetchSpy).toHaveBeenCalledTimes(1) // no abort after cancel
+      fetchSpy.mockRestore()
+    })
+
     it('records session when appId and customer are present', async () => {
       const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
       const machine = new CancelFlowMachine({
@@ -814,6 +991,368 @@ describe('CancelFlowMachine', () => {
       expect(body.canceled).toBe(false)
       expect(body.acceptedOffer.offerType).toBe('DISCOUNT')
       expect(body.acceptedOffer.couponAmount).toBe(20)
+      fetchSpy.mockRestore()
+    })
+
+    it('maps stepsViewed to API enum values (feedback→FREEFORM, custom→CUSTOM, skips success)', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [
+          { type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] },
+          { type: 'feedback' as const },
+          { type: 'nps' as any },
+          { type: 'confirm' as const },
+        ],
+      })
+      machine.selectReason('a')
+      machine.next() // → feedback
+      machine.next() // → nps (custom)
+      machine.next() // → confirm
+      await machine.cancel() // → success
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.stepsViewed.map((s: { stepType: string }) => s.stepType)).toEqual([
+        'SURVEY',
+        'FREEFORM',
+        'CUSTOM',
+        'CONFIRM',
+      ])
+      const custom = body.stepsViewed.find((s: { stepType: string }) => s.stepType === 'CUSTOM')
+      expect(custom.customStepType).toBe('nps')
+      fetchSpy.mockRestore()
+    })
+
+    it('populates numChoices on SURVEY stepsViewed entries', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [
+              { id: 'a', label: 'A' },
+              { id: 'b', label: 'B' },
+              { id: 'c', label: 'C' },
+            ],
+          },
+          { type: 'confirm' as const },
+        ],
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.cancel()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      const survey = body.stepsViewed.find((s: { stepType: string }) => s.stepType === 'SURVEY')
+      expect(survey.numChoices).toBe(3)
+      expect(survey.guid).toBeUndefined() // analytics mode — no blueprint
+      fetchSpy.mockRestore()
+    })
+
+    it('records presented offers with full shape and accepted flag', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [{ id: 'a', label: 'A', offer: { type: 'discount' as const, percent: 20, months: 3 } }],
+          },
+          { type: 'confirm' as const },
+        ],
+        onAccept: vi.fn(),
+      })
+      machine.selectReason('a')
+      machine.next() // → offer
+      await machine.accept()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.presentedOffers).toHaveLength(1)
+      expect(body.presentedOffers[0]).toMatchObject({
+        offerType: 'DISCOUNT',
+        discountConfig: { customAmount: 20 },
+        accepted: true,
+        presentedAt: expect.any(String),
+        acceptedAt: expect.any(String),
+      })
+      expect(body.presentedOffers[0].declinedAt).toBeUndefined()
+      fetchSpy.mockRestore()
+    })
+
+    it('nests offer config under per-type keys (pause → pauseConfig)', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [{ id: 'a', label: 'A', offer: { type: 'pause' as const, months: 2, interval: 'month' } }],
+          },
+          { type: 'confirm' as const },
+        ],
+      })
+      machine.selectReason('a')
+      machine.next()
+      machine.decline()
+      await machine.cancel()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.presentedOffers[0]).toMatchObject({
+        offerType: 'PAUSE',
+        pauseConfig: { maxPauseLength: 2, pauseInterval: 'MONTH' },
+      })
+      fetchSpy.mockRestore()
+    })
+
+    it('marks presented offer declined when user declines', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [{ id: 'a', label: 'A', offer: { type: 'discount' as const, percent: 20, months: 3 } }],
+          },
+          { type: 'confirm' as const },
+        ],
+      })
+      machine.selectReason('a')
+      machine.next() // → offer
+      machine.decline() // → confirm
+      await machine.cancel()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.presentedOffers).toHaveLength(1)
+      expect(body.presentedOffers[0].accepted).toBe(false)
+      expect(body.presentedOffers[0].declinedAt).toEqual(expect.any(String))
+      fetchSpy.mockRestore()
+    })
+
+    it('routes custom offers through CUSTOM sentinel with customOfferType', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [
+              {
+                id: 'seats',
+                label: 'Too many seats',
+                offer: { type: 'change-seats', data: { minSeats: 1 } } as any,
+              },
+            ],
+          },
+          { type: 'confirm' as const },
+        ],
+        onAccept: vi.fn(),
+      })
+      machine.selectReason('seats')
+      machine.next() // → offer
+      await machine.accept({ seats: 3, previousSeats: 10 })
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.acceptedOffer.offerType).toBe('CUSTOM')
+      expect(body.acceptedOffer.customOfferType).toBe('change-seats')
+      expect(body.acceptedOffer.customOfferResult).toEqual({ seats: 3, previousSeats: 10 })
+      expect(body.acceptedOffer.couponId).toBeUndefined()
+      expect(body.presentedOffers[0].offerType).toBe('CUSTOM')
+      expect(body.presentedOffers[0].customOfferType).toBe('change-seats')
+      fetchSpy.mockRestore()
+    })
+
+    it('uppercases pauseInterval on accepted pause offer', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [{ id: 'a', label: 'A', offer: { type: 'pause' as const, months: 2, interval: 'month' } }],
+          },
+          { type: 'confirm' as const },
+        ],
+        onAccept: vi.fn(),
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.accept()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.acceptedOffer.offerType).toBe('PAUSE')
+      expect(body.acceptedOffer.pauseInterval).toBe('MONTH')
+      expect(body.acceptedOffer.pauseDuration).toBe(2)
+      fetchSpy.mockRestore()
+    })
+
+    it('populates couponDuration on accepted discount offer from offer.months', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [
+          {
+            type: 'survey' as const,
+            reasons: [{ id: 'a', label: 'A', offer: { type: 'discount' as const, percent: 25, months: 6 } }],
+          },
+          { type: 'confirm' as const },
+        ],
+        onAccept: vi.fn(),
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.accept()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.acceptedOffer.couponDuration).toBe(6)
+      fetchSpy.mockRestore()
+    })
+
+    it('defaults session mode to LIVE in analytics mode', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.cancel()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.mode).toBe('LIVE')
+      fetchSpy.mockRestore()
+    })
+
+    it('honors mode="test" on analytics-mode sessions', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        mode: 'test',
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.cancel()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.mode).toBe('TEST')
+      fetchSpy.mockRestore()
+    })
+
+    it('token mode overrides FlowConfig.mode (signed token is authoritative)', async () => {
+      const sessions: any[] = []
+      const mockApi = {
+        createSession: vi.fn(async (payload: any) => {
+          sessions.push(payload)
+        }),
+        cancelSubscription: vi.fn(async () => {}),
+      }
+      // Config says 'test' but token says 'live' — token should win.
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder', mode: 'test' })
+      machine.initializeFromEmbed(
+        {
+          blueprint: { _id: 'bp_1', steps: [{ stepType: 'CONFIRM' as const, enabled: true }] },
+          coupons: [],
+          offerPlans: [],
+          customer: null,
+          sessions: [],
+        } as any,
+        mockApi as any,
+        { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+        {},
+      )
+      await machine.cancel()
+
+      expect(sessions[0].mode).toBe('LIVE')
+    })
+
+    it('includes token-mode passthrough fields and blueprint guids in token mode', async () => {
+      const sessions: any[] = []
+      const mockApi = {
+        createSession: vi.fn(async (payload: any) => {
+          sessions.push(payload)
+        }),
+        cancelSubscription: vi.fn(async () => {}),
+      }
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder' })
+      machine.initializeFromEmbed(
+        {
+          blueprint: {
+            _id: 'bp_1',
+            discountCooldown: 30,
+            pauseCooldown: 60,
+            steps: [
+              {
+                stepType: 'SURVEY' as const,
+                enabled: true,
+                guid: 'step_survey_1',
+                survey: { choices: [{ guid: 'r1', value: 'Too expensive' }] },
+              },
+              { stepType: 'CONFIRM' as const, enabled: true, guid: 'step_confirm_1' },
+            ],
+          },
+          coupons: [],
+          offerPlans: [],
+          customer: null,
+          sessions: [],
+          clickToCancelEnabled: true,
+          strictFTCComplianceEnabled: true,
+          autoOptimizationUsed: true,
+          autoOptimizationKey: 'variant-b',
+        } as any,
+        mockApi as any,
+        { appId: 'app_1', customerId: 'cus_1', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+        {},
+      )
+      machine.selectReason('r1')
+      machine.next() // → confirm
+      await machine.cancel()
+
+      expect(sessions).toHaveLength(1)
+      const payload = sessions[0]
+      expect(payload.surveyId).toBe('step_survey_1')
+      expect(payload.clickToCancelEnabled).toBe(true)
+      expect(payload.strictFTCComplianceEnabled).toBe(true)
+      expect(payload.usedClickToCancel).toBe(false)
+      expect(payload.autoOptimizationUsed).toBe(true)
+      expect(payload.autoOptimizationKey).toBe('variant-b')
+      expect(payload.discountCooldown).toBe(30)
+      expect(payload.pauseCooldown).toBe(60)
+      expect(payload.discountCooldownApplied).toBe(false)
+      expect(payload.pauseCooldownApplied).toBe(false)
+      const survey = payload.stepsViewed.find((s: any) => s.stepType === 'SURVEY')
+      const confirm = payload.stepsViewed.find((s: any) => s.stepType === 'CONFIRM')
+      expect(survey.guid).toBe('step_survey_1')
+      expect(confirm.guid).toBe('step_confirm_1')
+    })
+
+    it('does not include token-mode passthrough fields in analytics mode', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.cancel()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.surveyId).toBeUndefined()
+      expect(body.clickToCancelEnabled).toBeUndefined()
+      expect(body.strictFTCComplianceEnabled).toBeUndefined()
+      expect(body.autoOptimizationUsed).toBeUndefined()
+      expect(body.discountCooldown).toBeUndefined()
       fetchSpy.mockRestore()
     })
   })

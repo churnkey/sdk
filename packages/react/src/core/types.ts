@@ -484,7 +484,15 @@ export interface FlowConfig {
   customer?: DirectCustomer
   subscriptions?: DirectSubscription[]
   session?: string
+  apiBaseUrl?: string
   steps?: Step[]
+  /**
+   * Tags the session as live or test. Use `'test'` from staging so your
+   * dashboard can filter out non-production traffic. Defaults to `'live'`.
+   * In token mode the token's mode wins — it's server-signed, so a client
+   * can't override it.
+   */
+  mode?: 'live' | 'test'
   onAccept?: (offer: AcceptedOffer) => Promise<void>
   onCancel?: () => Promise<void>
   onClose?: () => void
@@ -511,6 +519,8 @@ export interface CancelFlowProps {
   session?: string
   steps?: Step[]
   apiBaseUrl?: string
+  /** See FlowConfig.mode. Ignored in token mode (the token is authoritative). */
+  mode?: 'live' | 'test'
   appearance?: Appearance
   classNames?: StructuralClassNames
   components?: Partial<ComponentOverrides>

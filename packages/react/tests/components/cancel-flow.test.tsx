@@ -206,4 +206,46 @@ describe('CancelFlow', () => {
     renderFlow()
     expect(screen.getByLabelText('Close')).toBeInTheDocument()
   })
+
+  it('renders a registered custom offer component at the offer step', async () => {
+    const user = userEvent.setup()
+    const customSteps: Step[] = [
+      {
+        type: 'survey',
+        reasons: [
+          {
+            id: 'seats',
+            label: 'Too many seats',
+            offer: { type: 'change-seats', data: { currentSeats: 10 } },
+          },
+        ],
+      },
+      { type: 'confirm' },
+    ]
+
+    const onAccept = vi.fn<(offer: AcceptedOffer) => Promise<void>>().mockResolvedValue(undefined)
+    render(
+      <CancelFlow
+        steps={customSteps}
+        onAccept={onAccept}
+        onCancel={vi.fn().mockResolvedValue(undefined)}
+        customComponents={{
+          'change-seats': ({ onAccept: accept }) => (
+            <button type="button" data-testid="custom-offer" onClick={() => accept({ seats: 3 })}>
+              Reduce to 3 seats
+            </button>
+          ),
+        }}
+      />,
+    )
+
+    await user.click(screen.getByText('Too many seats'))
+    await user.click(screen.getByText('Continue'))
+    expect(screen.getByTestId('custom-offer')).toBeInTheDocument()
+
+    await user.click(screen.getByTestId('custom-offer'))
+    await waitFor(() =>
+      expect(onAccept).toHaveBeenCalledWith(expect.objectContaining({ type: 'change-seats', result: { seats: 3 } })),
+    )
+  })
 })

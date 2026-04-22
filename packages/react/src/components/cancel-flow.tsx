@@ -7,6 +7,7 @@ import type {
   ComponentOverrides,
   ConfirmStep,
   CustomComponents,
+  CustomOfferProps,
   CustomStepProps,
   FeedbackStep,
   FlowState,
@@ -36,6 +37,8 @@ function LocalCancelFlow({
   customer,
   subscriptions,
   steps,
+  apiBaseUrl,
+  mode,
   appearance,
   classNames,
   components,
@@ -46,15 +49,25 @@ function LocalCancelFlow({
   onStepChange,
 }: CancelFlowProps) {
   const [machine] = useState(
-    () => new CancelFlowMachine({ appId, customer, subscriptions, steps, onAccept, onCancel, onClose, onStepChange }),
+    () =>
+      new CancelFlowMachine({
+        appId,
+        customer,
+        subscriptions,
+        steps,
+        apiBaseUrl,
+        mode,
+        onAccept,
+        onCancel,
+        onClose,
+        onStepChange,
+      }),
   )
   const [state, setState] = useState<FlowState>(() => machine.getSnapshot())
 
   useEffect(() => {
     setState(machine.getSnapshot())
-    return machine.subscribe(() => {
-      setState(machine.getSnapshot())
-    })
+    return machine.subscribe(() => setState(machine.getSnapshot()))
   }, [machine])
 
   return (
@@ -269,6 +282,22 @@ function StepRenderer({
 
     case 'offer': {
       if (!state.recommendation) return null
+      // A custom offer type (e.g. 'change-seats') renders its registered
+      // component if provided; built-in offer types fall through to DefaultOffer.
+      const CustomOffer = customComponents?.[state.recommendation.type] as
+        | ((props: CustomOfferProps) => ReactElement)
+        | undefined
+      if (CustomOffer) {
+        return (
+          <CustomOffer
+            offer={state.recommendation}
+            customer={state.customer}
+            onAccept={machine.accept}
+            onDecline={machine.decline}
+            isProcessing={state.isProcessing}
+          />
+        )
+      }
       const Offer = components?.Offer ?? DefaultOffer
       const config = stepConfig as OfferStep | undefined
       return (
@@ -344,9 +373,9 @@ function StepRenderer({
     }
 
     default: {
-      const CustomComponent = customComponents?.[state.step] as ((props: CustomStepProps) => ReactElement) | undefined
+      const CustomStep = customComponents?.[state.step] as ((props: CustomStepProps) => ReactElement) | undefined
 
-      if (!CustomComponent) {
+      if (!CustomStep) {
         console.warn(`[churnkey] No component registered for step type "${state.step}". Skipping.`)
         machine.next()
         return null
@@ -355,7 +384,7 @@ function StepRenderer({
       const config = stepConfig as CustomStepProps['step'] | undefined
 
       return (
-        <CustomComponent
+        <CustomStep
           step={{
             type: state.step,
             title: config?.title,

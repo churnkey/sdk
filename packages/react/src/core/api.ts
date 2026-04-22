@@ -4,48 +4,99 @@ import type { DirectCustomer, DirectSubscription } from './types'
 
 const DEFAULT_BASE_URL = 'https://api.churnkey.co/v1'
 
+// Wire enums — exact mirror of the server's Mongoose enum validators.
+// Typed as literal unions so payload builders fail at compile time if they
+// emit a value outside the accepted set (e.g. lowercase 'month' instead of
+// 'MONTH'). If the server adds a new enum value, widen the union here.
+export type ApiStepType = 'OFFER' | 'SURVEY' | 'CONFIRM' | 'FREEFORM' | 'CUSTOM'
+export type ApiOfferType = 'DISCOUNT' | 'PAUSE' | 'PLAN_CHANGE' | 'TRIAL_EXTENSION' | 'CONTACT' | 'REDIRECT' | 'CUSTOM'
+export type ApiPauseInterval = 'MONTH' | 'WEEK'
+export type ApiCouponType = 'PERCENT' | 'AMOUNT'
+export type ApiBillingInterval = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR'
+export type ApiMode = 'LIVE' | 'TEST'
+
+export interface StepViewed {
+  stepType: ApiStepType
+  // Populated iff stepType === 'CUSTOM' — holds the SDK step name.
+  customStepType?: string
+  guid?: string
+  numChoices?: number
+  start: string
+  end?: string
+  duration?: number
+}
+
+export interface PresentedOffer {
+  guid?: string
+  offerType?: ApiOfferType
+  // Populated iff offerType === 'CUSTOM' — holds the SDK offer name.
+  customOfferType?: string
+  accepted: boolean
+  presentedAt: string
+  acceptedAt?: string
+  declinedAt?: string
+  [key: string]: unknown
+}
+
+export interface AcceptedOfferPayload {
+  guid?: string
+  offerType: ApiOfferType
+  // Populated iff offerType === 'CUSTOM' — holds the SDK offer name.
+  customOfferType?: string
+  // Populated iff offerType === 'CUSTOM' — the result arg passed to
+  // `onAccept(result)` from the custom offer component.
+  customOfferResult?: Record<string, unknown>
+  couponId?: string
+  couponType?: ApiCouponType
+  couponAmount?: number
+  couponDuration?: number
+  pauseDuration?: number
+  pauseInterval?: ApiPauseInterval
+  newPlanId?: string
+  newPlanPrice?: number
+  trialExtensionDays?: number
+  redirectUrl?: string
+}
+
+export interface SessionCustomer {
+  id: string
+  email?: string
+  subscriptionId?: string
+  planId?: string
+  planPrice?: number
+  currency?: string
+  billingInterval?: ApiBillingInterval
+  created?: string
+  onTrial?: boolean
+  customAttributes?: Record<string, unknown>
+}
+
 export interface SessionPayload {
   blueprintId?: string
-  customer?: {
-    id: string
-    email?: string
-    subscriptionId?: string
-    planId?: string
-    planPrice?: number
-    currency?: string
-    billingInterval?: string
-    created?: string
-    onTrial?: boolean
-    customAttributes?: Record<string, unknown>
-  }
+  surveyId?: string
+  customer?: SessionCustomer
   canceled?: boolean
+  aborted?: boolean
   surveyChoiceId?: string
   surveyChoiceValue?: string
   feedback?: string
-  acceptedOffer?: {
-    guid?: string
-    offerType: string
-    couponId?: string
-    couponType?: string
-    couponAmount?: number
-    couponDuration?: number
-    pauseDuration?: number
-    pauseInterval?: string
-    newPlanId?: string
-    newPlanPrice?: number
-    trialExtensionDays?: number
-    redirectUrl?: string
-  }
-  presentedOffers?: Array<{ guid?: string }>
-  stepsViewed?: Array<{
-    stepType?: string
-    start?: string
-    end?: string
-    duration?: number
-  }>
-  mode: 'LIVE' | 'TEST'
+  acceptedOffer?: AcceptedOfferPayload
+  presentedOffers?: PresentedOffer[]
+  stepsViewed?: StepViewed[]
+  customStepResults?: Record<string, unknown>
+  mode: ApiMode
   provider?: string
   embedVersion?: string
+  // Token-mode passthrough (mirrors fields churnkey-embed sends)
+  clickToCancelEnabled?: boolean
+  strictFTCComplianceEnabled?: boolean
+  usedClickToCancel?: boolean
+  autoOptimizationUsed?: boolean
+  autoOptimizationKey?: string
+  discountCooldown?: number
+  pauseCooldown?: number
+  discountCooldownApplied?: boolean
+  pauseCooldownApplied?: boolean
 }
 
 export class ChurnkeyApi {
@@ -137,8 +188,10 @@ export class AnalyticsClient {
     this.baseUrl = baseUrl ?? DEFAULT_BASE_URL
   }
 
+  // Fire-and-forget. Non-2xx responses are ignored — analytics failures
+  // should never surface into the host app's flow.
   async createSession(payload: SessionPayload): Promise<void> {
-    const res = await fetch(`${this.baseUrl}/api/sessions/sdk`, {
+    await fetch(`${this.baseUrl}/api/sessions/sdk`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -146,8 +199,17 @@ export class AnalyticsClient {
       },
       body: JSON.stringify(payload),
     })
-    if (!res.ok) return // analytics failures are silent
   }
+}
+
+function toIsoString(value: Date | string | undefined): string | undefined {
+  if (value == null) return undefined
+  return value instanceof Date ? value.toISOString() : String(value)
+}
+
+function toApiBillingInterval(interval: 'day' | 'week' | 'month' | 'year' | undefined): ApiBillingInterval | undefined {
+  if (!interval) return undefined
+  return interval.toUpperCase() as ApiBillingInterval
 }
 
 export function directDataToSessionCustomer(
@@ -155,8 +217,7 @@ export function directDataToSessionCustomer(
   subscriptions?: DirectSubscription[],
 ): SessionPayload['customer'] {
   const sub = subscriptions?.[0]
-  const item = sub?.items[0]
-  const price = item?.price
+  const price = sub?.items[0]?.price
 
   return {
     id: customer.id,
@@ -164,10 +225,10 @@ export function directDataToSessionCustomer(
     subscriptionId: sub?.id,
     planId: price?.id,
     planPrice: price?.amount.value,
-    currency: price?.amount.currency ?? customer.currency ?? 'usd',
-    billingInterval: price?.interval?.toUpperCase(),
-    created: sub?.start != null ? String(sub.start instanceof Date ? sub.start.toISOString() : sub.start) : undefined,
-    onTrial: sub?.status.name === 'trial',
+    currency: price?.amount.currency ?? customer.currency,
+    billingInterval: toApiBillingInterval(price?.interval),
+    created: toIsoString(sub?.start),
+    onTrial: sub ? sub.status.name === 'trial' : undefined,
     customAttributes: customer.metadata,
   }
 }

@@ -1,7 +1,7 @@
 import { createHmac } from 'node:crypto'
-import type { ChurnkeyConfig, CreateTokenParams, TokenPayload } from './types'
+import type { ChurnkeyConfig, CreateTokenParams, Mode, TokenPayload } from './types'
 
-export type { ChurnkeyConfig, CreateTokenParams, TokenPayload }
+export type { ChurnkeyConfig, CreateTokenParams, Mode, TokenPayload }
 
 export const VERSION = '0.1.0'
 
@@ -16,17 +16,25 @@ export class Churnkey {
     this.apiKey = config.apiKey
   }
 
+  /**
+   * Raw HMAC-SHA256 of the customer ID, keyed with the API key. This is the
+   * `authHash` expected by the hosted embed widget (`churnkey.init({...})`).
+   * For the React SDK, use `createToken()` instead.
+   */
+  authHash(customerId: string): string {
+    if (!customerId) throw new Error('customerId is required')
+    return createHmac('sha256', this.apiKey).update(customerId).digest('hex')
+  }
+
   /** Create a session token for use with `<CancelFlow session={token} />`. */
   createToken(params: CreateTokenParams): string {
     if (!params.customerId) throw new Error('customerId is required')
 
-    const authHash = createHmac('sha256', this.apiKey).update(params.customerId).digest('hex')
-
     const payload: TokenPayload = {
       a: this.appId,
       c: params.customerId,
-      h: authHash,
-      m: 'live',
+      h: this.authHash(params.customerId),
+      m: params.mode ?? 'live',
       t: Date.now(),
     }
 
