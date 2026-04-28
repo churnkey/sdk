@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { CancelFlow } from '../../src/components/cancel-flow'
-import type { AcceptedOffer, Step } from '../../src/core/types'
+import type { AcceptedOffer, CustomOfferProps, Step } from '../../src/core/types'
 
 const steps: Step[] = [
   {
@@ -207,6 +207,36 @@ describe('CancelFlow', () => {
     expect(screen.getByLabelText('Close')).toBeInTheDocument()
   })
 
+  // If a developer declares a custom step but
+  // forgets to register a component, the fallback warns and skips via effect
+  // rather than crashing the render.
+  it('warns and skips a custom step with no registered component', async () => {
+    const user = userEvent.setup()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const stepsWithUnregistered: Step[] = [
+      { type: 'survey', reasons: [{ id: 'a', label: 'A' }] },
+      { type: 'nps' }, // no customComponents.nps registered
+      { type: 'confirm', title: 'Confirm cancellation' },
+    ]
+    render(
+      <CancelFlow
+        steps={stepsWithUnregistered}
+        onAccept={vi.fn().mockResolvedValue(undefined)}
+        onCancel={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    await user.click(screen.getByText('A'))
+    await user.click(screen.getByText('Continue'))
+
+    // nps step is skipped; we land on confirm
+    await waitFor(() => {
+      expect(screen.getByText('Confirm cancellation')).toBeInTheDocument()
+    })
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('No component registered for step type "nps"'))
+    warn.mockRestore()
+  })
+
   it('renders a registered custom offer component at the offer step', async () => {
     const user = userEvent.setup()
     const customSteps: Step[] = [
@@ -230,7 +260,7 @@ describe('CancelFlow', () => {
         onAccept={onAccept}
         onCancel={vi.fn().mockResolvedValue(undefined)}
         customComponents={{
-          'change-seats': ({ onAccept: accept }) => (
+          'change-seats': ({ onAccept: accept }: CustomOfferProps) => (
             <button type="button" data-testid="custom-offer" onClick={() => accept({ seats: 3 })}>
               Reduce to 3 seats
             </button>

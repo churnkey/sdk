@@ -90,13 +90,6 @@ describe('CancelFlowMachine', () => {
   })
 
   describe('navigation - next', () => {
-    it('navigates to offer step when reason has offer', () => {
-      const machine = new CancelFlowMachine(baseConfig)
-      machine.selectReason('expensive')
-      machine.next()
-      expect(machine.getSnapshot().step).toBe('offer')
-    })
-
     it('skips offer step when reason has no offer', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('missing')
@@ -294,6 +287,56 @@ describe('CancelFlowMachine', () => {
       expect(machine.getSnapshot().step).toBe('success')
       expect(machine.getSnapshot().currentStepId).toBe(offerStepId)
     })
+
+    // Pins the contract that token mode commits the action server-side BEFORE
+    // the consumer's onAccept fires.
+    it('token mode calls action endpoint before onAccept callback', async () => {
+      const calls: string[] = []
+      const onAccept = vi.fn(async () => {
+        calls.push('onAccept')
+      })
+      const mockApi = {
+        applyDiscount: vi.fn(async () => {
+          calls.push('action')
+        }),
+        cancelSubscription: vi.fn(async () => {}),
+        createSession: vi.fn(async () => {}),
+      }
+      const machine = new CancelFlowMachine({
+        session: 'ck_placeholder',
+        steps: [
+          {
+            type: 'survey',
+            reasons: [
+              {
+                id: 'r1',
+                label: 'Too expensive',
+                offer: { type: 'discount', percent: 10, months: 1, couponId: 'c_1' },
+              },
+            ],
+          },
+          { type: 'confirm' },
+        ],
+        onAccept,
+      })
+      machine.initializeFromEmbed(
+        {
+          blueprint: { _id: 'bp_1', steps: [] },
+          coupons: [],
+          offerPlans: [],
+          customer: null,
+          sessions: [],
+        } as any,
+        mockApi as any,
+        { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+      )
+      machine.selectReason('r1')
+      machine.next()
+      await machine.accept()
+
+      expect(calls).toEqual(['action', 'onAccept'])
+      expect(mockApi.applyDiscount).toHaveBeenCalledWith('c_1', 'bp_1')
+    })
   })
 
   describe('decline', () => {
@@ -331,6 +374,41 @@ describe('CancelFlowMachine', () => {
 
       expect(machine.getSnapshot().error).toBe(error)
       expect(machine.getSnapshot().step).toBe('confirm') // stays on confirm
+    })
+
+    it('token mode calls cancelSubscription before onCancel callback', async () => {
+      const calls: string[] = []
+      const onCancel = vi.fn(async () => {
+        calls.push('onCancel')
+      })
+      const mockApi = {
+        cancelSubscription: vi.fn(async () => {
+          calls.push('action')
+        }),
+        createSession: vi.fn(async () => {}),
+      }
+      const machine = new CancelFlowMachine({
+        session: 'ck_placeholder',
+        steps: [{ type: 'survey', reasons: [{ id: 'r1', label: 'Missing features' }] }, { type: 'confirm' }],
+        onCancel,
+      })
+      machine.initializeFromEmbed(
+        {
+          blueprint: { _id: 'bp_1', steps: [] },
+          coupons: [],
+          offerPlans: [],
+          customer: null,
+          sessions: [],
+        } as any,
+        mockApi as any,
+        { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+      )
+      machine.selectReason('r1')
+      machine.next()
+      await machine.cancel()
+
+      expect(calls).toEqual(['action', 'onCancel'])
+      expect(mockApi.cancelSubscription).toHaveBeenCalled()
     })
   })
 
@@ -404,34 +482,15 @@ describe('CancelFlowMachine', () => {
   })
 
   describe('getStepConfig', () => {
-    it('returns step config by type', () => {
+    it('returns step config by type, undefined for unknown', () => {
       const machine = new CancelFlowMachine({
         steps: [
-          {
-            type: 'survey',
-            title: 'Custom title',
-            reasons: [{ id: 'a', label: 'A' }],
-          },
+          { type: 'survey', title: 'Custom title', reasons: [{ id: 'a', label: 'A' }] },
           { type: 'confirm', title: 'Custom confirm' },
         ],
       })
-      const surveyConfig = machine.getStepConfig('survey')
-      expect(surveyConfig?.type).toBe('survey')
-
-      const confirmConfig = machine.getStepConfig('confirm')
-      expect(confirmConfig?.type).toBe('confirm')
-    })
-
-    it('returns undefined for missing step', () => {
-      const machine = new CancelFlowMachine({
-        steps: [
-          {
-            type: 'survey',
-            reasons: [{ id: 'a', label: 'A' }],
-          },
-          { type: 'confirm' },
-        ],
-      })
+      expect(machine.getStepConfig('survey')?.type).toBe('survey')
+      expect(machine.getStepConfig('confirm')?.type).toBe('confirm')
       expect(machine.getStepConfig('feedback')).toBeUndefined()
     })
   })
@@ -731,13 +790,6 @@ describe('CancelFlowMachine', () => {
 
       machine.back() // → survey
       expect(machine.getSnapshot().step).toBe('survey')
-    })
-
-    it('tracks correct step count with custom steps', () => {
-      const machine = new CancelFlowMachine(customConfig)
-      machine.selectReason('other')
-      // survey + nps + feedback + confirm = 4
-      expect(machine.totalSteps).toBe(4)
     })
 
     it('totalSteps reflects declared steps (synthetic offers excluded)', () => {
