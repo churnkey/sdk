@@ -1,5 +1,6 @@
 import type { SuccessStepProps } from '../../core/types'
 import { cn } from '../../core/utils'
+import { RichText } from '../rich-text'
 
 export function DefaultSuccess({ outcome, title, description, onClose, classNames }: SuccessStepProps) {
   return (
@@ -30,7 +31,7 @@ export function DefaultSuccess({ outcome, title, description, onClose, className
       </div>
 
       <h3 className={cn('ck-step-title', classNames?.title)}>{title}</h3>
-      {description && <p className={cn('ck-step-description', classNames?.description)}>{description}</p>}
+      <RichText html={description} className={cn('ck-step-description', classNames?.description)} />
 
       <button type="button" className={cn('ck-button ck-button-secondary', classNames?.closeButton)} onClick={onClose}>
         Close

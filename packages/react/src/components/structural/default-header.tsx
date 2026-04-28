@@ -1,5 +1,6 @@
 import type { HeaderProps } from '../../core/types'
 import { cn } from '../../core/utils'
+import { RichText } from '../rich-text'
 
 export function DefaultHeader({ title, description, onClose, className }: HeaderProps) {
   return (
@@ -10,7 +11,7 @@ export function DefaultHeader({ title, description, onClose, className }: Header
             {title}
           </h2>
         )}
-        {description && <p className="ck-header-description">{description}</p>}
+        <RichText html={description} className="ck-header-description" />
       </div>
       <button type="button" className="ck-header-close" onClick={onClose} aria-label="Close">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">

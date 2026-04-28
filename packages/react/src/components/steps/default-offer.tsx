@@ -1,6 +1,7 @@
 import { formatPrice } from '../../core/format'
 import type { OfferCardProps, OfferDecision, OfferStepProps, Plan } from '../../core/types'
 import { cn } from '../../core/utils'
+import { RichText } from '../rich-text'
 
 function DefaultDiscountDetails({ offer }: { offer: OfferDecision }) {
   const o = offer as OfferDecision & { percent: number; months: number }
@@ -115,7 +116,7 @@ function DefaultOfferCard({ offer, onAccept, onDecline, isProcessing, classNames
   return (
     <div className={cn('ck-offer-card', classNames?.card)}>
       <h3 className={cn('ck-offer-headline', classNames?.headline)}>{offer.copy.headline}</h3>
-      <p className={cn('ck-offer-body', classNames?.body)}>{offer.copy.body}</p>
+      <RichText html={offer.copy.body} className={cn('ck-offer-body', classNames?.body)} />
 
       <OfferDetails offer={offer} />
 
