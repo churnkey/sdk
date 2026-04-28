@@ -436,7 +436,7 @@ function HeadlessDemo() {
           <strong>Step:</strong> {flow.step} ({flow.stepIndex + 1}/{flow.totalSteps}){' | '}
           <strong>Reason:</strong> {flow.selectedReason ?? 'none'}
           {' | '}
-          <strong>Offer:</strong> {flow.recommendation?.type ?? 'none'}
+          <strong>Offer:</strong> {flow.currentOffer?.type ?? 'none'}
         </p>
         <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {flow.step === 'survey' &&

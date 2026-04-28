@@ -1,5 +1,5 @@
 import { CancelFlow } from '@churnkey/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import '@churnkey/react/styles.css'
 import type {
   AcceptedOffer,
@@ -19,6 +19,8 @@ type Scenario =
   | 'token-analytics'
   | 'steps-merge'
   | 'custom-steps'
+  | 'all-offers'
+  | 'standalone-offer'
   | 'themes'
 
 const SCENARIOS: { id: Scenario; label: string; description: string }[] = [
@@ -40,8 +42,9 @@ const SCENARIOS: { id: Scenario; label: string; description: string }[] = [
   { id: 'token', label: 'Token Mode', description: 'Session token. Config from API, billing actions via Churnkey.' },
   {
     id: 'token-analytics',
-    label: 'Token + Analytics',
-    description: 'Token + customer/subscriptions. HMAC endpoint, enriched session data.',
+    label: 'Token + Direct Customer Data',
+    description:
+      'Token + customer/subscriptions. Session payload enriched with client-side data (metadata, plan price).',
   },
   {
     id: 'steps-merge',
@@ -53,8 +56,29 @@ const SCENARIOS: { id: Scenario; label: string; description: string }[] = [
     label: 'Custom Steps + Analytics',
     description: 'Custom NPS step and change-seats offer, with analytics recording.',
   },
+  {
+    id: 'all-offers',
+    label: 'All Built-in Offer Types',
+    description: 'discount, pause, plan_change, trial_extension, contact, redirect — one reason each.',
+  },
+  {
+    id: 'standalone-offer',
+    label: 'Standalone Offer (No Survey)',
+    description: 'Flow starts on an OFFER step — proactive save offer before any survey.',
+  },
   { id: 'themes', label: 'Themes + Dark Mode', description: 'Cycle through theme/colorScheme combinations.' },
 ]
+
+// A customized success step on every flow catches regressions in the
+// post-outcome transition — the renderer should pick up savedTitle /
+// cancelledTitle from the graph, not fall back to defaults.
+const successStep: Step = {
+  type: 'success',
+  savedTitle: '🎉 Saved! (custom title)',
+  savedDescription: 'This custom description confirms the success step is rendering graph-config, not defaults.',
+  cancelledTitle: '👋 Cancelled (custom title)',
+  cancelledDescription: 'If you see this, the cancelled outcome is rendering from the declared success step.',
+}
 
 const localSteps: Step[] = [
   {
@@ -68,6 +92,7 @@ const localSteps: Step[] = [
   },
   { type: 'feedback', title: 'Anything else?' },
   { type: 'confirm' },
+  successStep,
 ]
 
 const mergeSteps: Step[] = [
@@ -92,6 +117,68 @@ const customSteps: Step[] = [
   { type: 'nps', title: 'Quick question', data: { scale: 10 } },
   { type: 'feedback' },
   { type: 'confirm' },
+  successStep,
+]
+
+// One reason per built-in offer type. Exercising all defaults catches
+// regressions in offer rendering, default copy, and wire payload shape.
+const allOffersSteps: Step[] = [
+  {
+    type: 'survey',
+    title: 'Pick any reason to see its offer',
+    reasons: [
+      { id: 'discount', label: 'Too expensive (→ discount)', offer: { type: 'discount', percent: 25, months: 3 } },
+      { id: 'pause', label: 'Temporary break (→ pause)', offer: { type: 'pause', months: 2 } },
+      {
+        id: 'plan',
+        label: 'Wrong plan (→ plan_change)',
+        offer: {
+          type: 'plan_change',
+          plans: [
+            { id: 'starter', name: 'Starter', price: 9, interval: 'month', currency: 'USD', features: ['1 user'] },
+            { id: 'pro', name: 'Pro', price: 29, interval: 'month', currency: 'USD', features: ['5 users'] },
+          ],
+        },
+      },
+      { id: 'trial', label: 'Need more time (→ trial_extension)', offer: { type: 'trial_extension', days: 14 } },
+      {
+        id: 'contact',
+        label: 'Talk to someone (→ contact)',
+        offer: { type: 'contact', url: 'mailto:support@example.com', label: 'Email support' },
+      },
+      {
+        id: 'redirect',
+        label: 'Learn more (→ redirect)',
+        offer: { type: 'redirect', url: 'https://example.com/docs', label: 'See docs' },
+      },
+      { id: 'none', label: 'No reason (no offer)' },
+    ],
+  },
+  { type: 'feedback', title: 'Tell us more' },
+  { type: 'confirm' },
+  successStep,
+]
+
+// Flow starts directly on an offer step. Exercises buildInitialState's
+// currentStep.offer read for the first step and the offer-first entry path.
+const standaloneOfferSteps: Step[] = [
+  {
+    type: 'offer',
+    title: 'Before you go...',
+    offer: {
+      type: 'discount',
+      percent: 30,
+      months: 6,
+      copy: {
+        headline: 'Stay and get 30% off',
+        body: "Here's our best offer — 30% off for six months, no questions asked.",
+        cta: 'Claim 30% off',
+        declineCta: 'No thanks, continue',
+      },
+    },
+  },
+  { type: 'confirm' },
+  successStep,
 ]
 
 function usePersistedField(key: string, defaultValue = '') {
@@ -322,20 +409,6 @@ export function TestHarness() {
     }
   }, [log])
 
-  function generateToken(): string | undefined {
-    if (!appId || !apiKey || !customerId) return undefined
-    // Dev token with placeholder hash — local API bypasses HMAC validation
-    const payload = JSON.stringify({
-      a: appId,
-      c: customerId,
-      s: subscriptionId || undefined,
-      h: 'dev-test-hash',
-      m: mode,
-      t: Date.now(),
-    })
-    return `ck_${btoa(payload).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`
-  }
-
   const customer: DirectCustomer | undefined =
     scenario !== 'open-source' ? { id: customerId || 'cus_test', email: customerEmail || undefined } : undefined
 
@@ -361,7 +434,22 @@ export function TestHarness() {
       : undefined
 
   const needsToken = ['token', 'token-analytics', 'steps-merge'].includes(scenario)
-  const token = needsToken ? generateToken() : undefined
+
+  // Memoize on identity fields. Without useMemo the Date.now() in the payload
+  // produces a fresh token string each render, which the SDK reads as a new
+  // session and refetches /embed — resetting the flow to step 1.
+  const token = useMemo(() => {
+    if (!needsToken || !appId || !apiKey || !customerId) return undefined
+    const payload = JSON.stringify({
+      a: appId,
+      c: customerId,
+      s: subscriptionId || undefined,
+      h: 'dev-test-hash',
+      m: mode,
+      t: Date.now(),
+    })
+    return `ck_${btoa(payload).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`
+  }, [needsToken, appId, apiKey, customerId, subscriptionId, mode])
 
   const appearance: Appearance = scenario === 'themes' ? { theme, colorScheme } : {}
 
@@ -371,6 +459,10 @@ export function TestHarness() {
         return mergeSteps
       case 'custom-steps':
         return customSteps
+      case 'all-offers':
+        return allOffersSteps
+      case 'standalone-offer':
+        return standaloneOfferSteps
       case 'token':
       case 'token-analytics':
         return undefined

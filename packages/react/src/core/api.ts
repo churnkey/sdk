@@ -126,7 +126,10 @@ export class ChurnkeyApi {
     return `${this.baseUrl}/api/orgs/${this.creds.appId}/${path}`
   }
 
-  private async request(url: string, body?: unknown): Promise<unknown> {
+  // Action methods discard the response body, so don't parse JSON here —
+  // a server returning an empty 201 would otherwise blow up res.json() and
+  // surface as an error even though the action committed.
+  private async request(url: string, body?: unknown): Promise<Response> {
     const res = await fetch(url, {
       method: 'POST',
       headers: this.headers,
@@ -136,42 +139,38 @@ export class ChurnkeyApi {
       const text = await res.text().catch(() => '')
       throw new Error(`Churnkey API error (${res.status}): ${text}`)
     }
-    return res.json()
+    return res
   }
 
   async fetchConfig(): Promise<EmbedResponse> {
-    const data = await this.request(this.orgUrl('embed'))
-    return data as EmbedResponse
+    const res = await this.request(this.orgUrl('embed'))
+    return (await res.json()) as EmbedResponse
   }
 
   async applyDiscount(couponId: string, blueprintId?: string): Promise<void> {
-    await this.request(this.orgUrl('apply-discount'), {
+    await this.request(this.orgUrl('cancel-flow/actions/discount'), {
       coupon: couponId,
       blueprintId,
     })
   }
 
   async pause(params: { duration: number; interval: string }): Promise<void> {
-    await this.request(this.orgUrl('pause'), {
+    await this.request(this.orgUrl('cancel-flow/actions/pause'), {
       duration: params.duration,
       interval: params.interval,
     })
   }
 
   async cancelSubscription(): Promise<void> {
-    await this.request(this.orgUrl('cancel'), {})
+    await this.request(this.orgUrl('cancel-flow/actions/cancel'), { cancelAtPeriodEnd: true })
   }
 
   async changePlan(planId: string): Promise<void> {
-    await this.request(this.orgUrl('change-price'), {
-      planId,
-    })
+    await this.request(this.orgUrl('cancel-flow/actions/change-plan'), { planId })
   }
 
-  async extendTrial(days: number): Promise<void> {
-    await this.request(this.orgUrl('extend-trial'), {
-      days,
-    })
+  async extendTrial(days: number, blueprintId?: string): Promise<void> {
+    await this.request(this.orgUrl('cancel-flow/actions/extend-trial'), { days, blueprintId })
   }
 
   async createSession(payload: SessionPayload): Promise<void> {

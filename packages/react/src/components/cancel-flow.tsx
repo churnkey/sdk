@@ -1,7 +1,5 @@
-import { type ReactElement, useCallback, useEffect, useState } from 'react'
-import { ChurnkeyApi } from '../core/api'
-import { CancelFlowMachine } from '../core/machine'
-import { decodeSessionToken } from '../core/token'
+import { type ReactElement, useEffect } from 'react'
+import type { CancelFlowMachine } from '../core/machine'
 import type {
   CancelFlowProps,
   ComponentOverrides,
@@ -15,8 +13,8 @@ import type {
   SuccessStep,
   SurveyStep,
 } from '../core/types'
-import { useColorScheme } from '../core/use-color-scheme'
 import { appearanceToStyle, defaultTitles } from '../core/utils'
+import { useCancelFlowMachine } from '../headless/use-cancel-flow-machine'
 import { DefaultConfirm } from './steps/default-confirm'
 import { DefaultFeedback } from './steps/default-feedback'
 import { DefaultOffer } from './steps/default-offer'
@@ -24,171 +22,22 @@ import { DefaultSuccess } from './steps/default-success'
 import { DefaultSurvey } from './steps/default-survey'
 import { DefaultHeader } from './structural/default-header'
 import { DefaultModal } from './structural/default-modal'
+import { useColorScheme } from './use-color-scheme'
 
 export function CancelFlow(props: CancelFlowProps) {
-  if (props.session) return <TokenCancelFlow {...props} />
-  return <LocalCancelFlow {...props} />
-}
-
-// Local mode — steps defined in props
-
-function LocalCancelFlow({
-  appId,
-  customer,
-  subscriptions,
-  steps,
-  apiBaseUrl,
-  mode,
-  appearance,
-  classNames,
-  components,
-  customComponents,
-  onAccept,
-  onCancel,
-  onClose,
-  onStepChange,
-}: CancelFlowProps) {
-  const [machine] = useState(
-    () =>
-      new CancelFlowMachine({
-        appId,
-        customer,
-        subscriptions,
-        steps,
-        apiBaseUrl,
-        mode,
-        onAccept,
-        onCancel,
-        onClose,
-        onStepChange,
-      }),
-  )
-  const [state, setState] = useState<FlowState>(() => machine.getSnapshot())
-
-  useEffect(() => {
-    setState(machine.getSnapshot())
-    return machine.subscribe(() => setState(machine.getSnapshot()))
-  }, [machine])
-
-  return (
-    <FlowShell
-      machine={machine}
-      state={state}
-      appearance={appearance}
-      classNames={classNames}
-      components={components}
-      customComponents={customComponents}
-    />
-  )
-}
-
-// Token mode — fetches config from API, then renders
-
-function TokenCancelFlow({
-  session,
-  apiBaseUrl,
-  appearance,
-  classNames,
-  components,
-  customComponents,
-  onAccept,
-  onCancel,
-  onClose,
-  onStepChange,
-}: CancelFlowProps) {
-  const [machine] = useState(() => new CancelFlowMachine({ session }))
-  const [state, setState] = useState<FlowState>(() => machine.getSnapshot())
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState<Error | null>(null)
-
-  useEffect(() => {
-    setState(machine.getSnapshot())
-    return machine.subscribe(() => setState(machine.getSnapshot()))
-  }, [machine])
-
-  const loadConfig = useCallback(() => {
-    setLoadError(null)
-    setIsLoading(true)
-    const creds = decodeSessionToken(session!)
-    const api = new ChurnkeyApi(creds, apiBaseUrl)
-    api
-      .fetchConfig()
-      .then((embedData) => {
-        machine.initializeFromEmbed(embedData, api, creds, { onAccept, onCancel, onClose, onStepChange })
-        setIsLoading(false)
-      })
-      .catch((err) => {
-        setLoadError(err instanceof Error ? err : new Error(String(err)))
-        setIsLoading(false)
-      })
-  }, [session, apiBaseUrl, machine, onAccept, onCancel, onClose, onStepChange])
-
-  useEffect(() => {
-    if (session) loadConfig()
-  }, [session, loadConfig])
-
-  const scheme = useColorScheme(appearance?.colorScheme)
-  const themeStyle = appearanceToStyle(appearance, scheme)
-  const Modal = components?.Modal ?? DefaultModal
-  const Header = components?.Header ?? DefaultHeader
-  const handleClose = onClose ?? (() => {})
+  const { machine, state, isLoading, loadError, retry } = useCancelFlowMachine(props)
 
   if (isLoading || loadError) {
     return (
-      <div className="ck-cancel-flow" style={themeStyle}>
-        <Modal open={true} onClose={handleClose} className={classNames?.modal}>
-          <Header
-            title={isLoading ? 'Loading...' : 'Something went wrong'}
-            step={0}
-            totalSteps={0}
-            onClose={handleClose}
-            className={classNames?.header}
-          />
-          <div className="ck-content">
-            {isLoading && (
-              <div className="ck-loading" style={{ padding: '32px', textAlign: 'center' }}>
-                <div
-                  className="ck-loading-spinner"
-                  style={{
-                    width: 32,
-                    height: 32,
-                    border: '3px solid var(--ck-color-border, #e5e7eb)',
-                    borderTopColor: 'var(--ck-color-primary, #2563eb)',
-                    borderRadius: '50%',
-                    animation: 'ck-spin 0.6s linear infinite',
-                    margin: '0 auto 16px',
-                  }}
-                />
-                <p style={{ color: 'var(--ck-color-text-secondary, #6b7280)' }}>Loading your options...</p>
-              </div>
-            )}
-            {loadError && (
-              <div className="ck-error" role="alert" style={{ padding: '32px', textAlign: 'center' }}>
-                <p className="ck-error-message" style={{ marginBottom: 16 }}>
-                  We couldn't load your cancellation options. Please try again.
-                </p>
-                <button
-                  type="button"
-                  className="ck-retry-button"
-                  onClick={loadConfig}
-                  style={{
-                    padding: '8px 20px',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    background: 'var(--ck-color-primary, #2563eb)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 'var(--ck-border-radius, 8px)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Try again
-                </button>
-              </div>
-            )}
-          </div>
-        </Modal>
-      </div>
+      <LoadStatus
+        appearance={props.appearance}
+        classNames={props.classNames}
+        components={props.components}
+        onClose={props.onClose}
+        isLoading={isLoading}
+        loadError={loadError}
+        onRetry={retry}
+      />
     )
   }
 
@@ -196,11 +45,92 @@ function TokenCancelFlow({
     <FlowShell
       machine={machine}
       state={state}
-      appearance={appearance}
-      classNames={classNames}
-      components={components}
-      customComponents={customComponents}
+      appearance={props.appearance}
+      classNames={props.classNames}
+      components={props.components}
+      customComponents={props.customComponents}
     />
+  )
+}
+
+function LoadStatus({
+  appearance,
+  classNames,
+  components,
+  onClose,
+  isLoading,
+  loadError,
+  onRetry,
+}: {
+  appearance?: CancelFlowProps['appearance']
+  classNames?: CancelFlowProps['classNames']
+  components?: CancelFlowProps['components']
+  onClose?: CancelFlowProps['onClose']
+  isLoading: boolean
+  loadError: Error | null
+  onRetry: () => void
+}) {
+  const scheme = useColorScheme(appearance?.colorScheme)
+  const themeStyle = appearanceToStyle(appearance, scheme)
+  const Modal = components?.Modal ?? DefaultModal
+  const Header = components?.Header ?? DefaultHeader
+  const handleClose = onClose ?? (() => {})
+
+  return (
+    <div className="ck-cancel-flow" style={themeStyle}>
+      <Modal open={true} onClose={handleClose} className={classNames?.modal}>
+        <Header
+          title={isLoading ? 'Loading...' : 'Something went wrong'}
+          step={0}
+          totalSteps={0}
+          onClose={handleClose}
+          className={classNames?.header}
+        />
+        <div className="ck-content">
+          {isLoading && (
+            <div className="ck-loading" style={{ padding: '32px', textAlign: 'center' }}>
+              <div
+                className="ck-loading-spinner"
+                style={{
+                  width: 32,
+                  height: 32,
+                  border: '3px solid var(--ck-color-border, #e5e7eb)',
+                  borderTopColor: 'var(--ck-color-primary, #2563eb)',
+                  borderRadius: '50%',
+                  animation: 'ck-spin 0.6s linear infinite',
+                  margin: '0 auto 16px',
+                }}
+              />
+              <p style={{ color: 'var(--ck-color-text-secondary, #6b7280)' }}>Loading your options...</p>
+            </div>
+          )}
+          {loadError && (
+            <div className="ck-error" role="alert" style={{ padding: '32px', textAlign: 'center' }}>
+              <p className="ck-error-message" style={{ marginBottom: 16 }}>
+                We couldn't load your cancellation options. Please try again.
+              </p>
+              <button
+                type="button"
+                className="ck-retry-button"
+                onClick={onRetry}
+                style={{
+                  padding: '8px 20px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  background: 'var(--ck-color-primary, #2563eb)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 'var(--ck-border-radius, 8px)',
+                  cursor: 'pointer',
+                }}
+              >
+                Try again
+              </button>
+            </div>
+          )}
+        </div>
+      </Modal>
+    </div>
   )
 }
 
@@ -219,11 +149,9 @@ function FlowShell({ machine, state, appearance, classNames, components, customC
 
   const Modal = components?.Modal ?? DefaultModal
   const Header = components?.Header ?? DefaultHeader
-  const stepConfig = machine.getStepConfig(state.step)
-  const title =
-    stepConfig && 'title' in stepConfig ? (stepConfig.title ?? defaultTitles[state.step]) : defaultTitles[state.step]
-  const description =
-    stepConfig && 'description' in stepConfig ? (stepConfig as { description?: string }).description : undefined
+  const currentStep = machine.currentStep
+  const title = currentStep?.title ?? defaultTitles[state.step]
+  const description = currentStep?.description
 
   return (
     <div className="ck-cancel-flow" style={themeStyle}>
@@ -260,7 +188,7 @@ function StepRenderer({
   components?: Partial<ComponentOverrides>
   customComponents?: CustomComponents
 }) {
-  const stepConfig = machine.getStepConfig(state.step)
+  const stepConfig = machine.currentStep
 
   switch (state.step) {
     case 'survey': {
@@ -281,16 +209,15 @@ function StepRenderer({
     }
 
     case 'offer': {
-      if (!state.recommendation) return null
-      // A custom offer type (e.g. 'change-seats') renders its registered
-      // component if provided; built-in offer types fall through to DefaultOffer.
-      const CustomOffer = customComponents?.[state.recommendation.type] as
-        | ((props: CustomOfferProps) => ReactElement)
-        | undefined
+      const offer = machine.currentOffer
+      if (!offer) return null
+      // Custom offer types (e.g. 'change-seats') match against
+      // customComponents first; built-ins fall through to DefaultOffer.
+      const CustomOffer = customComponents?.[offer.type] as ((props: CustomOfferProps) => ReactElement) | undefined
       if (CustomOffer) {
         return (
           <CustomOffer
-            offer={state.recommendation}
+            offer={offer}
             customer={state.customer}
             onAccept={machine.accept}
             onDecline={machine.decline}
@@ -304,8 +231,7 @@ function StepRenderer({
         <Offer
           title={config?.title}
           description={config?.description}
-          offer={state.recommendation}
-          alternatives={state.alternatives}
+          offer={offer}
           onAccept={machine.accept}
           onDecline={machine.decline}
           isProcessing={state.isProcessing}
@@ -357,7 +283,7 @@ function StepRenderer({
       return (
         <Success
           outcome={state.outcome ?? 'cancelled'}
-          offer={state.recommendation ?? undefined}
+          offer={machine.currentOffer ?? undefined}
           title={
             isSaved ? (config?.savedTitle ?? 'Welcome back!') : (config?.cancelledTitle ?? 'Subscription cancelled')
           }
@@ -376,9 +302,7 @@ function StepRenderer({
       const CustomStep = customComponents?.[state.step] as ((props: CustomStepProps) => ReactElement) | undefined
 
       if (!CustomStep) {
-        console.warn(`[churnkey] No component registered for step type "${state.step}". Skipping.`)
-        machine.next()
-        return null
+        return <UnregisteredStepFallback step={state.step} onSkip={machine.next} />
       }
 
       const config = stepConfig as CustomStepProps['step'] | undefined
@@ -398,4 +322,14 @@ function StepRenderer({
       )
     }
   }
+}
+
+// Skips a custom step the consumer didn't register a component for. The skip
+// runs in an effect so we don't mutate machine state during render.
+function UnregisteredStepFallback({ step, onSkip }: { step: string; onSkip: () => void }) {
+  useEffect(() => {
+    console.warn(`[churnkey] No component registered for step type "${step}". Skipping.`)
+    onSkip()
+  }, [step, onSkip])
+  return null
 }

@@ -151,10 +151,10 @@ function MyCancelPage() {
     )
   }
 
-  if (flow.step === 'offer' && flow.recommendation) {
+  if (flow.step === 'offer' && flow.currentOffer) {
     return (
       <div>
-        <h2>{flow.recommendation.copy.headline}</h2>
+        <h2>{flow.currentOffer.copy.headline}</h2>
         <button onClick={flow.accept}>Accept</button>
         <button onClick={flow.decline}>No thanks</button>
       </div>
@@ -165,7 +165,7 @@ function MyCancelPage() {
 }
 ```
 
-The hook returns the current state (`step`, `reasons`, `recommendation`, `feedback`, `outcome`, `isProcessing`) and actions (`selectReason`, `next`, `back`, `accept`, `decline`, `cancel`, `close`).
+The hook returns the current state (`step`, `reasons`, `currentOffer`, `feedback`, `outcome`, `isProcessing`) and actions (`selectReason`, `next`, `back`, `accept`, `decline`, `cancel`, `close`).
 
 ## Add analytics
 
@@ -243,6 +243,48 @@ const token = ck.createToken({ customerId: 'cus_123' })
 ```
 
 In this mode, the cancel flow is configured from the Churnkey dashboard. Your theme, custom components, and appearance settings carry over.
+
+### Callback semantics shift in token mode
+
+Without a token, your `onAccept` is responsible for actually applying the offer (calling Stripe, etc.). With a token, Churnkey already applied the offer by the time `onAccept` fires — your callback runs **after** the action has committed on the server. Don't call your billing API again from `onAccept` in token mode, or you'll double-apply.
+
+```tsx
+// Local mode — your callback does the work
+<CancelFlow
+  steps={steps}
+  onAccept={async (offer) => {
+    if (offer.type === 'discount') await applyDiscount(offer)
+  }}
+/>
+
+// Token mode — Churnkey already did the work; your callback handles side effects
+<CancelFlow
+  session={token}
+  onAccept={async (offer) => {
+    analytics.track('cancel_flow.offer_accepted', { type: offer.type })
+    router.refresh()
+  }}
+/>
+```
+
+Same applies to `onCancel`: in token mode, the subscription is already cancelled when your callback runs.
+
+### Passing customer/subscription data alongside a token
+
+You can pass `customer` and `subscriptions` together with `session` to enrich the session record with client-side data Churnkey doesn't already have (custom metadata, current plan price, etc.). The token's signed customer ID stays authoritative; direct data fills in the gaps.
+
+```tsx
+<CancelFlow
+  appId="app_xxx"
+  customer={{ id: 'cus_123', email: 'jane@acme.com', metadata: { plan: 'pro' } }}
+  subscriptions={[...]}
+  session={token}
+  onAccept={handleOffer}
+  onCancel={handleCancel}
+/>
+```
+
+### Mixing local and server steps
 
 You can pass both `session` and `steps` to override specific server config:
 

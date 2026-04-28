@@ -2,6 +2,7 @@ export type { SessionPayload } from './api'
 export { AnalyticsClient, ChurnkeyApi } from './api'
 export { calculateDiscountedPrice, formatPrice } from './format'
 export { CancelFlowMachine } from './machine'
+export type { ResolvedStep } from './step-graph'
 export { themes } from './themes'
 export type { SessionCredentials } from './token'
 export { decodeSessionToken } from './token'
@@ -54,7 +55,6 @@ export type {
   // Reasons
   ReasonConfig,
   RedirectOffer,
-  ResolvedFlowConfig,
   // Steps
   Step,
   StructuralClassNames,
@@ -71,5 +71,4 @@ export type {
   TrialExtensionDetailsProps,
   TrialExtensionOffer,
 } from './types'
-export { useColorScheme } from './use-color-scheme'
 export { appearanceToStyle, BUILT_IN_STEP_TYPES, cn, defaultTitles } from './utils'

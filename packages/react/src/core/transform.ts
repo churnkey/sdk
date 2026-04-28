@@ -6,21 +6,11 @@ import type {
   EmbedPlan,
   EmbedResponse,
 } from './api-types'
-import type { SessionCredentials } from './token'
-import type {
-  AcceptedOffer,
-  BuiltInOfferConfig,
-  OfferConfig,
-  OfferCopy,
-  OfferDecision,
-  Plan,
-  ReasonConfig,
-  ResolvedFlowConfig,
-  Step,
-} from './types'
+import { applyMergeFields, buildMergeAttrs, type MergeAttrs } from './merge-fields'
+import type { BuiltInOfferConfig, OfferConfig, OfferCopy, OfferDecision, Plan, ReasonConfig, Step } from './types'
 
 export interface TransformResult {
-  config: ResolvedFlowConfig
+  steps: Step[]
   blueprintId: string
   metadata: {
     autoOptimizationKey?: string
@@ -28,32 +18,13 @@ export interface TransformResult {
   }
 }
 
-export function transformEmbedResponse(
-  response: EmbedResponse,
-  creds: SessionCredentials,
-  callbacks: {
-    onAccept?: (offer: AcceptedOffer) => Promise<void>
-    onCancel?: () => Promise<void>
-    onClose?: () => void
-    onStepChange?: (step: string, prevStep: string) => void
-  },
-): TransformResult {
+export function transformEmbedResponse(response: EmbedResponse): TransformResult {
   const { blueprint, coupons, offerPlans } = response
   const enabledSteps = blueprint.steps.filter((s) => s.enabled !== false)
-
-  const steps = transformSteps(enabledSteps, coupons, offerPlans)
-  const surveyStep = steps.find((s) => s.type === 'survey')
-  const reasons = surveyStep && 'reasons' in surveyStep ? surveyStep.reasons : []
+  const attrs = buildMergeAttrs(response.customer)
 
   return {
-    config: {
-      reasons,
-      steps,
-      onAccept: callbacks.onAccept,
-      onCancel: callbacks.onCancel,
-      onClose: callbacks.onClose,
-      onStepChange: callbacks.onStepChange,
-    },
+    steps: transformSteps(enabledSteps, coupons, offerPlans, attrs),
     blueprintId: blueprint._id,
     metadata: {
       autoOptimizationKey: response.autoOptimizationKey,
@@ -62,33 +33,47 @@ export function transformEmbedResponse(
   }
 }
 
-function transformSteps(apiSteps: BlueprintStep[], coupons: EmbedCoupon[], plans: EmbedPlan[]): Step[] {
+function transformSteps(
+  apiSteps: BlueprintStep[],
+  coupons: EmbedCoupon[],
+  plans: EmbedPlan[],
+  attrs: MergeAttrs = {},
+): Step[] {
   const steps: Step[] = []
+  const merge = (text: string | undefined) => (text ? applyMergeFields(text, attrs) : text)
 
   for (const apiStep of apiSteps) {
     switch (apiStep.stepType) {
       case 'SURVEY':
         steps.push({
           type: 'survey',
-          title: apiStep.header,
-          description: apiStep.description,
-          reasons: transformReasons(apiStep.survey?.choices ?? [], coupons, plans),
+          guid: apiStep.guid,
+          title: merge(apiStep.header),
+          description: merge(apiStep.description),
+          reasons: transformReasons(apiStep.survey?.choices ?? [], coupons, plans, attrs),
         })
         break
 
-      case 'OFFER':
+      case 'OFFER': {
+        const offer = apiStep.offer
+          ? (buildOfferDecision(apiStep.offer, coupons, plans, attrs) ?? undefined)
+          : undefined
         steps.push({
           type: 'offer',
-          title: apiStep.header,
-          description: apiStep.description,
+          guid: apiStep.guid,
+          title: merge(apiStep.header),
+          description: merge(apiStep.description),
+          offer,
         })
         break
+      }
 
       case 'FREEFORM':
         steps.push({
           type: 'feedback',
-          title: apiStep.header,
-          description: apiStep.description,
+          guid: apiStep.guid,
+          title: merge(apiStep.header),
+          description: merge(apiStep.description),
           placeholder: apiStep.freeform?.placeholder,
           required: apiStep.freeform?.required,
           minLength: apiStep.freeform?.minLength,
@@ -98,8 +83,9 @@ function transformSteps(apiSteps: BlueprintStep[], coupons: EmbedCoupon[], plans
       case 'CONFIRM':
         steps.push({
           type: 'confirm',
-          title: apiStep.header,
-          description: apiStep.description,
+          guid: apiStep.guid,
+          title: merge(apiStep.header),
+          description: merge(apiStep.description),
         })
         break
     }
@@ -112,12 +98,13 @@ export function transformReasons(
   choices: BlueprintSurveyChoice[],
   coupons: EmbedCoupon[],
   plans: EmbedPlan[],
+  attrs: MergeAttrs = {},
 ): ReasonConfig[] {
   return choices.map((choice, index) => {
     const id = choice.guid ?? choice.id ?? `reason-${index}`
     const reason: ReasonConfig = {
       id,
-      label: choice.value,
+      label: applyMergeFields(choice.value, attrs),
     }
 
     if (choice.offer) {
@@ -205,12 +192,14 @@ export function transformOffer(
   }
 }
 
-export function buildOfferCopy(apiOffer: BlueprintOffer, offerConfig: OfferConfig): OfferCopy {
+export function buildOfferCopy(apiOffer: BlueprintOffer, offerConfig: OfferConfig, attrs: MergeAttrs = {}): OfferCopy {
+  const defaults = defaultOfferCopy(offerConfig)
+  const resolve = (text: string | undefined, fallback: string) => (text ? applyMergeFields(text, attrs) : fallback)
   return {
-    headline: apiOffer.header || defaultOfferCopy(offerConfig).headline,
-    body: apiOffer.description || defaultOfferCopy(offerConfig).body,
-    cta: apiOffer.ctaText || defaultOfferCopy(offerConfig).cta,
-    declineCta: apiOffer.declineText || defaultOfferCopy(offerConfig).declineCta,
+    headline: resolve(apiOffer.header, defaults.headline),
+    body: resolve(apiOffer.description, defaults.body),
+    cta: resolve(apiOffer.ctaText, defaults.cta),
+    declineCta: resolve(apiOffer.declineText, defaults.declineCta),
   }
 }
 
@@ -273,13 +262,14 @@ export function buildOfferDecision(
   apiOffer: BlueprintOffer,
   coupons: EmbedCoupon[],
   plans: EmbedPlan[],
+  attrs: MergeAttrs = {},
 ): OfferDecision | null {
   const offerConfig = transformOffer(apiOffer, coupons, plans)
   if (!offerConfig) return null
 
   return {
     ...offerConfig,
-    copy: buildOfferCopy(apiOffer, offerConfig),
+    copy: buildOfferCopy(apiOffer, offerConfig, attrs),
     decisionId: apiOffer.guid,
   }
 }

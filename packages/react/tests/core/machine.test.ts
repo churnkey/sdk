@@ -42,26 +42,17 @@ describe('CancelFlowMachine', () => {
       expect(machine.getSnapshot().selectedReason).toBeNull()
     })
 
-    it('has null recommendation initially', () => {
+    it('has null currentOffer initially', () => {
       const machine = new CancelFlowMachine(baseConfig)
-      expect(machine.getSnapshot().recommendation).toBeNull()
+      expect(machine.currentOffer).toBeNull()
     })
   })
 
   describe('selectReason', () => {
-    it('selects a reason and populates recommendation when offer exists', () => {
+    it('records the selected reason', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('expensive')
       expect(machine.getSnapshot().selectedReason).toBe('expensive')
-      expect(machine.getSnapshot().recommendation).not.toBeNull()
-      expect(machine.getSnapshot().recommendation!.type).toBe('discount')
-    })
-
-    it('selects a reason with null recommendation when no offer', () => {
-      const machine = new CancelFlowMachine(baseConfig)
-      machine.selectReason('missing')
-      expect(machine.getSnapshot().selectedReason).toBe('missing')
-      expect(machine.getSnapshot().recommendation).toBeNull()
     })
 
     it('ignores unknown reason ids', () => {
@@ -70,10 +61,19 @@ describe('CancelFlowMachine', () => {
       expect(machine.getSnapshot().selectedReason).toBeNull()
     })
 
+    it('advances to the survey choice offer on next() when offer exists', () => {
+      const machine = new CancelFlowMachine(baseConfig)
+      machine.selectReason('expensive')
+      machine.next()
+      expect(machine.getSnapshot().step).toBe('offer')
+      expect(machine.currentOffer!.type).toBe('discount')
+    })
+
     it('generates default copy for discount offer', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('expensive')
-      const copy = machine.getSnapshot().recommendation!.copy
+      machine.next() // advance to the synthetic offer step
+      const copy = machine.currentOffer!.copy
       expect(copy.headline).toContain('20%')
       expect(copy.cta).toBeTruthy()
       expect(copy.declineCta).toBeTruthy()
@@ -82,7 +82,8 @@ describe('CancelFlowMachine', () => {
     it('generates default copy for pause offer', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('not-using')
-      const copy = machine.getSnapshot().recommendation!.copy
+      machine.next()
+      const copy = machine.currentOffer!.copy
       expect(copy.headline).toContain('break')
       expect(copy.body).toContain('2 months')
     })
@@ -129,13 +130,17 @@ describe('CancelFlowMachine', () => {
       expect(machine.getSnapshot().step).toBe('survey')
     })
 
-    it('goes back from feedback to offer when offer exists', () => {
+    it('goes back from feedback to survey (synthetic offer steps are skipped by back-nav)', () => {
+      // Matches the embed's behavior: synthetic offer steps created from
+      // survey-choice offers aren't part of the user-declared step order, so
+      // defaultPreviousStep skips past them. Consumers wanting "back-to-offer"
+      // UX would need explicit history tracking on top.
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('expensive')
-      machine.next() // -> offer
+      machine.next() // -> synthetic offer
       machine.next() // -> feedback
       machine.back()
-      expect(machine.getSnapshot().step).toBe('offer')
+      expect(machine.getSnapshot().step).toBe('survey')
     })
 
     it('goes back from feedback to survey when no offer', () => {
@@ -242,16 +247,57 @@ describe('CancelFlowMachine', () => {
       expect(machine.getSnapshot().step).toBe('offer') // stays on offer
     })
 
-    it('does nothing without a recommendation', async () => {
+    it('does nothing when no offer is on the current step', async () => {
       const onAccept = vi.fn()
       const machine = new CancelFlowMachine({ ...baseConfig, onAccept })
       await machine.accept()
       expect(onAccept).not.toHaveBeenCalled()
     })
+
+    it('moves currentStepId onto a declared success step after accept', async () => {
+      const successStep = { type: 'success' as const, guid: 'success-1', savedTitle: 'Sweet!' }
+      const machine = new CancelFlowMachine({
+        steps: [
+          {
+            type: 'survey',
+            reasons: [{ id: 'r1', label: 'Too expensive', offer: { type: 'discount', percent: 10, months: 1 } }],
+          },
+          { type: 'confirm' },
+          successStep,
+        ],
+      })
+      machine.selectReason('r1')
+      machine.next() // -> synthetic offer
+      await machine.accept()
+
+      expect(machine.getSnapshot().step).toBe('success')
+      expect(machine.getSnapshot().outcome).toBe('saved')
+      expect(machine.currentStep?.guid).toBe('success-1')
+      expect(machine.currentStep?.savedTitle).toBe('Sweet!')
+    })
+
+    it('stays on prior step when no success step is declared', async () => {
+      const machine = new CancelFlowMachine({
+        steps: [
+          {
+            type: 'survey',
+            reasons: [{ id: 'r1', label: 'Too expensive', offer: { type: 'discount', percent: 10, months: 1 } }],
+          },
+          { type: 'confirm' },
+        ],
+      })
+      machine.selectReason('r1')
+      machine.next() // -> synthetic offer
+      const offerStepId = machine.getSnapshot().currentStepId
+      await machine.accept()
+
+      expect(machine.getSnapshot().step).toBe('success')
+      expect(machine.getSnapshot().currentStepId).toBe(offerStepId)
+    })
   })
 
   describe('decline', () => {
-    it('moves past offer when no alternatives', () => {
+    it('moves to the declared next step after the offer', () => {
       const machine = new CancelFlowMachine(baseConfig)
       machine.selectReason('expensive')
       machine.next() // -> offer
@@ -326,25 +372,23 @@ describe('CancelFlowMachine', () => {
 
   describe('step tracking', () => {
     it('reports correct step index', () => {
+      // baseConfig: [survey, feedback, confirm]. Synthetic offer steps are
+      // off-graph (share the survey's index) so a progress bar doesn't jitter
+      // based on whether a reason had an attached offer.
       const machine = new CancelFlowMachine(baseConfig)
-      expect(machine.stepIndex).toBe(0) // survey
-
+      expect(machine.stepIndex).toBe(0)
       machine.selectReason('expensive')
-      machine.next()
-      expect(machine.stepIndex).toBe(1) // offer
+      machine.next() // -> synthetic offer (still reports survey's index)
+      expect(machine.stepIndex).toBe(0)
+      machine.next() // -> feedback
+      expect(machine.stepIndex).toBe(1)
     })
 
-    it('reports correct total steps with offer', () => {
+    it('totalSteps reflects user-declared steps, not synthetic ones', () => {
       const machine = new CancelFlowMachine(baseConfig)
+      // survey + feedback + confirm = 3, regardless of reason selection
+      expect(machine.totalSteps).toBe(3)
       machine.selectReason('expensive')
-      // survey + offer + feedback + confirm = 4
-      expect(machine.totalSteps).toBe(4)
-    })
-
-    it('reports correct total steps without offer', () => {
-      const machine = new CancelFlowMachine(baseConfig)
-      machine.selectReason('missing')
-      // survey + feedback + confirm = 3
       expect(machine.totalSteps).toBe(3)
     })
   })
@@ -434,12 +478,96 @@ describe('CancelFlowMachine', () => {
         issuedAt: 0,
       }
 
-      machine.initializeFromEmbed(embedData, mockApi, mockCreds, {})
+      machine.initializeFromEmbed(embedData, mockApi, mockCreds)
 
       expect(machine.reasons).toHaveLength(2)
       expect(machine.reasons[0].id).toBe('r1')
       expect(machine.reasons[0].label).toBe('Too expensive')
       expect(machine.getSnapshot().step).toBe('survey')
+    })
+
+    it('exposes currentOffer from a standalone OFFER step (no preceding survey)', () => {
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder' })
+
+      const embedData = {
+        blueprint: {
+          _id: 'bp_1',
+          steps: [
+            {
+              stepType: 'OFFER' as const,
+              enabled: true,
+              header: 'Take a break?',
+              description: '<p>Pause instead of cancelling.</p>',
+              offer: {
+                offerType: 'PAUSE' as const,
+                header: 'Take a break?',
+                description: '<p>Pause instead of cancelling.</p>',
+                pauseConfig: { maxPauseLength: 2, pauseInterval: 'MONTH' },
+              },
+            },
+            { stepType: 'CONFIRM' as const, enabled: true },
+          ],
+        },
+        coupons: [],
+        offerPlans: [],
+        customer: null,
+        sessions: [],
+      }
+      machine.initializeFromEmbed(embedData as never, {} as never, {
+        appId: 'a',
+        customerId: 'c',
+        authHash: 'h',
+        mode: 'live' as const,
+        issuedAt: 0,
+      })
+
+      expect(machine.getSnapshot().step).toBe('offer')
+      expect(machine.currentOffer).not.toBeNull()
+      expect(machine.currentOffer?.type).toBe('pause')
+    })
+
+    it('exposes currentOffer when stepping into an offer step mid-flow', () => {
+      // Survey → Offer (standalone) → Confirm. Reason has no attached offer,
+      // so next() from survey falls through to the offer step.
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder' })
+      machine.initializeFromEmbed(
+        {
+          blueprint: {
+            _id: 'bp_1',
+            steps: [
+              {
+                stepType: 'SURVEY' as const,
+                enabled: true,
+                survey: { choices: [{ guid: 'r1', value: 'No comment' }] },
+              },
+              {
+                stepType: 'OFFER' as const,
+                enabled: true,
+                offer: {
+                  offerType: 'PAUSE' as const,
+                  pauseConfig: { maxPauseLength: 2, pauseInterval: 'MONTH' },
+                },
+              },
+              { stepType: 'CONFIRM' as const, enabled: true },
+            ],
+          },
+          coupons: [],
+          offerPlans: [],
+          customer: null,
+          sessions: [],
+        } as never,
+        {} as never,
+        { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+      )
+
+      expect(machine.getSnapshot().step).toBe('survey')
+      expect(machine.currentOffer).toBeNull()
+
+      machine.selectReason('r1') // reason has no offer
+      machine.next() // falls through to offer step
+
+      expect(machine.getSnapshot().step).toBe('offer')
+      expect(machine.currentOffer?.type).toBe('pause')
     })
 
     it('resets state when initialized from embed', () => {
@@ -467,12 +595,13 @@ describe('CancelFlowMachine', () => {
         sessions: [],
       }
 
-      machine.initializeFromEmbed(
-        embedData,
-        {} as any,
-        { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
-        {},
-      )
+      machine.initializeFromEmbed(embedData, {} as any, {
+        appId: 'a',
+        customerId: 'c',
+        authHash: 'h',
+        mode: 'live' as const,
+        issuedAt: 0,
+      })
 
       expect(machine.getSnapshot().step).toBe('survey')
       expect(machine.getSnapshot().selectedReason).toBeNull()
@@ -507,7 +636,7 @@ describe('CancelFlowMachine', () => {
         session: 'ck_placeholder',
         steps: [{ type: 'confirm' as const, title: 'Are you really sure?' }],
       })
-      machine.initializeFromEmbed(embedData, {} as any, mockCreds, {})
+      machine.initializeFromEmbed(embedData, {} as any, mockCreds)
 
       const confirmConfig = machine.getStepConfig('confirm')
       expect(confirmConfig).toBeDefined()
@@ -519,7 +648,7 @@ describe('CancelFlowMachine', () => {
         session: 'ck_placeholder',
         steps: [{ type: 'confirm' as const, title: 'Custom confirm' }],
       })
-      machine.initializeFromEmbed(embedData, {} as any, mockCreds, {})
+      machine.initializeFromEmbed(embedData, {} as any, mockCreds)
 
       // Survey and feedback should come from server
       expect(machine.getStepConfig('survey')).toBeDefined()
@@ -533,7 +662,7 @@ describe('CancelFlowMachine', () => {
         session: 'ck_placeholder',
         steps: [{ type: 'nps', title: 'Rate us', data: { scale: 10 } }],
       })
-      machine.initializeFromEmbed(embedData, {} as any, mockCreds, {})
+      machine.initializeFromEmbed(embedData, {} as any, mockCreds)
 
       const npsConfig = machine.getStepConfig('nps')
       expect(npsConfig).toBeDefined()
@@ -546,7 +675,7 @@ describe('CancelFlowMachine', () => {
 
     it('does not merge when only session is provided (no local steps)', () => {
       const machine = new CancelFlowMachine({ session: 'ck_placeholder' })
-      machine.initializeFromEmbed(embedData, {} as any, mockCreds, {})
+      machine.initializeFromEmbed(embedData, {} as any, mockCreds)
 
       const confirmConfig = machine.getStepConfig('confirm')
       expect((confirmConfig as any).title).toBe('Server confirm')
@@ -611,11 +740,12 @@ describe('CancelFlowMachine', () => {
       expect(machine.totalSteps).toBe(4)
     })
 
-    it('tracks correct step count with custom steps and offer', () => {
+    it('totalSteps reflects declared steps (synthetic offers excluded)', () => {
       const machine = new CancelFlowMachine(customConfig)
       machine.selectReason('seats')
-      // survey + offer + nps + feedback + confirm = 5
-      expect(machine.totalSteps).toBe(5)
+      // survey + nps + feedback + confirm = 4. The synthetic offer step
+      // created for the 'seats' reason isn't part of the user-declared order.
+      expect(machine.totalSteps).toBe(4)
     })
 
     it('fires onStepChange for custom step transitions', () => {
@@ -690,8 +820,9 @@ describe('CancelFlowMachine', () => {
       }
       const machine = new CancelFlowMachine(config)
       machine.selectReason('seats')
+      machine.next() // advance to the synthetic custom offer step
 
-      const rec = machine.getSnapshot().recommendation
+      const rec = machine.currentOffer
       expect(rec).not.toBeNull()
       expect(rec!.type).toBe('change-seats')
       expect((rec as any).data).toEqual({ minSeats: 1, pricePerSeat: 10 })
@@ -1048,7 +1179,9 @@ describe('CancelFlowMachine', () => {
       const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
       const survey = body.stepsViewed.find((s: { stepType: string }) => s.stepType === 'SURVEY')
       expect(survey.numChoices).toBe(3)
-      expect(survey.guid).toBeUndefined() // analytics mode — no blueprint
+      // guid is always populated — the step graph generates a stable id even
+      // when there's no server blueprint to inherit one from.
+      expect(survey.guid).toEqual(expect.any(String))
       fetchSpy.mockRestore()
     })
 
@@ -1269,7 +1402,6 @@ describe('CancelFlowMachine', () => {
         } as any,
         mockApi as any,
         { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
-        {},
       )
       await machine.cancel()
 
@@ -1312,7 +1444,6 @@ describe('CancelFlowMachine', () => {
         } as any,
         mockApi as any,
         { appId: 'app_1', customerId: 'cus_1', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
-        {},
       )
       machine.selectReason('r1')
       machine.next() // → confirm
@@ -1355,6 +1486,64 @@ describe('CancelFlowMachine', () => {
       expect(body.discountCooldown).toBeUndefined()
       fetchSpy.mockRestore()
     })
+
+    // Pins the token + direct-customer enrichment path. The token's signed
+    // customerId / subscriptionId are authoritative; consumer-supplied direct
+    // data fills in extras (email, plan, currency, custom metadata) on the
+    // recorded session. Regressing this would silently drop client-side
+    // context from session records.
+    it('merges direct customer data over token-derived ids in token mode', async () => {
+      const sessions: any[] = []
+      const mockApi = {
+        createSession: vi.fn(async (payload: any) => {
+          sessions.push(payload)
+        }),
+        cancelSubscription: vi.fn(async () => {}),
+      }
+      const machine = new CancelFlowMachine({
+        session: 'ck_placeholder',
+        appId: 'app_test',
+        customer: { id: 'will-be-overridden', email: 'jane@acme.com' },
+        subscriptions: [
+          {
+            id: 'will-be-overridden-too',
+            start: '2024-06-01',
+            status: { name: 'active' as const, currentPeriod: { start: '2025-04-01', end: '2025-05-01' } },
+            items: [{ price: { id: 'price_pro', amount: { value: 4999, currency: 'usd' } } }],
+          },
+        ],
+      })
+      machine.initializeFromEmbed(
+        {
+          blueprint: { _id: 'bp_1', steps: [{ stepType: 'CONFIRM' as const, enabled: true }] },
+          coupons: [],
+          offerPlans: [],
+          customer: null,
+          sessions: [],
+        } as any,
+        mockApi as any,
+        {
+          appId: 'app_test',
+          customerId: 'token_cus',
+          subscriptionId: 'token_sub',
+          authHash: 'h',
+          mode: 'live' as const,
+          issuedAt: 0,
+        },
+      )
+      await machine.cancel()
+
+      expect(sessions).toHaveLength(1)
+      const customer = sessions[0].customer
+      // Token wins on identity:
+      expect(customer.id).toBe('token_cus')
+      expect(customer.subscriptionId).toBe('token_sub')
+      // Direct data fills in client-side context the server didn't have:
+      expect(customer.email).toBe('jane@acme.com')
+      expect(customer.planId).toBe('price_pro')
+      expect(customer.planPrice).toBe(4999)
+      expect(customer.currency).toBe('usd')
+    })
   })
 
   describe('customer exposure', () => {
@@ -1383,7 +1572,6 @@ describe('CancelFlowMachine', () => {
         },
         {} as any,
         { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
-        {},
       )
 
       expect(machine.getSnapshot().customer).toEqual(mockCustomer)

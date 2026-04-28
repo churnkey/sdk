@@ -6,7 +6,6 @@ import type {
   EmbedPlan,
   EmbedResponse,
 } from '../../src/core/api-types'
-import type { SessionCredentials } from '../../src/core/token'
 import {
   buildOfferCopy,
   buildOfferDecision,
@@ -14,14 +13,6 @@ import {
   transformOffer,
   transformReasons,
 } from '../../src/core/transform'
-
-const mockCreds: SessionCredentials = {
-  appId: 'app_123',
-  customerId: 'cus_456',
-  authHash: 'hash',
-  mode: 'live',
-  issuedAt: 0,
-}
 
 function makeCoupon(overrides: Partial<EmbedCoupon> = {}): EmbedCoupon {
   return {
@@ -109,22 +100,13 @@ function makeEmbedResponse(overrides: Partial<EmbedResponse> = {}): EmbedRespons
 }
 
 describe('transformEmbedResponse', () => {
-  it('transforms full response into ResolvedFlowConfig', () => {
-    const response = makeEmbedResponse()
-    const result = transformEmbedResponse(response, mockCreds, {})
+  it('transforms blueprint into ordered SDK steps', () => {
+    const result = transformEmbedResponse(makeEmbedResponse())
 
     expect(result.blueprintId).toBe('bp_123')
-    expect(result.config.steps).toHaveLength(3) // survey + feedback + confirm
-    expect(result.config.reasons).toHaveLength(3)
-  })
-
-  it('passes through callbacks', () => {
-    const onAccept = async () => {}
-    const onCancel = async () => {}
-    const result = transformEmbedResponse(makeEmbedResponse(), mockCreds, { onAccept, onCancel })
-
-    expect(result.config.onAccept).toBe(onAccept)
-    expect(result.config.onCancel).toBe(onCancel)
+    expect(result.steps).toHaveLength(3) // survey + feedback + confirm
+    const surveyStep = result.steps.find((s) => s.type === 'survey')
+    expect(surveyStep && 'reasons' in surveyStep ? surveyStep.reasons : []).toHaveLength(3)
   })
 
   it('includes autoOptimization metadata', () => {
@@ -132,7 +114,7 @@ describe('transformEmbedResponse', () => {
       autoOptimizationUsed: true,
       autoOptimizationKey: 'bandit_key_1',
     })
-    const result = transformEmbedResponse(response, mockCreds, {})
+    const result = transformEmbedResponse(response)
 
     expect(result.metadata.autoOptimizationUsed).toBe(true)
     expect(result.metadata.autoOptimizationKey).toBe('bandit_key_1')
@@ -141,19 +123,17 @@ describe('transformEmbedResponse', () => {
   it('filters disabled steps', () => {
     const response = makeEmbedResponse()
     response.blueprint.steps[1].enabled = false // disable FREEFORM
-    const result = transformEmbedResponse(response, mockCreds, {})
+    const result = transformEmbedResponse(response)
 
-    const feedbackStep = result.config.steps.find((s) => s.type === 'feedback')
-    expect(feedbackStep).toBeUndefined()
+    expect(result.steps.find((s) => s.type === 'feedback')).toBeUndefined()
   })
 
   it('does not inject a confirm step if the blueprint omits one', () => {
     const response = makeEmbedResponse()
     response.blueprint.steps = [response.blueprint.steps[0]] // only SURVEY
-    const result = transformEmbedResponse(response, mockCreds, {})
+    const result = transformEmbedResponse(response)
 
-    const confirmStep = result.config.steps.find((s) => s.type === 'confirm')
-    expect(confirmStep).toBeUndefined()
+    expect(result.steps.find((s) => s.type === 'confirm')).toBeUndefined()
   })
 })
 

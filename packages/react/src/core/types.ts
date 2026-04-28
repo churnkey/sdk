@@ -83,9 +83,15 @@ export interface ReasonConfig {
 }
 
 // --- Steps ---
+//
+// `guid` is optional on each step. In token mode the transform preserves the
+// blueprint's guid so analytics joins work. In local mode it's auto-generated
+// at graph-build time — developers usually don't need to set it unless they
+// want a stable identity (e.g. for React keys or test assertions).
 
 export interface SurveyStep {
   type: 'survey'
+  guid?: string
   title?: string
   description?: string
   reasons: ReasonConfig[]
@@ -94,13 +100,21 @@ export interface SurveyStep {
 
 export interface OfferStep {
   type: 'offer'
+  guid?: string
   title?: string
   description?: string
+  /**
+   * Offer attached to this step. Populated in token mode when the blueprint's
+   * OFFER step carries its own offer (e.g. a proactive save offer shown before
+   * any survey), and on synthetic OFFER steps spawned from survey choices.
+   */
+  offer?: OfferDecision
   classNames?: OfferClassNames
 }
 
 export interface FeedbackStep {
   type: 'feedback'
+  guid?: string
   title?: string
   description?: string
   placeholder?: string
@@ -111,6 +125,7 @@ export interface FeedbackStep {
 
 export interface ConfirmStep {
   type: 'confirm'
+  guid?: string
   title?: string
   description?: string
   confirmLabel?: string
@@ -120,6 +135,7 @@ export interface ConfirmStep {
 
 export interface SuccessStep {
   type: 'success'
+  guid?: string
   savedTitle?: string
   savedDescription?: string
   cancelledTitle?: string
@@ -129,6 +145,7 @@ export interface SuccessStep {
 
 export interface CustomStepConfig {
   type: string
+  guid?: string
   title?: string
   description?: string
   data?: Record<string, unknown>
@@ -309,7 +326,6 @@ export interface OfferStepProps {
   title?: string
   description?: string
   offer: OfferDecision
-  alternatives: OfferDecision[]
   onAccept: () => Promise<void>
   onDecline: () => void
   isProcessing: boolean
@@ -405,10 +421,11 @@ export interface TrialExtensionDetailsProps {
 // --- Flow state ---
 
 export interface FlowState {
+  /** The current step's type (`'survey'`, `'offer'`, a custom type name, etc.). */
   step: string
+  /** The current step's unique guid. Distinguishes between multiple steps of the same type. */
+  currentStepId: string
   selectedReason: string | null
-  recommendation: OfferDecision | null
-  alternatives: OfferDecision[]
   feedback: string
   outcome: 'saved' | 'cancelled' | null
   isProcessing: boolean
@@ -493,17 +510,6 @@ export interface FlowConfig {
    * can't override it.
    */
   mode?: 'live' | 'test'
-  onAccept?: (offer: AcceptedOffer) => Promise<void>
-  onCancel?: () => Promise<void>
-  onClose?: () => void
-  onStepChange?: (step: string, prevStep: string) => void
-}
-
-// --- Resolved flow config (internal) ---
-
-export interface ResolvedFlowConfig {
-  reasons: ReasonConfig[]
-  steps: Step[]
   onAccept?: (offer: AcceptedOffer) => Promise<void>
   onCancel?: () => Promise<void>
   onClose?: () => void

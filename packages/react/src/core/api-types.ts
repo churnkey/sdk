@@ -152,6 +152,7 @@ export interface EmbedCustomer {
     }>
   }
   decorated?: {
+    customerName?: string
     customerSubscription?: Record<string, unknown>
     customAttributes?: Record<string, unknown>
   }
