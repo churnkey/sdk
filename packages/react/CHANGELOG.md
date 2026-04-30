@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.1.1 — 2026-04-30
+
+### Fixed
+
+- `package.json#repository.url` pointed at `churnkey/churnkey-sdk` instead of `churnkey/sdk`. Metadata-only — no code changes.
+
 ## 0.1.0 — 2026-04-30
 
 First public release.
