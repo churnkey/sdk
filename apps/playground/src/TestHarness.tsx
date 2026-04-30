@@ -21,7 +21,7 @@ type Scenario =
   | 'custom-steps'
   | 'all-offers'
   | 'standalone-offer'
-  | 'themes'
+  | 'color-scheme'
 
 const SCENARIOS: { id: Scenario; label: string; description: string }[] = [
   {
@@ -66,7 +66,11 @@ const SCENARIOS: { id: Scenario; label: string; description: string }[] = [
     label: 'Standalone Offer (No Survey)',
     description: 'Flow starts on an OFFER step — proactive save offer before any survey.',
   },
-  { id: 'themes', label: 'Themes + Dark Mode', description: 'Cycle through theme/colorScheme combinations.' },
+  {
+    id: 'color-scheme',
+    label: 'Color Scheme',
+    description: 'Toggle light / dark / auto. `auto` follows OS preference.',
+  },
 ]
 
 // A customized success step on every flow catches regressions in the
@@ -511,7 +515,6 @@ export function TestHarness() {
   const [scenario, setScenario] = useState<Scenario>('open-source')
   const [mode, setMode] = useState<'live' | 'test'>('test')
   const [open, setOpen] = useState(false)
-  const [theme, setTheme] = useState<'default' | 'minimal' | 'rounded' | 'corporate'>('default')
   const [colorScheme, setColorScheme] = useState<'light' | 'dark' | 'auto'>('light')
   const logRef = useRef<HTMLDivElement>(null)
   const [logs, setLogs] = useState<string[]>([])
@@ -597,7 +600,7 @@ export function TestHarness() {
     return `ck_${btoa(payload).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`
   }, [needsToken, appId, apiKey, customerId, subscriptionId, mode])
 
-  const appearance: Appearance = scenario === 'themes' ? { theme, colorScheme } : {}
+  const appearance: Appearance = scenario === 'color-scheme' ? { colorScheme } : {}
 
   function getSteps(): Step[] | undefined {
     switch (scenario) {
@@ -634,7 +637,7 @@ export function TestHarness() {
 
   const needsAppId = scenario !== 'open-source'
   const needsApiKey = needsToken
-  const needsCustomer = scenario !== 'open-source' && scenario !== 'themes'
+  const needsCustomer = scenario !== 'open-source' && scenario !== 'color-scheme'
 
   const missing: string[] = []
   if (needsAppId && !appId) missing.push('App ID')
@@ -751,15 +754,10 @@ export function TestHarness() {
         </fieldset>
       )}
 
-      {/* Theme picker (themes scenario only) */}
-      {scenario === 'themes' && (
+      {/* Color scheme picker (color-scheme scenario only) */}
+      {scenario === 'color-scheme' && (
         <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginBottom: 16 }}>
-          <legend style={{ fontSize: 13, fontWeight: 600, color: '#374151', padding: '0 4px' }}>Theme</legend>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-            {(['default', 'minimal', 'rounded', 'corporate'] as const).map((t) => (
-              <Pill key={t} label={t} selected={theme === t} onClick={() => setTheme(t)} />
-            ))}
-          </div>
+          <legend style={{ fontSize: 13, fontWeight: 600, color: '#374151', padding: '0 4px' }}>Color scheme</legend>
           <div style={{ display: 'flex', gap: 6 }}>
             {(['light', 'dark', 'auto'] as const).map((s) => (
               <Pill key={s} label={s} selected={colorScheme === s} onClick={() => setColorScheme(s)} />

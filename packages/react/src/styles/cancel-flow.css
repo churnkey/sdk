@@ -60,6 +60,34 @@
     line-height: 1.5;
   }
 
+  /* --- Dark scheme ---
+     Applied when CancelFlow resolves `colorScheme: 'dark' | 'auto'` to
+     dark. Inverts surfaces and lifts the accent so it reads against the
+     darker backgrounds. `appearance.variables` overrides apply on top of
+     these via inline style — same brand color in both schemes by default. */
+  .ck-cancel-flow[data-color-scheme="dark"] {
+    --ck-color-bg: #0c0a09;
+    --ck-color-surface: #1c1917;
+    --ck-color-surface-muted: #292524;
+
+    --ck-color-border: #44403c;
+    --ck-color-border-strong: #57534e;
+
+    --ck-color-text: #fafaf9;
+    --ck-color-text-secondary: #a8a29e;
+    --ck-color-text-muted: #78716c;
+
+    --ck-color-primary: #818cf8;
+    --ck-color-primary-hover: #a5b4fc;
+    --ck-color-primary-soft: rgba(129, 140, 248, 0.18);
+
+    --ck-color-success: #34d399;
+    --ck-color-success-soft: rgba(52, 211, 153, 0.16);
+    --ck-color-danger: #f87171;
+    --ck-color-danger-hover: #fca5a5;
+    --ck-color-danger-soft: rgba(248, 113, 113, 0.16);
+  }
+
   /* --- Scoped reset --- */
   .ck-cancel-flow *,
   .ck-cancel-flow *::before,
@@ -101,6 +129,14 @@
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
+  }
+
+  /* The default modal shadow is built for white surfaces; deepen it on */
+  /* dark so it reads as elevation rather than a black bar. */
+  .ck-cancel-flow[data-color-scheme="dark"] .ck-modal {
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.5),
+      0 8px 10px -6px rgba(0, 0, 0, 0.4);
   }
 
   /* --- Close button (sole chrome element) --- */

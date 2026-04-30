@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react'
-import { themes } from './themes'
-import type { Appearance, ThemeVariables } from './types'
+import type { Appearance, AppearanceVariables } from './types'
 
 export const BUILT_IN_STEP_TYPES: readonly string[] = ['survey', 'offer', 'feedback', 'confirm', 'success']
 
@@ -8,7 +7,10 @@ export function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(' ')
 }
 
-const VAR_MAP: Record<string, keyof ThemeVariables> = {
+// Maps the typed `appearance.variables` field names to the underlying
+// CSS custom properties. Light/dark variants live in CSS — these
+// overrides apply on top of whichever scheme is active.
+const VAR_MAP: Record<string, keyof AppearanceVariables> = {
   '--ck-color-primary': 'colorPrimary',
   '--ck-color-primary-hover': 'colorPrimaryHover',
   '--ck-color-bg': 'colorBackground',
@@ -22,29 +24,24 @@ const VAR_MAP: Record<string, keyof ThemeVariables> = {
   '--ck-border-radius': 'borderRadius',
 }
 
-export function appearanceToStyle(
-  appearance?: Appearance,
-  resolvedScheme: 'light' | 'dark' = 'light',
-): CSSProperties | undefined {
-  const theme = appearance?.theme ? themes[appearance.theme] : undefined
-  const themeVars = theme?.[resolvedScheme] ?? theme?.light
-  const merged = { ...themeVars, ...appearance?.variables }
-
-  if (Object.keys(merged).length === 0) return undefined
+export function appearanceToStyle(appearance?: Appearance): CSSProperties | undefined {
+  const variables = appearance?.variables
+  if (!variables) return undefined
 
   const style: Record<string, string> = {}
   for (const [cssProp, varKey] of Object.entries(VAR_MAP)) {
-    const value = merged[varKey]
+    const value = variables[varKey]
     if (value) style[cssProp] = value
   }
 
   return Object.keys(style).length > 0 ? (style as CSSProperties) : undefined
 }
 
-export const defaultTitles: Record<string, string> = {
+// Step-level fallback titles when neither token-mode config nor local
+// step config provide one. Offer and Success are absent — Offer falls back
+// to `offer.copy.headline`, Success branches on outcome.
+export const defaultTitles = {
   survey: 'Why are you cancelling?',
-  offer: 'Before you go...',
   feedback: 'Any other feedback?',
   confirm: 'Confirm cancellation',
-  success: '',
-}
+} as const

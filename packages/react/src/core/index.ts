@@ -15,19 +15,18 @@ export type {
 export { calculateDiscountedPrice, formatPrice } from './format'
 export { CancelFlowMachine } from './machine'
 export type { ResolvedStep } from './step-graph'
-export { themes } from './themes'
 export type { SessionCredentials } from './token'
 export { decodeSessionToken } from './token'
 export type {
   AcceptedOffer,
   Appearance,
+  AppearanceVariables,
   BackButtonProps,
   BuiltInOfferConfig,
   BuiltInStep,
   BuiltInStepType,
   CancelFlowProps,
   CloseButtonProps,
-  // Component overrides and props
   ComponentOverrides,
   ConfirmClassNames,
   ConfirmStep,
@@ -49,11 +48,9 @@ export type {
   FeedbackStep,
   FeedbackStepProps,
   FlowConfig,
-  // Flow
   FlowState,
   ModalProps,
   OfferClassNames,
-  // Offer types
   OfferConfig,
   OfferCopy,
   OfferDecision,
@@ -63,22 +60,17 @@ export type {
   PlanChangeOffer,
   PlanOption,
   ReasonButtonProps,
-  // Reasons
   ReasonConfig,
   RedirectOffer,
-  // Steps
   Step,
   StructuralClassNames,
   SubscriptionStatus,
   SuccessClassNames,
   SuccessStep,
   SuccessStepProps,
-  // ClassNames
   SurveyClassNames,
   SurveyStep,
   SurveyStepProps,
-  // Appearance
-  ThemeVariables,
   TrialExtensionOffer,
 } from './types'
 export { appearanceToStyle, BUILT_IN_STEP_TYPES, cn, defaultTitles } from './utils'

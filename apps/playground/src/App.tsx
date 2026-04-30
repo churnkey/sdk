@@ -64,23 +64,17 @@ function DropInDemo() {
   )
 }
 
-// --- 2. Themes + dark mode ---
+// --- 2. Color scheme ---
 
 function ThemedDemo() {
   const [open, setOpen] = useState(false)
-  const [theme, setTheme] = useState<'default' | 'minimal' | 'rounded' | 'corporate'>('minimal')
   const [colorScheme, setColorScheme] = useState<'light' | 'dark' | 'auto'>('light')
   return (
     <section>
-      <h2 style={{ marginBottom: 4 }}>2. Themes + Dark Mode</h2>
+      <h2 style={{ marginBottom: 4 }}>2. Color Scheme</h2>
       <p style={descStyle}>
-        <code>appearance.theme</code> + <code>appearance.colorScheme</code>
+        <code>appearance.colorScheme</code> — <code>'auto'</code> follows the OS preference.
       </p>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-        {(['default', 'minimal', 'rounded', 'corporate'] as const).map((t) => (
-          <Pill key={t} label={t} selected={theme === t} onClick={() => setTheme(t)} />
-        ))}
-      </div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         {(['light', 'dark', 'auto'] as const).map((s) => (
           <Pill key={s} label={s} selected={colorScheme === s} onClick={() => setColorScheme(s)} />
@@ -92,7 +86,7 @@ function ThemedDemo() {
       {open && (
         <CancelFlow
           steps={steps}
-          appearance={{ theme, colorScheme }}
+          appearance={{ colorScheme }}
           onAccept={handleAccept}
           onCancel={handleCancel}
           onClose={() => setOpen(false)}

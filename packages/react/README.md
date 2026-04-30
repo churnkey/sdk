@@ -56,23 +56,22 @@ When a customer selects "Too expensive," the SDK shows the discount offer. If th
 
 ## Change the look
 
-Pick a theme, override variables, or both. Four themes ship with light and dark variants.
+The SDK ships light and dark schemes. `'auto'` follows the user's OS preference and reacts to changes.
 
 ```tsx
 <CancelFlow
-  appearance={{ theme: 'minimal', colorScheme: 'dark' }}
+  appearance={{ colorScheme: 'auto' }}
   steps={steps}
   onAccept={handleOffer}
   onCancel={handleCancel}
 />
 ```
 
-You can override individual tokens on top of any theme:
+Override individual design tokens via `appearance.variables`. The same value applies in both schemes — set your brand color once and it shows up everywhere.
 
 ```tsx
 appearance={{
-  theme: 'rounded',
-  variables: { colorPrimary: '#7c3aed', borderRadius: '20px' },
+  variables: { colorPrimary: '#7c3aed', borderRadius: '12px' },
 }}
 ```
 
@@ -107,7 +106,7 @@ Swap out any piece of the UI. The SDK handles navigation and state; you handle r
 />
 ```
 
-You can replace `Modal`, `Header`, `Survey`, `Offer`, `Feedback`, `Confirm`, `Success`, `ReasonButton`, `OfferCard`, and each offer detail component.
+You can replace `Modal`, `CloseButton`, `BackButton`, the step components (`Survey`, `Offer`, `Feedback`, `Confirm`, `Success`), `ReasonButton`, and per-offer-type components (`DiscountOffer`, `PauseOffer`, `PlanChangeOffer`, `TrialExtensionOffer`, `ContactOffer`, `RedirectOffer`).
 
 ## Add custom steps
 
@@ -251,7 +250,7 @@ const token = ck.createToken({ customerId: 'cus_123' })
 />
 ```
 
-In this mode, the cancel flow is configured from the Churnkey dashboard. Your theme, custom components, and appearance settings carry over.
+In this mode, the cancel flow is configured from the Churnkey dashboard. Your custom components and appearance settings carry over.
 
 ### Handlers vs. listeners
 

@@ -342,7 +342,7 @@ export interface StructuralClassNames {
 
 // ─── Appearance ──────────────────────────────────────────────────────────────
 
-export interface ThemeVariables {
+export interface AppearanceVariables {
   colorPrimary: string
   colorPrimaryHover: string
   colorBackground: string
@@ -357,9 +357,12 @@ export interface ThemeVariables {
 }
 
 export interface Appearance {
-  theme?: 'default' | 'minimal' | 'rounded' | 'corporate' | 'inline'
+  /**
+   * `'auto'` follows the user's OS preference (`prefers-color-scheme`) and
+   * watches for changes. Default: `'light'`.
+   */
   colorScheme?: 'auto' | 'light' | 'dark'
-  variables?: Partial<ThemeVariables>
+  variables?: Partial<AppearanceVariables>
 }
 
 export interface CustomStepProps {

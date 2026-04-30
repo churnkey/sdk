@@ -72,13 +72,13 @@ function LoadStatus({
   onRetry: () => void
 }) {
   const scheme = useColorScheme(appearance?.colorScheme)
-  const themeStyle = appearanceToStyle(appearance, scheme)
+  const appearanceStyle = appearanceToStyle(appearance)
   const Modal = components?.Modal ?? DefaultModal
   const CloseButton = components?.CloseButton ?? DefaultCloseButton
   const handleClose = onClose ?? (() => {})
 
   return (
-    <div className="ck-cancel-flow" style={themeStyle}>
+    <div className="ck-cancel-flow" data-color-scheme={scheme} style={appearanceStyle}>
       <Modal open={true} onClose={handleClose} className={classNames?.modal}>
         <CloseButton onClose={handleClose} className={classNames?.closeButton} />
         <div className="ck-content">
@@ -140,14 +140,14 @@ interface FlowShellProps {
 
 function FlowShell({ machine, state, appearance, classNames, components, customComponents }: FlowShellProps) {
   const scheme = useColorScheme(appearance?.colorScheme)
-  const themeStyle = appearanceToStyle(appearance, scheme)
+  const appearanceStyle = appearanceToStyle(appearance)
 
   const Modal = components?.Modal ?? DefaultModal
   const CloseButton = components?.CloseButton ?? DefaultCloseButton
   const BackButton = components?.BackButton ?? DefaultBackButton
 
   return (
-    <div className="ck-cancel-flow" style={themeStyle}>
+    <div className="ck-cancel-flow" data-color-scheme={scheme} style={appearanceStyle}>
       <Modal open={true} onClose={machine.close} className={classNames?.modal}>
         <CloseButton onClose={machine.close} className={classNames?.closeButton} />
         <div className="ck-content">
