@@ -13,17 +13,26 @@ const steps: Step[] = [
     title: 'Why are you leaving?',
     description: 'Your feedback helps us improve.',
     reasons: [
-      { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percent: 20, months: 3 } },
+      { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percentOff: 20, durationInMonths: 3 } },
       { id: 'not-using', label: 'Not using it enough', offer: { type: 'pause', months: 2 } },
       { id: 'missing', label: 'Missing features' },
-      { id: 'other', label: 'Other' },
+      { id: 'other', label: 'Something else' },
     ],
   },
-  { type: 'feedback', title: 'Anything else we should know?' },
+  {
+    type: 'feedback',
+    title: 'What could we have done better?',
+    description: 'Even one sentence helps us improve.',
+    placeholder: 'Tell us what was missing…',
+    required: true,
+    minLength: 20,
+  },
   {
     type: 'confirm',
     title: 'Confirm cancellation',
     description: 'Your access continues until the end of your billing period.',
+    confirmLabel: 'Yes, cancel my subscription',
+    goBackLabel: 'Never mind, take me back',
   },
 ]
 
@@ -100,39 +109,54 @@ const allOfferSteps: Step[] = [
     type: 'survey',
     title: 'Why are you cancelling?',
     reasons: [
-      { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percent: 25, months: 3 } },
-      { id: 'not-using', label: 'Not using it enough', offer: { type: 'pause', months: 3 } },
+      {
+        id: 'expensive',
+        label: 'Too expensive (→ discount)',
+        offer: { type: 'discount', percentOff: 25, durationInMonths: 3 },
+      },
+      { id: 'not-using', label: 'Not using it enough (→ pause)', offer: { type: 'pause', months: 3 } },
       {
         id: 'wrong-plan',
-        label: 'Wrong plan for me',
+        label: 'Wrong plan for me (→ plan change)',
         offer: {
           type: 'plan_change',
           plans: [
             {
               id: 'starter',
               name: 'Starter',
-              price: 9,
-              interval: 'month',
-              currency: 'USD',
-              features: ['1 user', '5 projects'],
+              amount: { value: 900, currency: 'USD' },
+              duration: { interval: 'month' },
+              tagline: 'For solo work',
+              features: ['1 user', '5 projects', 'Email support'],
             },
             {
               id: 'pro',
               name: 'Pro',
-              price: 29,
-              interval: 'month',
-              currency: 'USD',
-              features: ['5 users', 'Unlimited projects', 'Priority support'],
+              amount: { value: 2900, currency: 'USD' },
+              duration: { interval: 'month' },
+              tagline: 'Most popular',
+              features: ['5 users', 'Unlimited projects', 'Priority support', 'Advanced analytics'],
+              msrp: '$49/mo',
             },
           ],
         },
       },
-      { id: 'trial', label: 'Need more time to evaluate', offer: { type: 'trial_extension', days: 14 } },
+      { id: 'trial', label: 'Need more time (→ trial extension)', offer: { type: 'trial_extension', days: 14 } },
+      {
+        id: 'support',
+        label: 'I have a problem (→ contact)',
+        offer: { type: 'contact', url: 'mailto:support@example.com', label: 'Email support' },
+      },
+      {
+        id: 'docs',
+        label: "Didn't know feature X existed (→ redirect)",
+        offer: { type: 'redirect', url: 'https://example.com/docs', label: 'Browse the docs' },
+      },
       { id: 'other', label: 'Other reason' },
     ],
   },
-  { type: 'feedback', title: 'Anything else?' },
-  { type: 'confirm' },
+  { type: 'feedback', title: 'Anything else?', placeholder: 'Optional thoughts…' },
+  { type: 'confirm', confirmLabel: 'Cancel anyway', goBackLabel: 'Take me back' },
 ]
 
 function AllOfferTypesDemo() {
@@ -388,7 +412,7 @@ const customStepDemoSteps: Step[] = [
         label: 'Too many seats',
         offer: { type: 'change-seats', data: { currentSeats: 10, minSeats: 1, pricePerSeat: 10 } },
       },
-      { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percent: 20, months: 3 } },
+      { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percentOff: 20, durationInMonths: 3 } },
       { id: 'missing', label: 'Missing features' },
     ],
   },
@@ -555,9 +579,10 @@ export function App() {
     <div style={{ maxWidth: 600, margin: '40px auto', fontFamily: 'system-ui', padding: '0 24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 32 }}>
         <h1 style={{ fontSize: 24, fontWeight: 800 }}>SDK Playground</h1>
-        <a href="?test" style={{ fontSize: 13, color: '#6b7280' }}>
-          Test Harness
-        </a>
+        <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#6b7280' }}>
+          <a href="?recipes">Recipes</a>
+          <a href="?test">Test Harness</a>
+        </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
         <DropInDemo />

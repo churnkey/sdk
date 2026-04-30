@@ -13,7 +13,7 @@ const steps: Step[] = [
       {
         id: 'expensive',
         label: 'Too expensive',
-        offer: { type: 'discount', percent: 20, months: 3 },
+        offer: { type: 'discount', percentOff: 20, durationInMonths: 3 },
       },
       {
         id: 'not-using',
@@ -105,7 +105,10 @@ describe('CancelFlow', () => {
     await waitFor(() => {
       expect(screen.getByText('Welcome back!')).toBeInTheDocument()
     })
-    expect(onAccept).toHaveBeenCalledWith(expect.objectContaining({ type: 'discount', percent: 20, months: 3 }))
+    expect(onAccept).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'discount', percentOff: 20, durationInMonths: 3 }),
+      null,
+    )
   })
 
   it('declines an offer and goes to feedback', async () => {
@@ -214,7 +217,7 @@ describe('CancelFlow', () => {
     const user = userEvent.setup()
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const stepsWithUnregistered: Step[] = [
-      { type: 'survey', reasons: [{ id: 'a', label: 'A' }] },
+      { type: 'survey', reasons: [{ id: 'a', label: 'Pick me' }] },
       { type: 'nps' }, // no customComponents.nps registered
       { type: 'confirm', title: 'Confirm cancellation' },
     ]
@@ -226,7 +229,7 @@ describe('CancelFlow', () => {
       />,
     )
 
-    await user.click(screen.getByText('A'))
+    await user.click(screen.getByText('Pick me'))
     await user.click(screen.getByText('Continue'))
 
     // nps step is skipped; we land on confirm
@@ -275,7 +278,18 @@ describe('CancelFlow', () => {
 
     await user.click(screen.getByTestId('custom-offer'))
     await waitFor(() =>
-      expect(onAccept).toHaveBeenCalledWith(expect.objectContaining({ type: 'change-seats', result: { seats: 3 } })),
+      expect(onAccept).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'change-seats', result: { seats: 3 } }),
+        null,
+      ),
     )
+  })
+
+  it('renders the close button alongside step content', () => {
+    renderFlow()
+    // Close button is the only chrome — always present at the modal level.
+    expect(screen.getByLabelText('Close')).toBeInTheDocument()
+    // Body content renders below it.
+    expect(screen.getByText('Too expensive')).toBeInTheDocument()
   })
 })

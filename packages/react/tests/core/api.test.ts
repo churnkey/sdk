@@ -73,18 +73,18 @@ describe('ChurnkeyApi action paths', () => {
     expect(calledBody(spy)).toEqual({ days: 14, blueprintId: 'bp_1' })
   })
 
-  it('fetchConfig hits /embed', async () => {
+  it('fetchConfig hits /cancel-flow/config', async () => {
     const spy = spyFetch()
     const api = new ChurnkeyApi(creds, 'https://api.test/v1')
     await api.fetchConfig()
-    expect(calledPath(spy)).toBe('https://api.test/v1/api/orgs/app_test/embed')
+    expect(calledPath(spy)).toBe('https://api.test/v1/api/orgs/app_test/cancel-flow/config')
   })
 
-  it('createSession hits /api/sessions', async () => {
+  it('createSession hits /api/sessions/sdk', async () => {
     const spy = spyFetch()
     const api = new ChurnkeyApi(creds, 'https://api.test/v1')
     await api.createSession({ canceled: true, presentedOffers: [], stepsViewed: [], mode: 'LIVE' })
-    expect(calledPath(spy)).toBe('https://api.test/v1/api/sessions')
+    expect(calledPath(spy)).toBe('https://api.test/v1/api/sessions/sdk')
   })
 
   it('sends auth headers from creds', async () => {

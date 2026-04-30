@@ -1,5 +1,17 @@
 export type { SessionPayload } from './api'
 export { AnalyticsClient, ChurnkeyApi } from './api'
+export type {
+  SdkConfig,
+  SdkConfirmStep,
+  SdkFeedbackStep,
+  SdkOffer,
+  SdkOfferCopy,
+  SdkOfferStep,
+  SdkReason,
+  SdkSettings,
+  SdkStep,
+  SdkSurveyStep,
+} from './api-types'
 export { calculateDiscountedPrice, formatPrice } from './format'
 export { CancelFlowMachine } from './machine'
 export type { ResolvedStep } from './step-graph'
@@ -9,10 +21,12 @@ export { decodeSessionToken } from './token'
 export type {
   AcceptedOffer,
   Appearance,
+  BackButtonProps,
   BuiltInOfferConfig,
   BuiltInStep,
   BuiltInStepType,
   CancelFlowProps,
+  CloseButtonProps,
   // Component overrides and props
   ComponentOverrides,
   ConfirmClassNames,
@@ -24,10 +38,12 @@ export type {
   CustomOfferProps,
   CustomStepConfig,
   CustomStepProps,
+  DirectAddress,
+  DirectCoupon,
   DirectCustomer,
+  DirectPrice,
   DirectSubscription,
   DirectSubscriptionItem,
-  DiscountDetailsProps,
   DiscountOffer,
   FeedbackClassNames,
   FeedbackStep,
@@ -35,10 +51,7 @@ export type {
   FlowConfig,
   // Flow
   FlowState,
-  FooterProps,
-  HeaderProps,
   ModalProps,
-  OfferCardProps,
   OfferClassNames,
   // Offer types
   OfferConfig,
@@ -46,11 +59,9 @@ export type {
   OfferDecision,
   OfferStep,
   OfferStepProps,
-  PauseDetailsProps,
   PauseOffer,
-  Plan,
-  PlanChangeGridProps,
   PlanChangeOffer,
+  PlanOption,
   ReasonButtonProps,
   // Reasons
   ReasonConfig,
@@ -68,7 +79,6 @@ export type {
   SurveyStepProps,
   // Appearance
   ThemeVariables,
-  TrialExtensionDetailsProps,
   TrialExtensionOffer,
 } from './types'
 export { appearanceToStyle, BUILT_IN_STEP_TYPES, cn, defaultTitles } from './utils'

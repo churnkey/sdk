@@ -40,7 +40,7 @@ describe('buildStepGraph', () => {
         type: 'survey',
         guid: 's',
         reasons: [
-          { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percent: 20, months: 3 } },
+          { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percentOff: 20, durationInMonths: 3 } },
           { id: 'notusing', label: 'Not using it', offer: { type: 'pause', months: 2 } },
           { id: 'missing', label: 'Missing features' }, // no offer → no synthetic step
         ],
@@ -91,7 +91,7 @@ describe('buildStepGraph', () => {
       {
         type: 'survey',
         guid: 's',
-        reasons: [{ id: 'a', label: 'A', offer: { type: 'discount', percent: 20, months: 3 } }],
+        reasons: [{ id: 'a', label: 'A', offer: { type: 'discount', percentOff: 20, durationInMonths: 3 } }],
       },
       { type: 'confirm', guid: 'c' },
     ]
@@ -105,7 +105,7 @@ describe('buildStepGraph', () => {
       {
         type: 'survey',
         guid: 's',
-        reasons: [{ id: 'a', label: 'A', offer: { type: 'discount', percent: 20, months: 3 } }],
+        reasons: [{ id: 'a', label: 'A', offer: { type: 'discount', percentOff: 20, durationInMonths: 3 } }],
       },
       { type: 'feedback', guid: 'f' },
       { type: 'confirm', guid: 'c' },

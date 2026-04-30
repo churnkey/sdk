@@ -44,7 +44,7 @@ const SCENARIOS: { id: Scenario; label: string; description: string }[] = [
     id: 'token-analytics',
     label: 'Token + Direct Customer Data',
     description:
-      'Token + customer/subscriptions. Session payload enriched with client-side data (metadata, plan price).',
+      'Token + customer/subscriptions in Direct shape. Server skips provider lookup (uses Direct body) and session payload is enriched with client-side data (metadata, plan price).',
   },
   {
     id: 'steps-merge',
@@ -84,14 +84,29 @@ const localSteps: Step[] = [
   {
     type: 'survey',
     title: 'Why are you leaving?',
+    description: 'Your feedback helps us improve.',
     reasons: [
-      { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percent: 20, months: 3 } },
+      { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percentOff: 20, durationInMonths: 3 } },
       { id: 'not-using', label: 'Not using it enough', offer: { type: 'pause', months: 2 } },
       { id: 'missing', label: 'Missing features' },
+      { id: 'other', label: 'Something else' },
     ],
   },
-  { type: 'feedback', title: 'Anything else?' },
-  { type: 'confirm' },
+  {
+    type: 'feedback',
+    title: 'What could we have done better?',
+    description: 'Even one sentence helps us improve.',
+    placeholder: 'Tell us what was missing…',
+    required: true,
+    minLength: 20,
+  },
+  {
+    type: 'confirm',
+    title: 'Confirm cancellation',
+    description: 'Your access continues until the end of your billing period.',
+    confirmLabel: 'Yes, cancel my subscription',
+    goBackLabel: 'Never mind, take me back',
+  },
   successStep,
 ]
 
@@ -110,7 +125,7 @@ const customSteps: Step[] = [
         label: 'Too many seats',
         offer: { type: 'change-seats', data: { currentSeats: 10, minSeats: 1, pricePerSeat: 10 } },
       },
-      { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percent: 20, months: 3 } },
+      { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percentOff: 20, durationInMonths: 3 } },
       { id: 'missing', label: 'Missing features' },
     ],
   },
@@ -127,7 +142,11 @@ const allOffersSteps: Step[] = [
     type: 'survey',
     title: 'Pick any reason to see its offer',
     reasons: [
-      { id: 'discount', label: 'Too expensive (→ discount)', offer: { type: 'discount', percent: 25, months: 3 } },
+      {
+        id: 'discount',
+        label: 'Too expensive (→ discount)',
+        offer: { type: 'discount', percentOff: 25, durationInMonths: 3 },
+      },
       { id: 'pause', label: 'Temporary break (→ pause)', offer: { type: 'pause', months: 2 } },
       {
         id: 'plan',
@@ -135,10 +154,30 @@ const allOffersSteps: Step[] = [
         offer: {
           type: 'plan_change',
           plans: [
-            { id: 'starter', name: 'Starter', price: 9, interval: 'month', currency: 'USD', features: ['1 user'] },
-            { id: 'pro', name: 'Pro', price: 29, interval: 'month', currency: 'USD', features: ['5 users'] },
+            {
+              id: 'starter',
+              name: 'Starter',
+              amount: { value: 900, currency: 'USD' },
+              duration: { interval: 'month' },
+              tagline: 'For solo users',
+              features: ['1 user', '5 projects', 'Email support'],
+            },
+            {
+              id: 'pro',
+              name: 'Pro',
+              amount: { value: 2900, currency: 'USD' },
+              duration: { interval: 'month' },
+              tagline: 'Most popular',
+              features: ['5 users', 'Unlimited projects', 'Priority support', 'Advanced analytics'],
+              msrp: '$49/mo',
+            },
           ],
         },
+      },
+      {
+        id: 'amount-discount',
+        label: 'Just need it cheaper (→ $-off discount)',
+        offer: { type: 'discount', amountOff: 1000, currency: 'USD', durationInMonths: 3 },
       },
       { id: 'trial', label: 'Need more time (→ trial_extension)', offer: { type: 'trial_extension', days: 14 } },
       {
@@ -154,8 +193,15 @@ const allOffersSteps: Step[] = [
       { id: 'none', label: 'No reason (no offer)' },
     ],
   },
-  { type: 'feedback', title: 'Tell us more' },
-  { type: 'confirm' },
+  {
+    type: 'feedback',
+    title: 'Tell us more',
+    description: 'At least 20 characters helps the team triage faster.',
+    placeholder: 'What happened?',
+    required: true,
+    minLength: 20,
+  },
+  { type: 'confirm', confirmLabel: 'Cancel anyway', goBackLabel: 'Wait, take me back' },
   successStep,
 ]
 
@@ -167,8 +213,8 @@ const standaloneOfferSteps: Step[] = [
     title: 'Before you go...',
     offer: {
       type: 'discount',
-      percent: 30,
-      months: 6,
+      percentOff: 30,
+      durationInMonths: 6,
       copy: {
         headline: 'Stay and get 30% off',
         body: "Here's our best offer — 30% off for six months, no questions asked.",
@@ -193,49 +239,71 @@ function usePersistedField(key: string, defaultValue = '') {
   return [value, set] as const
 }
 
+// NPS custom step using a 0–10 numeric scale. Built with the SDK's CSS
+// variables so it picks up `appearance.variables` overrides like every
+// built-in default does.
 function NpsStep({ step, onNext }: CustomStepProps) {
   const [score, setScore] = useState<number | null>(null)
   const scale = (step.data?.scale as number) ?? 10
+  const options = Array.from({ length: scale + 1 }, (_, i) => i)
+
   return (
-    <div style={{ padding: '24px 0', textAlign: 'center' }}>
-      <p style={{ fontSize: 15, fontWeight: 600, marginBottom: 16 }}>How likely are you to recommend us? (0-{scale})</p>
-      <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginBottom: 16 }}>
-        {Array.from({ length: scale + 1 }, (_, i) => (
-          <button
-            type="button"
-            key={i}
-            onClick={() => setScore(i)}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 6,
-              fontSize: 12,
-              fontWeight: 600,
-              border: score === i ? '2px solid #2563eb' : '1px solid #d1d5db',
-              background: score === i ? '#eff6ff' : '#fff',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            {i}
-          </button>
-        ))}
+    <div className="ck-step">
+      <h2 className="ck-step-title">How likely are you to recommend us?</h2>
+      <p className="ck-step-description">0 = not at all, {scale} = extremely likely.</p>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${scale + 1}, 1fr)`,
+          gap: 4,
+          marginBottom: 12,
+        }}
+      >
+        {options.map((n) => {
+          const isSelected = n === score
+          return (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setScore(n)}
+              style={{
+                appearance: 'none',
+                aspectRatio: '1 / 1',
+                border: `1.5px solid ${isSelected ? 'var(--ck-color-primary)' : 'var(--ck-color-border)'}`,
+                background: isSelected ? 'var(--ck-color-primary-soft)' : 'var(--ck-color-surface)',
+                color: isSelected ? 'var(--ck-color-primary)' : 'var(--ck-color-text)',
+                borderRadius: 'var(--ck-radius-sm)',
+                fontFamily: 'var(--ck-font-mono)',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all var(--ck-motion-fast)',
+              }}
+            >
+              {n}
+            </button>
+          )
+        })}
       </div>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: 11,
+          color: 'var(--ck-color-text-muted)',
+          marginBottom: 20,
+        }}
+      >
+        <span>Not at all likely</span>
+        <span>Extremely likely</span>
+      </div>
+
       <button
         type="button"
+        className="ck-button ck-button-primary"
         onClick={() => onNext({ npsScore: score })}
         disabled={score === null}
-        style={{
-          padding: '10px 20px',
-          background: score !== null ? '#2563eb' : '#93c5fd',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 8,
-          fontSize: 14,
-          fontWeight: 600,
-          cursor: score !== null ? 'pointer' : 'default',
-          fontFamily: 'inherit',
-        }}
       >
         Continue
       </button>
@@ -243,6 +311,9 @@ function NpsStep({ step, onNext }: CustomStepProps) {
   )
 }
 
+// Custom seat-change offer with a +/- stepper. The savings panel is the
+// win condition for a price-sensitive customer, so it's rendered with the
+// success-soft background once the user has actually picked a lower count.
 function SeatAdjuster({ offer, onAccept, onDecline, isProcessing }: CustomOfferProps) {
   const data = (offer as { data?: Record<string, unknown> }).data ?? {}
   const currentSeats = (data.currentSeats as number) ?? 10
@@ -250,110 +321,182 @@ function SeatAdjuster({ offer, onAccept, onDecline, isProcessing }: CustomOfferP
   const pricePerSeat = (data.pricePerSeat as number) ?? 10
 
   const [seats, setSeats] = useState(Math.max(minSeats, currentSeats - 1))
-
   const currentMonthly = currentSeats * pricePerSeat
   const newMonthly = seats * pricePerSeat
-  const monthlySavings = currentMonthly - newMonthly
+  const savings = currentMonthly - newMonthly
   const unchanged = seats === currentSeats
 
-  const stepButton = (disabled: boolean) => ({
-    width: 36,
-    height: 36,
-    border: '1px solid #d1d5db',
-    borderRadius: 6,
-    background: '#fff',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    fontSize: 18,
-    fontFamily: 'inherit',
-    opacity: disabled ? 0.4 : 1,
-  })
-
   return (
-    <div style={{ padding: '8px 0 24px', textAlign: 'center' }}>
-      <h3 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>Pay for what you use</h3>
-      <p style={{ fontSize: 13, color: '#6b7280', margin: '6px 0 20px' }}>
-        You're on {currentSeats} seats at ${currentMonthly}/mo. Drop unused seats and keep the rest.
+    <div className="ck-step ck-step-offer">
+      <h2 className="ck-step-title">Drop unused seats</h2>
+      <p className="ck-step-description">
+        You're on {currentSeats} seats at ${currentMonthly}/mo. Adjust to a smaller team and keep everything else.
       </p>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: 16 }}>
-        <button
-          type="button"
-          onClick={() => setSeats((s) => Math.max(minSeats, s - 1))}
-          disabled={seats <= minSeats}
-          style={stepButton(seats <= minSeats)}
-          aria-label="Decrease seats"
+      <div className="ck-offer-card">
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 20,
+            padding: '24px 0',
+            background: 'var(--ck-color-surface-muted)',
+            borderRadius: 'var(--ck-radius-lg)',
+            marginBottom: 16,
+          }}
         >
-          −
-        </button>
-        <div style={{ minWidth: 72 }}>
-          <div style={{ fontSize: 32, fontWeight: 800, lineHeight: 1 }}>{seats}</div>
-          <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>seat{seats === 1 ? '' : 's'}</div>
+          <SeatStep
+            onClick={() => setSeats((s) => Math.max(minSeats, s - 1))}
+            disabled={seats <= minSeats}
+            label="Decrease seats"
+          >
+            −
+          </SeatStep>
+          <div style={{ minWidth: 96, textAlign: 'center' }}>
+            <div
+              style={{
+                fontSize: 44,
+                fontWeight: 700,
+                lineHeight: 1,
+                fontVariantNumeric: 'tabular-nums',
+                letterSpacing: '-0.02em',
+                color: 'var(--ck-color-text)',
+              }}
+            >
+              {seats}
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: 'var(--ck-color-text-muted)',
+                marginTop: 4,
+                fontWeight: 600,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {seats === 1 ? 'Seat' : 'Seats'}
+            </div>
+          </div>
+          <SeatStep
+            onClick={() => setSeats((s) => Math.min(currentSeats, s + 1))}
+            disabled={seats >= currentSeats}
+            label="Increase seats"
+          >
+            +
+          </SeatStep>
         </div>
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
+            padding: '12px 16px',
+            background: savings > 0 ? 'var(--ck-color-success-soft)' : 'transparent',
+            border: `1px solid ${savings > 0 ? 'transparent' : 'var(--ck-color-border)'}`,
+            borderRadius: 'var(--ck-radius-md)',
+            marginBottom: 20,
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: 'var(--ck-color-text-muted)',
+              }}
+            >
+              New monthly bill
+            </div>
+            <div
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: 'var(--ck-color-text)',
+                marginTop: 2,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              ${newMonthly}
+            </div>
+          </div>
+          {savings > 0 && (
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'var(--ck-color-success)',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              save ${savings}/mo
+            </div>
+          )}
+        </div>
+
         <button
           type="button"
-          onClick={() => setSeats((s) => Math.min(currentSeats, s + 1))}
-          disabled={seats >= currentSeats}
-          style={stepButton(seats >= currentSeats)}
-          aria-label="Increase seats"
+          className="ck-button ck-button-primary"
+          onClick={() => onAccept({ seats, previousSeats: currentSeats, monthlyDelta: newMonthly - currentMonthly })}
+          disabled={isProcessing || unchanged}
         >
-          +
+          {isProcessing
+            ? 'Updating…'
+            : unchanged
+              ? 'Pick a lower seat count'
+              : `Reduce to ${seats} seat${seats === 1 ? '' : 's'}`}
+        </button>
+        <button type="button" className="ck-button-link" onClick={onDecline}>
+          No thanks, cancel
         </button>
       </div>
-
-      <div
-        style={{
-          background: '#f9fafb',
-          borderRadius: 8,
-          padding: '10px 14px',
-          marginBottom: 16,
-          display: 'flex',
-          justifyContent: 'space-between',
-          fontSize: 13,
-        }}
-      >
-        <span style={{ color: '#6b7280' }}>New monthly bill</span>
-        <span style={{ fontWeight: 600 }}>
-          ${newMonthly}
-          {monthlySavings > 0 && <span style={{ color: '#059669', marginLeft: 8 }}>(save ${monthlySavings}/mo)</span>}
-        </span>
-      </div>
-
-      <button
-        type="button"
-        onClick={() => onAccept({ seats, previousSeats: currentSeats, monthlyDelta: newMonthly - currentMonthly })}
-        disabled={isProcessing || unchanged}
-        style={{
-          padding: '10px 20px',
-          background: '#2563eb',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 8,
-          fontSize: 14,
-          fontWeight: 600,
-          cursor: isProcessing || unchanged ? 'not-allowed' : 'pointer',
-          fontFamily: 'inherit',
-          opacity: isProcessing || unchanged ? 0.5 : 1,
-        }}
-      >
-        {isProcessing ? 'Updating…' : unchanged ? 'Pick a lower seat count' : `Reduce to ${seats} seats`}
-      </button>
-      <button
-        type="button"
-        onClick={onDecline}
-        style={{
-          display: 'block',
-          margin: '10px auto 0',
-          background: 'none',
-          border: 'none',
-          color: '#9ca3af',
-          fontSize: 13,
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-        }}
-      >
-        No thanks, cancel
-      </button>
     </div>
+  )
+}
+
+function SeatStep({
+  children,
+  onClick,
+  disabled,
+  label,
+}: {
+  children: React.ReactNode
+  onClick: () => void
+  disabled?: boolean
+  label: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      style={{
+        appearance: 'none',
+        width: 44,
+        height: 44,
+        borderRadius: 999,
+        border: '1px solid var(--ck-color-border)',
+        background: 'var(--ck-color-surface)',
+        boxShadow: '0 1px 2px rgba(12, 10, 9, 0.04), 0 1px 3px rgba(12, 10, 9, 0.06)',
+        fontSize: 22,
+        fontWeight: 500,
+        color: 'var(--ck-color-text)',
+        fontFamily: 'inherit',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.4 : 1,
+        transition: 'all var(--ck-motion-fast)',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {children}
+    </button>
   )
 }
 
@@ -382,23 +525,26 @@ export function TestHarness() {
   }, [])
 
   // Wrap fetch while the harness is mounted so we can surface SDK network
-  // activity in the in-UI log panel. Only logs requests to /api/sessions.
+  // activity in the in-UI log panel. Logs the SDK's three call families:
+  // /cancel-flow/config (token-mode init), /cancel-flow/actions/* (offer
+  // accept), and /api/sessions/sdk (session record).
   useEffect(() => {
     const originalFetch = window.fetch
     window.fetch = async (input, init) => {
       const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
-      const isSessionRequest = url.includes('/api/sessions')
-      if (isSessionRequest) {
+      const isSdkRequest =
+        url.includes('/api/sessions') || url.includes('/cancel-flow/config') || url.includes('/cancel-flow/actions/')
+      if (isSdkRequest) {
         log(`→ ${init?.method ?? 'GET'} ${url}`)
       }
       try {
         const res = await originalFetch(input, init)
-        if (isSessionRequest) {
+        if (isSdkRequest) {
           log(`← ${res.status} ${url}`)
         }
         return res
       } catch (err) {
-        if (isSessionRequest) {
+        if (isSdkRequest) {
           log(`✕ ${url} — ${err instanceof Error ? err.message : String(err)}`)
         }
         throw err
@@ -425,7 +571,7 @@ export function TestHarness() {
                   id: 'price_test',
                   name: 'Pro Plan',
                   amount: { value: parseInt(planPriceStr, 10) || 2999, currency: 'usd' },
-                  interval: 'month' as const,
+                  duration: { interval: 'month' as const },
                 },
               },
             ],
@@ -437,7 +583,7 @@ export function TestHarness() {
 
   // Memoize on identity fields. Without useMemo the Date.now() in the payload
   // produces a fresh token string each render, which the SDK reads as a new
-  // session and refetches /embed — resetting the flow to step 1.
+  // session and refetches /cancel-flow/config — resetting the flow to step 1.
   const token = useMemo(() => {
     if (!needsToken || !appId || !apiKey || !customerId) return undefined
     const payload = JSON.stringify({

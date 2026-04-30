@@ -24,26 +24,35 @@ import '@churnkey/react/styles.css'
       type: 'survey',
       title: 'Why are you leaving?',
       reasons: [
-        { id: 'expensive', label: 'Too expensive',
-          offer: { type: 'discount', percent: 20, months: 3 } },
-        { id: 'not-using', label: 'Not using it enough',
-          offer: { type: 'pause', months: 2 } },
+        {
+          id: 'expensive',
+          label: 'Too expensive',
+          offer: {
+            type: 'discount',
+            couponId: 'STRIPE_SAVE20',  // your coupon ID
+            percentOff: 20,             // for the UI
+            durationInMonths: 3,        // for the UI
+          },
+        },
+        {
+          id: 'not-using',
+          label: 'Not using it enough',
+          offer: { type: 'pause', months: 2 },
+        },
         { id: 'missing', label: 'Missing features' },
       ],
     },
     { type: 'feedback', title: 'Anything else?' },
     { type: 'confirm' },
   ]}
-  onAccept={async (offer) => {
-    if (offer.type === 'discount') await applyDiscount(offer)
-    if (offer.type === 'pause') await pauseSubscription(offer)
-  }}
-  onCancel={async () => await cancelSubscription()}
+  handleDiscount={async (offer) => myBilling.applyCoupon(offer.couponId)}
+  handlePause={async (offer) => myBilling.pause({ months: offer.months })}
+  handleCancel={async () => myBilling.cancel()}
   onClose={() => setOpen(false)}
 />
 ```
 
-When a customer selects "Too expensive," the SDK shows them the discount offer. If they accept, your `onAccept` handler runs. If they decline all offers and confirm, `onCancel` runs.
+When a customer selects "Too expensive," the SDK shows the discount offer. If they accept, `handleDiscount` runs. If they decline all offers and confirm, `handleCancel` runs.
 
 ## Change the look
 
@@ -244,30 +253,32 @@ const token = ck.createToken({ customerId: 'cus_123' })
 
 In this mode, the cancel flow is configured from the Churnkey dashboard. Your theme, custom components, and appearance settings carry over.
 
-### Callback semantics shift in token mode
+### Handlers vs. listeners
 
-Without a token, your `onAccept` is responsible for actually applying the offer (calling Stripe, etc.). With a token, Churnkey already applied the offer by the time `onAccept` fires — your callback runs **after** the action has committed on the server. Don't call your billing API again from `onAccept` in token mode, or you'll double-apply.
+Two kinds of callbacks, distinguished by name:
+
+- **`handle<Type>`** — runs the action. Replaces what Churnkey would do on the server. In local mode (no token) this is the only thing that runs the action.
+- **`on<Type>`** — fires after the action, regardless of who ran it. Side effects only — analytics, refetch, toasts.
 
 ```tsx
-// Local mode — your callback does the work
-<CancelFlow
-  steps={steps}
-  onAccept={async (offer) => {
-    if (offer.type === 'discount') await applyDiscount(offer)
-  }}
-/>
-
-// Token mode — Churnkey already did the work; your callback handles side effects
 <CancelFlow
   session={token}
-  onAccept={async (offer) => {
-    analytics.track('cancel_flow.offer_accepted', { type: offer.type })
-    router.refresh()
+  // Handler: defining handlePause tells the SDK NOT to call its own
+  // server-side pause; you run the action instead. Skip handle* and
+  // Churnkey takes the action automatically in token mode.
+  handlePause={async (offer, customer) => {
+    await myBilling.pause({ months: offer.months })
   }}
+  // Listener: fires after the pause completes (whoever ran it).
+  onPause={(offer, customer) => analytics.track('paused', { months: offer.months })}
+  onAccept={(offer) => analytics.track('offer_accepted', { type: offer.type })}
+  onCancel={() => router.push('/goodbye')}
 />
 ```
 
-Same applies to `onCancel`: in token mode, the subscription is already cancelled when your callback runs.
+Available handlers: `handleDiscount`, `handlePause`, `handlePlanChange`, `handleTrialExtension`, `handleCancel`. Available listeners: `onDiscount`, `onPause`, `onPlanChange`, `onTrialExtension`, `onCancel`, plus the catch-all `onAccept` that fires for any accepted offer.
+
+In **local mode** (no token), there's no server action — handlers do the work. In **token mode**, defining a handler opts out of Churnkey running the action and gives the work back to you.
 
 ### Passing customer/subscription data alongside a token
 

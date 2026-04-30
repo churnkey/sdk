@@ -1,16 +1,14 @@
-// Steps are a graph, not an array. Mirrors the embed's Blueprint model
-// (churnkey-embed/src/models/Blueprint.ts). Each step has a guid and two
-// pointer fields — defaultNextStep, defaultPreviousStep — set once at build
-// and never mutated. Survey steps additionally carry offersAttached, a
+// Steps are a graph, not an array. Each step has a guid and two pointer
+// fields — defaultNextStep, defaultPreviousStep — set once at build and
+// never mutated. Survey steps additionally carry offersAttached, a
 // reasonId → synthetic-offer-step-guid map.
 //
-// Survey-choice offers are their own steps, not a mutable slot. That keeps
-// the current offer readable as stepMap[currentStepId].offer — one source
-// of truth for "what offer is on screen?".
+// Survey-choice offers are their own steps rather than a mutable slot, so
+// the current offer is always readable as stepMap[currentStepId].offer —
+// one source of truth for what's on screen.
 //
 // The graph is immutable after build. Local mode builds in the machine
-// constructor; token mode defers until initializeFromEmbed has the
-// transformed blueprint.
+// constructor; token mode defers until the server config has loaded.
 
 import type {
   ConfirmStep,
@@ -116,8 +114,8 @@ export function buildStepGraph(
 }
 
 function normalizeStep(step: Step, index: number): ResolvedStep {
-  // Prefer a developer-declared guid (token mode preserves blueprint guids
-  // so analytics joins line up). Fall back to a stable slug for local mode.
+  // Prefer the caller-provided guid; otherwise generate a stable slug. Stable
+  // ids matter for analytics and React keys.
   const guid = (step as { guid?: string }).guid ?? `step-${index}-${step.type}`
   const base: ResolvedStep = { guid, type: step.type }
 

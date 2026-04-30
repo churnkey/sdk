@@ -20,7 +20,8 @@ import { DefaultFeedback } from './steps/default-feedback'
 import { DefaultOffer } from './steps/default-offer'
 import { DefaultSuccess } from './steps/default-success'
 import { DefaultSurvey } from './steps/default-survey'
-import { DefaultHeader } from './structural/default-header'
+import { DefaultBackButton } from './structural/default-back-button'
+import { DefaultCloseButton } from './structural/default-close-button'
 import { DefaultModal } from './structural/default-modal'
 import { useColorScheme } from './use-color-scheme'
 
@@ -73,19 +74,13 @@ function LoadStatus({
   const scheme = useColorScheme(appearance?.colorScheme)
   const themeStyle = appearanceToStyle(appearance, scheme)
   const Modal = components?.Modal ?? DefaultModal
-  const Header = components?.Header ?? DefaultHeader
+  const CloseButton = components?.CloseButton ?? DefaultCloseButton
   const handleClose = onClose ?? (() => {})
 
   return (
     <div className="ck-cancel-flow" style={themeStyle}>
       <Modal open={true} onClose={handleClose} className={classNames?.modal}>
-        <Header
-          title={isLoading ? 'Loading...' : 'Something went wrong'}
-          step={0}
-          totalSteps={0}
-          onClose={handleClose}
-          className={classNames?.header}
-        />
+        <CloseButton onClose={handleClose} className={classNames?.closeButton} />
         <div className="ck-content">
           {isLoading && (
             <div className="ck-loading" style={{ padding: '32px', textAlign: 'center' }}>
@@ -148,23 +143,15 @@ function FlowShell({ machine, state, appearance, classNames, components, customC
   const themeStyle = appearanceToStyle(appearance, scheme)
 
   const Modal = components?.Modal ?? DefaultModal
-  const Header = components?.Header ?? DefaultHeader
-  const currentStep = machine.currentStep
-  const title = currentStep?.title ?? defaultTitles[state.step]
-  const description = currentStep?.description
+  const CloseButton = components?.CloseButton ?? DefaultCloseButton
+  const BackButton = components?.BackButton ?? DefaultBackButton
 
   return (
     <div className="ck-cancel-flow" style={themeStyle}>
       <Modal open={true} onClose={machine.close} className={classNames?.modal}>
-        <Header
-          title={title}
-          description={description}
-          step={machine.stepIndex}
-          totalSteps={machine.totalSteps}
-          onClose={machine.close}
-          className={classNames?.header}
-        />
+        <CloseButton onClose={machine.close} className={classNames?.closeButton} />
         <div className="ck-content">
+          {machine.canGoBack && <BackButton onBack={machine.back} className={classNames?.backButton} />}
           {state.error && (
             <div className="ck-error" role="alert">
               <p className="ck-error-message">Something went wrong. Please try again.</p>

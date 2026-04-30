@@ -1,34 +1,162 @@
 import type { ComponentType, ReactElement, ReactNode } from 'react'
-import type { EmbedCustomer } from './api-types'
 
-// --- Offers ---
+// ─── Direct shape — billing data passed in and out of the SDK ─────────────
+//
+// Used both for consumer-supplied props (customer, subscriptions) and for
+// data the SDK receives in token mode, so there's no translation layer in
+// between. Provider-agnostic and intentionally minimal — only the fields the
+// cancel flow needs to render and record sessions.
+
+export interface DirectAddress {
+  line1?: string
+  line2?: string
+  city?: string
+  state?: string
+  postalCode?: string
+  /** ISO 3166-1 alpha-2 */
+  country?: string
+}
+
+export interface DirectCustomer {
+  id: string
+  email?: string
+  name?: string
+  lastName?: string
+  phone?: string
+  /** ISO 4217 */
+  currency?: string
+  addresses?: DirectAddress[]
+  metadata?: Record<string, unknown>
+}
+
+export interface DirectPrice {
+  id: string
+  type?: 'standalone' | 'product'
+  active?: boolean
+  productId?: string
+  name?: string
+  description?: string
+  duration?: {
+    interval: 'day' | 'week' | 'month' | 'year'
+    intervalCount?: number
+  }
+  amount: {
+    model?: 'fixed' | 'tiered'
+    /** Smallest currency unit (cents for USD). */
+    value: number
+    currency?: string
+  }
+  metadata?: Record<string, unknown>
+}
+
+export interface DirectCoupon {
+  id?: string
+  name?: string
+  percentOff?: number
+  /** Smallest currency unit (cents for USD). */
+  amountOff?: number
+  currency?: string
+  duration?: 'once' | 'repeating' | 'forever'
+  durationInMonths?: number
+  metadata?: Record<string, unknown>
+}
+
+export type SubscriptionStatus =
+  | { name: 'active'; currentPeriod: { start: Date | string; end: Date | string } }
+  | {
+      name: 'trial'
+      trial: { start: Date | string; end: Date | string }
+      currentPeriod?: { start: Date | string; end: Date | string }
+    }
+  | {
+      name: 'paused'
+      pause: { start: Date | string; end?: Date | string }
+      currentPeriod?: { start: Date | string; end: Date | string }
+    }
+  | { name: 'canceled'; canceledAt: Date | string }
+  | { name: 'unpaid'; currentPeriod?: { start: Date | string; end: Date | string } }
+  | { name: 'future'; currentPeriod?: { start: Date | string; end: Date | string } }
+
+export interface DirectSubscriptionItem {
+  id?: string
+  price: DirectPrice
+  quantity?: number
+}
+
+export interface DirectSubscription {
+  id: string
+  customerId?: string
+  start: Date | string
+  status: SubscriptionStatus
+  items: DirectSubscriptionItem[]
+  duration?: {
+    interval: 'day' | 'week' | 'month' | 'year'
+    intervalCount?: number
+  }
+  end?: Date | string
+  discounts?: Array<{
+    id?: string
+    coupon?: DirectCoupon
+    start?: Date | string
+    end?: Date | string
+  }>
+  metadata?: Record<string, unknown>
+}
+
+// ─── Offers ──────────────────────────────────────────────────────────────────
+//
+// Local-mode developers write the same offer shape the SDK receives in
+// token mode, so behavior is consistent across modes.
 
 export interface DiscountOffer {
   type: 'discount'
-  percent: number
-  months: number
   couponId?: string
+  percentOff?: number
+  /** Smallest currency unit (cents for USD). */
+  amountOff?: number
+  currency?: string
+  durationInMonths?: number
 }
+
 export interface PauseOffer {
   type: 'pause'
   months: number
   interval?: 'month' | 'week'
   datePicker?: boolean
 }
+
 export interface PlanChangeOffer {
   type: 'plan_change'
-  plans: Plan[]
+  plans: PlanOption[]
   currentPlanId?: string
 }
+
+/**
+ * Plan option in a `plan_change` offer — `DirectPrice` plus optional
+ * cancel-flow merchandising fields. Marketing fields are presentation-only
+ * and live on `PlanOption` rather than `DirectPrice` so `Direct` stays a
+ * clean billing-data shape reusable outside the cancel-flow context.
+ */
+export interface PlanOption extends DirectPrice {
+  /** Short marketing line (e.g. "Most popular"). */
+  tagline?: string
+  /** Bullet list of plan features shown on the card. */
+  features?: string[]
+  /** Pre-formatted "before" price rendered struck-through (e.g. "$49/mo"). */
+  msrp?: string
+}
+
 export interface TrialExtensionOffer {
   type: 'trial_extension'
   days: number
 }
+
 export interface ContactOffer {
   type: 'contact'
   url?: string
   label?: string
 }
+
 export interface RedirectOffer {
   type: 'redirect'
   url: string
@@ -64,16 +192,7 @@ export type AcceptedOffer = OfferConfig & {
   result?: Record<string, unknown>
 }
 
-export interface Plan {
-  id: string
-  name: string
-  price: number
-  interval: 'month' | 'year'
-  currency: string
-  features?: string[]
-}
-
-// --- Reasons ---
+// ─── Reasons ─────────────────────────────────────────────────────────────────
 
 export interface ReasonConfig {
   id: string
@@ -82,12 +201,11 @@ export interface ReasonConfig {
   offer?: OfferConfig
 }
 
-// --- Steps ---
+// ─── Steps ───────────────────────────────────────────────────────────────────
 //
-// `guid` is optional on each step. In token mode the transform preserves the
-// blueprint's guid so analytics joins work. In local mode it's auto-generated
-// at graph-build time — developers usually don't need to set it unless they
-// want a stable identity (e.g. for React keys or test assertions).
+// `guid` is optional. Set it for stable identity (React keys, test assertions);
+// otherwise the SDK auto-generates one at graph-build time. In token mode,
+// server-supplied steps already carry guids for analytics correlation.
 
 export interface SurveyStep {
   type: 'survey'
@@ -104,9 +222,9 @@ export interface OfferStep {
   title?: string
   description?: string
   /**
-   * Offer attached to this step. Populated in token mode when the blueprint's
-   * OFFER step carries its own offer (e.g. a proactive save offer shown before
-   * any survey), and on synthetic OFFER steps spawned from survey choices.
+   * Offer attached to this step. Set this for proactive save offers shown
+   * outside a survey; the SDK also populates it automatically on synthetic
+   * offer steps spawned from survey choices.
    */
   offer?: OfferDecision
   classNames?: OfferClassNames
@@ -156,7 +274,7 @@ export type Step = BuiltInStep | CustomStepConfig
 
 export type BuiltInStepType = 'survey' | 'offer' | 'feedback' | 'confirm' | 'success'
 
-// --- Per-step classNames ---
+// ─── Per-step classNames ─────────────────────────────────────────────────────
 
 export interface SurveyClassNames {
   root?: string
@@ -172,6 +290,8 @@ export interface SurveyClassNames {
 
 export interface OfferClassNames {
   root?: string
+  title?: string
+  description?: string
   card?: string
   headline?: string
   body?: string
@@ -211,16 +331,16 @@ export interface SuccessClassNames {
   closeButton?: string
 }
 
-// --- Structural classNames ---
+// ─── Structural classNames ───────────────────────────────────────────────────
 
 export interface StructuralClassNames {
   overlay?: string
   modal?: string
-  header?: string
-  footer?: string
+  closeButton?: string
+  backButton?: string
 }
 
-// --- Appearance ---
+// ─── Appearance ──────────────────────────────────────────────────────────────
 
 export interface ThemeVariables {
   colorPrimary: string
@@ -244,26 +364,26 @@ export interface Appearance {
 
 export interface CustomStepProps {
   step: CustomStepConfig
-  customer: EmbedCustomer | null
+  customer: DirectCustomer | null
   onNext: (result?: Record<string, unknown>) => void
   onBack: () => void
 }
 
 export interface CustomOfferProps {
   offer: OfferDecision
-  customer: EmbedCustomer | null
+  customer: DirectCustomer | null
   onAccept: (result?: Record<string, unknown>) => Promise<void>
   onDecline: () => void
   isProcessing: boolean
 }
 
-// --- Component overrides ---
+// ─── Component overrides ─────────────────────────────────────────────────────
 
 export interface ComponentOverrides {
   // Structural
   Modal?: (props: ModalProps) => ReactElement
-  Header?: (props: HeaderProps) => ReactElement
-  Footer?: (props: FooterProps) => ReactElement
+  CloseButton?: (props: CloseButtonProps) => ReactElement
+  BackButton?: (props: BackButtonProps) => ReactElement
 
   // Step-level (replace entire built-in step)
   Survey?: (props: SurveyStepProps) => ReactElement
@@ -274,16 +394,22 @@ export interface ComponentOverrides {
 
   // Sub-component (replace part of a step)
   ReasonButton?: (props: ReasonButtonProps) => ReactElement
-  OfferCard?: (props: OfferCardProps) => ReactElement
-  DiscountDetails?: (props: DiscountDetailsProps) => ReactElement
-  PauseDetails?: (props: PauseDetailsProps) => ReactElement
-  PlanChangeGrid?: (props: PlanChangeGridProps) => ReactElement
-  TrialExtensionDetails?: (props: TrialExtensionDetailsProps) => ReactElement
+
+  // Per-type offer slots. Each owns its full canvas (title, description,
+  // body, buttons) just like the step-level defaults — replacing one
+  // gives full control over a single offer type. To take over offer
+  // routing entirely, override `Offer` instead.
+  DiscountOffer?: (props: OfferStepProps) => ReactElement
+  PauseOffer?: (props: OfferStepProps) => ReactElement
+  PlanChangeOffer?: (props: OfferStepProps) => ReactElement
+  TrialExtensionOffer?: (props: OfferStepProps) => ReactElement
+  ContactOffer?: (props: OfferStepProps) => ReactElement
+  RedirectOffer?: (props: OfferStepProps) => ReactElement
 }
 
 export type CustomComponents = Record<string, ComponentType<CustomStepProps> | ComponentType<CustomOfferProps>>
 
-// --- Structural component props ---
+// ─── Structural component props ──────────────────────────────────────────────
 
 export interface ModalProps {
   open: boolean
@@ -292,24 +418,17 @@ export interface ModalProps {
   className?: string
 }
 
-export interface HeaderProps {
-  title: string
-  description?: string
-  step: number
-  totalSteps: number
+export interface CloseButtonProps {
   onClose: () => void
   className?: string
 }
 
-export interface FooterProps {
-  onBack?: () => void
-  onNext?: () => void
-  backLabel?: string
-  nextLabel?: string
+export interface BackButtonProps {
+  onBack: () => void
   className?: string
 }
 
-// --- Step component props ---
+// ─── Step component props ────────────────────────────────────────────────────
 
 export interface SurveyStepProps {
   title: string
@@ -326,10 +445,20 @@ export interface OfferStepProps {
   title?: string
   description?: string
   offer: OfferDecision
-  onAccept: () => Promise<void>
+  /**
+   * Accept the offer. The optional `result` is included on the resulting
+   * `AcceptedOffer` payload — used by offers that need a user choice (e.g.
+   * `plan_change` passes `{ planId }`).
+   */
+  onAccept: (result?: Record<string, unknown>) => Promise<void>
   onDecline: () => void
   isProcessing: boolean
   classNames?: OfferClassNames
+  /**
+   * Forwarded to the default `Offer` switcher so it can dispatch to per-type
+   * overrides (`DiscountOffer`, `PauseOffer`, etc). Custom `Offer`
+   * implementations can ignore this.
+   */
   components?: Partial<ComponentOverrides>
 }
 
@@ -366,137 +495,31 @@ export interface SuccessStepProps {
   classNames?: SuccessClassNames
 }
 
-// --- Sub-component props ---
+// ─── Sub-component props ─────────────────────────────────────────────────────
 
 export interface ReasonButtonProps {
   reason: ReasonConfig
+  index: number
   isSelected: boolean
   onSelect: (id: string) => void
 }
 
-export interface OfferCardProps {
-  offer: OfferDecision
-  onAccept: () => Promise<void>
-  onDecline: () => void
-  isProcessing: boolean
-  classNames?: OfferClassNames
-  DiscountDetails: () => ReactElement
-  PauseDetails: () => ReactElement
-  PlanChangeGrid: () => ReactElement
-  TrialExtensionDetails: () => ReactElement
-}
-
-export interface DiscountDetailsProps {
-  percent: number
-  months: number
-  originalPrice: number
-  discountedPrice: number
-  currency: string
-  interval: 'month' | 'year'
-  couponId?: string
-}
-
-export interface PauseDetailsProps {
-  maxDuration: number
-  interval: 'month' | 'week'
-  selectedDuration: number
-  onChangeDuration: (duration: number) => void
-  resumeDate: string
-  datePicker?: boolean
-}
-
-export interface PlanChangeGridProps {
-  plans: Plan[]
-  currentPlan: Plan
-  selectedPlan: Plan | null
-  onSelectPlan: (plan: Plan) => void
-}
-
-export interface TrialExtensionDetailsProps {
-  days: number
-  currentEndDate: string
-  newEndDate: string
-}
-
-// --- Flow state ---
+// ─── Flow state ──────────────────────────────────────────────────────────────
 
 export interface FlowState {
-  /** The current step's type (`'survey'`, `'offer'`, a custom type name, etc.). */
   step: string
-  /** The current step's unique guid. Distinguishes between multiple steps of the same type. */
   currentStepId: string
   selectedReason: string | null
   feedback: string
   outcome: 'saved' | 'cancelled' | null
   isProcessing: boolean
   error: Error | null
-  customer: EmbedCustomer | null
+  customer: DirectCustomer | null
 }
 
-// --- Customer + subscription data (Direct format) ---
+// ─── Flow config ─────────────────────────────────────────────────────────────
 
-export interface DirectCustomer {
-  id: string
-  email?: string
-  name?: string
-  lastName?: string
-  phone?: string
-  currency?: string
-  metadata?: Record<string, unknown>
-}
-
-export type SubscriptionStatus =
-  | { name: 'active'; currentPeriod: { start: Date | string; end: Date | string } }
-  | {
-      name: 'trial'
-      trial: { start: Date | string; end: Date | string }
-      currentPeriod?: { start: Date | string; end: Date | string }
-    }
-  | {
-      name: 'paused'
-      pause: { start: Date | string; end?: Date | string }
-      currentPeriod?: { start: Date | string; end: Date | string }
-    }
-  | { name: 'canceled'; canceledAt: Date | string }
-  | { name: 'unpaid'; currentPeriod?: { start: Date | string; end: Date | string } }
-
-export interface DirectSubscription {
-  id: string
-  start: Date | string
-  status: SubscriptionStatus
-  items: DirectSubscriptionItem[]
-  end?: Date | string
-  discounts?: Array<{
-    id?: string
-    coupon?: {
-      id?: string
-      percentOff?: number
-      amountOff?: number
-      currency?: string
-      duration?: 'once' | 'repeating' | 'forever'
-      durationInMonths?: number
-    }
-  }>
-  metadata?: Record<string, unknown>
-}
-
-export interface DirectSubscriptionItem {
-  id?: string
-  price: {
-    id: string
-    name?: string
-    productId?: string
-    amount: { value: number; currency?: string }
-    interval?: 'day' | 'week' | 'month' | 'year'
-    intervalCount?: number
-  }
-  quantity?: number
-  product?: { id?: string; name?: string }
-}
-
-// --- Flow config ---
-
-export interface FlowConfig {
+export interface FlowConfig extends FlowCallbacks {
   appId?: string
   customer?: DirectCustomer
   subscriptions?: DirectSubscription[]
@@ -506,19 +529,47 @@ export interface FlowConfig {
   /**
    * Tags the session as live or test. Use `'test'` from staging so your
    * dashboard can filter out non-production traffic. Defaults to `'live'`.
-   * In token mode the token's mode wins — it's server-signed, so a client
-   * can't override it.
+   * In token mode the mode is encoded in the signed token and overrides
+   * this field.
    */
   mode?: 'live' | 'test'
-  onAccept?: (offer: AcceptedOffer) => Promise<void>
-  onCancel?: () => Promise<void>
+}
+
+type OfferCallback = (offer: AcceptedOffer, customer: DirectCustomer | null) => Promise<void> | void
+type CancelCallback = (customer: DirectCustomer | null) => Promise<void> | void
+
+/**
+ * Two kinds of callbacks, distinguished by name:
+ *
+ * - `handle<Type>` runs the action. When defined, it replaces whatever
+ *   Churnkey would do on the server — the consumer takes responsibility.
+ *   In local mode (no token), handlers are the only path that does anything.
+ * - `on<Type>` is a listener that fires after the action. Side effects only —
+ *   refetch state, log analytics, show a toast. Errors thrown here are
+ *   swallowed; listeners can't flip the flow into an error state.
+ *
+ * `onAccept` is a catch-all that fires alongside the per-type listener.
+ */
+export interface FlowCallbacks {
+  handleDiscount?: OfferCallback
+  handlePause?: OfferCallback
+  handlePlanChange?: OfferCallback
+  handleTrialExtension?: OfferCallback
+  handleCancel?: CancelCallback
+
+  onAccept?: OfferCallback
+  onDiscount?: OfferCallback
+  onPause?: OfferCallback
+  onPlanChange?: OfferCallback
+  onTrialExtension?: OfferCallback
+  onCancel?: CancelCallback
   onClose?: () => void
   onStepChange?: (step: string, prevStep: string) => void
 }
 
-// --- CancelFlow props ---
+// ─── CancelFlow props ────────────────────────────────────────────────────────
 
-export interface CancelFlowProps {
+export interface CancelFlowProps extends FlowCallbacks {
   appId?: string
   customer?: DirectCustomer
   subscriptions?: DirectSubscription[]
@@ -537,8 +588,4 @@ export interface CancelFlowProps {
     breakpoint?: number
   }
   animation?: 'css' | 'framer' | 'none'
-  onAccept: (offer: AcceptedOffer) => Promise<void>
-  onCancel: () => Promise<void>
-  onClose?: () => void
-  onStepChange?: (step: string, prevStep: string) => void
 }

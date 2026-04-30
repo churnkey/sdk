@@ -7,20 +7,52 @@
 }
 
 @layer ck {
-  /* --- CSS Custom Property Defaults --- */
+  /* --- Design tokens (CSS custom properties) ---
+     Consumers override via the `appearance` prop or by setting these vars
+     on a wrapping element. The values below are the SDK's defaults — a
+     warm-neutral palette with a single indigo accent. */
   .ck-cancel-flow {
-    --ck-color-primary: #2563eb;
-    --ck-color-primary-hover: #1d4ed8;
-    --ck-color-bg: #ffffff;
-    --ck-color-text: #1a1a2e;
-    --ck-color-text-secondary: #64748b;
-    --ck-color-border: #e2e8f0;
-    --ck-color-danger: #ef4444;
-    --ck-color-danger-hover: #dc2626;
-    --ck-color-success: #10b981;
-    --ck-font-family: system-ui, -apple-system, sans-serif;
-    --ck-font-size: 15px;
-    --ck-border-radius: 12px;
+    /* Surfaces */
+    --ck-color-bg: #fafaf9;
+    --ck-color-surface: #ffffff;
+    --ck-color-surface-muted: #f5f5f4;
+
+    /* Borders */
+    --ck-color-border: #e7e5e4;
+    --ck-color-border-strong: #d6d3d1;
+
+    /* Text */
+    --ck-color-text: #0c0a09;
+    --ck-color-text-secondary: #57534e;
+    --ck-color-text-muted: #a8a29e;
+
+    /* Accent — single restrained hue. */
+    --ck-color-primary: #4f46e5;
+    --ck-color-primary-hover: #4338ca;
+    --ck-color-primary-soft: #eef2ff;
+
+    /* Semantics — used sparingly. */
+    --ck-color-success: #059669;
+    --ck-color-success-soft: #ecfdf5;
+    --ck-color-danger: #dc2626;
+    --ck-color-danger-hover: #b91c1c;
+    --ck-color-danger-soft: #fef2f2;
+
+    /* Typography */
+    --ck-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --ck-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    --ck-font-size: 14px;
+
+    /* Geometry */
+    --ck-radius-sm: 6px;
+    --ck-radius-md: 8px;
+    --ck-radius-lg: 12px;
+    --ck-radius-xl: 16px;
+    --ck-border-radius: var(--ck-radius-lg);
+
+    /* Motion */
+    --ck-motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --ck-motion-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 
     font-family: var(--ck-font-family);
     font-size: var(--ck-font-size);
@@ -28,7 +60,7 @@
     line-height: 1.5;
   }
 
-  /* --- Scoped Reset --- */
+  /* --- Scoped reset --- */
   .ck-cancel-flow *,
   .ck-cancel-flow *::before,
   .ck-cancel-flow *::after {
@@ -43,7 +75,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(12, 10, 9, 0.5);
     z-index: 9999;
   }
 
@@ -59,43 +91,23 @@
 
   /* --- Modal --- */
   .ck-modal {
-    background: var(--ck-color-bg);
-    border-radius: var(--ck-border-radius);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    background: var(--ck-color-surface);
+    border-radius: var(--ck-radius-xl);
+    box-shadow:
+      0 20px 25px -5px rgba(12, 10, 9, 0.1),
+      0 8px 10px -6px rgba(12, 10, 9, 0.06);
     width: 100%;
-    max-width: 480px;
+    max-width: 440px;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
   }
 
-  /* --- Header --- */
-  .ck-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    padding: 24px 24px 0;
-  }
-
-  .ck-header-content {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .ck-header-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--ck-color-text);
-    line-height: 1.3;
-  }
-
-  .ck-header-description {
-    font-size: 14px;
-    color: var(--ck-color-text-secondary);
-    margin-top: 4px;
-  }
-
-  .ck-header-close {
+  /* --- Close button (sole chrome element) --- */
+  .ck-close-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -103,58 +115,82 @@
     height: 32px;
     border: none;
     background: none;
-    color: var(--ck-color-text-secondary);
+    color: var(--ck-color-text-muted);
     cursor: pointer;
-    border-radius: 8px;
-    flex-shrink: 0;
-    margin-left: 8px;
+    border-radius: var(--ck-radius-sm);
     transition:
-      background 0.15s,
-      color 0.15s;
+      background var(--ck-motion-fast),
+      color var(--ck-motion-fast);
+    z-index: 1;
   }
 
-  .ck-header-close:hover {
-    background: var(--ck-color-border);
+  .ck-close-button:hover {
+    background: var(--ck-color-surface-muted);
     color: var(--ck-color-text);
   }
 
-  /* --- Content Area --- */
-  .ck-content {
-    padding: 20px 24px 24px;
+  /* --- Back link (inline above the step title) --- */
+  .ck-back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px 4px 6px;
+    margin: 0 0 12px -6px;
+    border: none;
+    background: none;
+    color: var(--ck-color-text-muted);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--ck-radius-sm);
+    transition: color var(--ck-motion-fast);
   }
 
-  /* --- Error Banner --- */
+  .ck-back-button:hover {
+    color: var(--ck-color-text);
+  }
+
+  /* --- Content --- */
+  .ck-content {
+    /* Top padding leaves room for the absolute-positioned close button. */
+    padding: 32px 24px 24px;
+  }
+
+  /* --- Error banner --- */
   .ck-error {
     padding: 10px 14px;
     margin-bottom: 16px;
-    background: color-mix(in srgb, var(--ck-color-danger) 8%, transparent);
-    border: 1px solid color-mix(in srgb, var(--ck-color-danger) 20%, transparent);
-    border-radius: var(--ck-border-radius);
+    background: var(--ck-color-danger-soft);
+    border-radius: var(--ck-radius-md);
   }
 
   .ck-error-message {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--ck-color-danger);
     font-weight: 500;
   }
 
   /* --- Steps (shared) --- */
+  /* Plain block: an earlier flex-column rule broke text-align centering on */
+  /* the success step (inline-flex children stuck to the cross-axis start). */
   .ck-step {
-    display: flex;
-    flex-direction: column;
+    display: block;
   }
 
   .ck-step-title {
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 600;
+    letter-spacing: -0.015em;
     color: var(--ck-color-text);
-    margin-bottom: 4px;
+    margin: 0 0 8px;
   }
 
   .ck-step-description {
     font-size: 14px;
     color: var(--ck-color-text-secondary);
-    margin-bottom: 16px;
+    line-height: 1.55;
+    margin: 0 0 20px;
   }
 
   /* --- Buttons --- */
@@ -162,21 +198,18 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
     padding: 12px 20px;
-    font-size: 15px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 600;
     font-family: inherit;
     border: none;
-    border-radius: var(--ck-border-radius);
+    border-radius: var(--ck-radius-md);
     cursor: pointer;
-    transition:
-      background 0.15s,
-      opacity 0.15s;
-    width: 100%;
+    transition: background var(--ck-motion-fast);
   }
 
   .ck-button:disabled {
-    opacity: 0.5;
     cursor: not-allowed;
   }
 
@@ -189,29 +222,27 @@
     background: var(--ck-color-primary-hover);
   }
 
-  .ck-button-secondary {
-    background: var(--ck-color-border);
-    color: var(--ck-color-text);
-  }
-
-  .ck-button-secondary:hover:not(:disabled) {
-    background: #d1d5db;
+  .ck-button-primary:disabled {
+    background: var(--ck-color-surface-muted);
+    color: var(--ck-color-text-muted);
   }
 
   .ck-button-danger {
-    background: var(--ck-color-danger);
-    color: #ffffff;
+    background: var(--ck-color-surface);
+    color: var(--ck-color-danger);
+    border: 1px solid var(--ck-color-danger);
   }
 
   .ck-button-danger:hover:not(:disabled) {
-    background: var(--ck-color-danger-hover);
+    background: var(--ck-color-danger-soft);
   }
 
   .ck-button-link {
     display: block;
     width: 100%;
-    padding: 8px;
-    font-size: 14px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 500;
     font-family: inherit;
     color: var(--ck-color-text-secondary);
     background: none;
@@ -219,211 +250,459 @@
     cursor: pointer;
     text-align: center;
     margin-top: 4px;
-    transition: color 0.15s;
+    transition: color var(--ck-motion-fast);
   }
 
   .ck-button-link:hover {
     color: var(--ck-color-text);
   }
 
-  /* --- Survey Step --- */
+  /* --- Survey: numbered cards --- */
   .ck-reason-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
 
   .ck-reason-button {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     width: 100%;
     text-align: left;
-    padding: 12px 16px;
-    font-size: 15px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 500;
     font-family: inherit;
-    border: 1.5px solid var(--ck-color-border);
-    border-radius: var(--ck-border-radius);
-    background: var(--ck-color-bg);
+    border: 1px solid var(--ck-color-border);
+    border-radius: var(--ck-radius-md);
+    background: var(--ck-color-surface);
     color: var(--ck-color-text);
     cursor: pointer;
     transition:
-      border-color 0.15s,
-      background 0.15s;
+      border-color var(--ck-motion-fast),
+      box-shadow var(--ck-motion-fast);
   }
 
   .ck-reason-button:hover {
-    border-color: var(--ck-color-primary);
+    border-color: var(--ck-color-border-strong);
   }
 
   .ck-reason-button--selected {
     border-color: var(--ck-color-primary);
-    background: color-mix(in srgb, var(--ck-color-primary) 5%, transparent);
+    box-shadow:
+      0 1px 2px rgba(12, 10, 9, 0.04),
+      0 1px 3px rgba(12, 10, 9, 0.06);
+  }
+
+  .ck-reason-badge {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--ck-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ck-color-surface-muted);
+    color: var(--ck-color-text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--ck-font-mono);
+    transition: background var(--ck-motion-fast);
+  }
+
+  .ck-reason-button--selected .ck-reason-badge {
+    background: var(--ck-color-primary);
+    color: #ffffff;
   }
 
   .ck-reason-label {
     font-weight: 500;
-  }
-
-  /* --- Offer Step --- */
-  .ck-offer-card {
-    text-align: center;
-  }
-
-  .ck-offer-headline {
-    font-size: 20px;
-    font-weight: 700;
     color: var(--ck-color-text);
-    margin-bottom: 8px;
   }
 
-  .ck-offer-body {
-    font-size: 15px;
-    color: var(--ck-color-text-secondary);
-    margin-bottom: 20px;
+  /* --- Offer step --- */
+  .ck-offer-card {
+    display: flex;
+    flex-direction: column;
   }
 
   .ck-offer-details {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
     margin-bottom: 20px;
   }
 
-  .ck-offer-badge {
-    display: inline-block;
-    padding: 4px 12px;
+  /* Discount: centered phrase in a soft tinted panel. */
+  .ck-offer-discount {
+    background: var(--ck-color-primary-soft);
+    border-radius: var(--ck-radius-lg);
+    padding: 24px 20px;
+    text-align: center;
+  }
+
+  .ck-offer-discount-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ck-color-primary);
+    margin-bottom: 12px;
+  }
+
+  .ck-offer-discount-phrase {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    color: var(--ck-color-text);
+  }
+
+  /* Pause: segmented duration + resume-date callout. */
+  .ck-pause-segments {
+    display: grid;
+    gap: 6px;
+    background: var(--ck-color-surface-muted);
+    padding: 4px;
+    border-radius: var(--ck-radius-md);
+    margin-bottom: 12px;
+  }
+
+  .ck-pause-segment {
+    appearance: none;
+    padding: 10px 8px;
+    border: none;
+    border-radius: var(--ck-radius-sm);
+    background: transparent;
     font-size: 14px;
     font-weight: 600;
-    background: color-mix(in srgb, var(--ck-color-success) 10%, transparent);
-    color: var(--ck-color-success);
-    border-radius: 100px;
-  }
-
-  .ck-offer-duration {
-    font-size: 14px;
+    font-family: inherit;
     color: var(--ck-color-text-secondary);
+    cursor: pointer;
+    transition: all var(--ck-motion-fast);
   }
 
-  /* --- Plan Change Grid --- */
+  .ck-pause-segment--selected {
+    background: var(--ck-color-surface);
+    color: var(--ck-color-text);
+    box-shadow:
+      0 1px 2px rgba(12, 10, 9, 0.04),
+      0 1px 3px rgba(12, 10, 9, 0.06);
+  }
+
+  .ck-pause-resume {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--ck-color-primary-soft);
+    border-radius: var(--ck-radius-md);
+  }
+
+  .ck-pause-resume-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ck-color-primary);
+  }
+
+  .ck-pause-resume-date {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ck-color-text);
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+
+  .ck-pause-resume-icon {
+    color: var(--ck-color-primary);
+  }
+
+  /* Trial extension: day count badge + new end date in accent-soft container. */
+  .ck-trial-block {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: var(--ck-color-primary-soft);
+    border-radius: var(--ck-radius-lg);
+  }
+
+  .ck-trial-badge {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: var(--ck-radius-lg);
+    background: var(--ck-color-primary);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ck-trial-days {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ck-trial-unit {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .ck-trial-end-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ck-color-text-muted);
+  }
+
+  .ck-trial-end-date {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ck-color-text);
+    margin-top: 2px;
+  }
+
+  /* Redirect: featured link. */
+  .ck-redirect-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border: 1px solid var(--ck-color-border);
+    border-radius: var(--ck-radius-md);
+    background: var(--ck-color-surface);
+    color: var(--ck-color-text);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: border-color var(--ck-motion-fast);
+  }
+
+  .ck-redirect-link:hover {
+    border-color: var(--ck-color-border-strong);
+  }
+
+  .ck-redirect-icon {
+    color: var(--ck-color-text-muted);
+  }
+
+  /* --- Plan change: side-by-side cards --- */
   .ck-plan-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
     margin-bottom: 20px;
-    text-align: left;
   }
 
   .ck-plan-card {
-    padding: 14px;
+    appearance: none;
+    width: 100%;
+    padding: 20px;
     border: 1.5px solid var(--ck-color-border);
-    border-radius: var(--ck-border-radius);
-    background: var(--ck-color-bg);
+    border-radius: var(--ck-radius-lg);
+    background: var(--ck-color-surface);
+    color: inherit;
+    font-family: inherit;
     cursor: pointer;
-    transition: border-color 0.15s;
+    transition:
+      border-color var(--ck-motion-fast),
+      box-shadow var(--ck-motion-fast);
+    text-align: left;
   }
 
   .ck-plan-card:hover {
+    border-color: var(--ck-color-border-strong);
+  }
+
+  .ck-plan-card--selected {
     border-color: var(--ck-color-primary);
+    box-shadow:
+      0 4px 6px -1px rgba(12, 10, 9, 0.06),
+      0 2px 4px -2px rgba(12, 10, 9, 0.06);
   }
 
   .ck-plan-name {
-    display: block;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--ck-color-text);
     margin-bottom: 4px;
   }
 
-  .ck-plan-price {
-    display: block;
-    font-size: 14px;
+  .ck-plan-tagline {
+    font-size: 12px;
     color: var(--ck-color-text-secondary);
-    margin-bottom: 8px;
+    min-height: 16px;
+    margin-bottom: 16px;
+  }
+
+  .ck-plan-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .ck-plan-amount {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ck-color-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ck-plan-period {
+    font-size: 13px;
+    color: var(--ck-color-text-muted);
+  }
+
+  .ck-plan-msrp {
+    font-size: 13px;
+    color: var(--ck-color-text-muted);
+    text-decoration: line-through;
+    margin-left: 4px;
   }
 
   .ck-plan-features {
     list-style: none;
     padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ck-plan-feature {
     font-size: 13px;
-    color: var(--ck-color-text-secondary);
+    color: var(--ck-color-text);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.4;
   }
 
-  .ck-plan-features li::before {
-    content: "\2713 ";
-    color: var(--ck-color-success);
+  .ck-plan-feature-check {
+    color: var(--ck-color-text-muted);
+    margin-top: 3px;
+    flex-shrink: 0;
   }
 
-  /* --- Contact / Redirect Links --- */
-  .ck-offer-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ck-color-primary);
-    text-decoration: none;
-    transition: color 0.15s;
+  /* --- Feedback: bordered + counter --- */
+  .ck-feedback-field {
+    border: 1.5px solid var(--ck-color-border);
+    border-radius: var(--ck-radius-md);
+    padding: 12px;
+    background: var(--ck-color-surface);
+    margin-bottom: 20px;
+    transition: border-color var(--ck-motion-fast);
   }
 
-  .ck-offer-link:hover {
-    color: var(--ck-color-primary-hover);
-    text-decoration: underline;
+  .ck-feedback-field--focused {
+    border-color: var(--ck-color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ck-color-primary) 20%, transparent);
   }
 
-  /* --- Feedback Step --- */
+  .ck-feedback-field--invalid {
+    border-color: var(--ck-color-danger);
+  }
+
   .ck-textarea {
     display: block;
     width: 100%;
-    min-height: 100px;
-    padding: 12px;
-    font-size: 15px;
+    min-height: 64px;
+    padding: 0;
+    font-size: 14px;
     font-family: inherit;
-    line-height: 1.5;
-    border: 1.5px solid var(--ck-color-border);
-    border-radius: var(--ck-border-radius);
-    background: var(--ck-color-bg);
+    line-height: 1.55;
+    border: none;
+    outline: none;
+    background: transparent;
     color: var(--ck-color-text);
     resize: vertical;
-    margin-bottom: 16px;
-    transition: border-color 0.15s;
   }
 
-  .ck-textarea:focus {
+  /* The .ck-feedback-field wrapper handles the focus ring; suppress the */
+  /* global :focus-visible outline on the textarea so they don't stack. */
+  .ck-textarea:focus,
+  .ck-textarea:focus-visible {
     outline: none;
-    border-color: var(--ck-color-primary);
   }
 
   .ck-textarea::placeholder {
-    color: var(--ck-color-text-secondary);
+    color: var(--ck-color-text-muted);
   }
 
   .ck-character-count {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 12px;
+    color: var(--ck-color-text-muted);
+    font-variant-numeric: tabular-nums;
+    margin-top: 6px;
+  }
+
+  .ck-character-count--invalid {
+    color: var(--ck-color-danger);
+    font-weight: 500;
+  }
+
+  /* --- Confirm step --- */
+  .ck-period-end {
     font-size: 13px;
     color: var(--ck-color-text-secondary);
-    margin-bottom: 12px;
-  }
-
-  /* --- Confirm Step --- */
-  .ck-step-confirm {
-    text-align: center;
-  }
-
-  .ck-period-end {
-    font-size: 14px;
-    color: var(--ck-color-text-secondary);
+    line-height: 1.55;
     margin-bottom: 20px;
   }
 
-  /* --- Success Step --- */
+  .ck-period-end strong {
+    color: var(--ck-color-text);
+    font-weight: 600;
+  }
+
+  /* --- Success step --- */
+  /* No box-padding here — .ck-content already supplies the surrounding */
+  /* inset. The 8px top compensates for the missing title row above the */
+  /* icon so the icon sits at the same optical y-position as titles do */
+  /* on other steps. */
   .ck-step-success {
     text-align: center;
-    padding: 12px 0;
+    padding-top: 8px;
   }
 
   .ck-success-icon {
-    margin-bottom: 16px;
-    display: flex;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    background: var(--ck-color-success-soft);
+    color: var(--ck-color-success);
+    margin-bottom: 20px;
+  }
+
+  .ck-step-success .ck-step-title {
+    font-size: 22px;
+  }
+
+  .ck-step-success .ck-step-description {
+    max-width: 320px;
+    /* Spacing below comes from .ck-success-actions margin-top — collapsing */
+    /* the shared 20px bottom margin avoids double-stacking. */
+    margin: 0 auto;
+  }
+
+  .ck-success-actions {
+    margin-top: 32px;
+    padding-inline: 16px;
   }
 }

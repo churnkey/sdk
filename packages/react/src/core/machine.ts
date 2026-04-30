@@ -9,16 +9,18 @@ import type {
   StepViewed,
 } from './api'
 import { AnalyticsClient, directDataToSessionCustomer } from './api'
-import type { EmbedCoupon, EmbedCustomer, EmbedResponse } from './api-types'
+import type { SdkConfig } from './api-types'
+import { applyMergeFieldsToSteps } from './merge-fields'
 import { buildStepGraph, type ResolvedStep, type StepGraph } from './step-graph'
 import type { SessionCredentials } from './token'
-import { defaultOfferCopy, transformEmbedResponse } from './transform'
+import { defaultOfferCopy, transformSdkConfig } from './transform'
 import type {
   AcceptedOffer,
   BuiltInOfferConfig,
   BuiltInStepType,
   DirectCustomer,
   DirectSubscription,
+  FlowCallbacks,
   FlowConfig,
   FlowState,
   OfferDecision,
@@ -26,11 +28,44 @@ import type {
   Step,
 } from './types'
 
-interface Callbacks {
-  onAccept?: (offer: AcceptedOffer) => Promise<void>
-  onCancel?: () => Promise<void>
-  onClose?: () => void
-  onStepChange?: (step: string, prevStep: string) => void
+type OfferCallback = (offer: AcceptedOffer, customer: DirectCustomer | null) => Promise<void> | void
+
+function handlerFor(offerType: string, cb: FlowCallbacks): OfferCallback | undefined {
+  switch (offerType) {
+    case 'discount':
+      return cb.handleDiscount
+    case 'pause':
+      return cb.handlePause
+    case 'plan_change':
+      return cb.handlePlanChange
+    case 'trial_extension':
+      return cb.handleTrialExtension
+    default:
+      return undefined
+  }
+}
+
+function listenerFor(offerType: string, cb: FlowCallbacks): OfferCallback | undefined {
+  switch (offerType) {
+    case 'discount':
+      return cb.onDiscount
+    case 'pause':
+      return cb.onPause
+    case 'plan_change':
+      return cb.onPlanChange
+    case 'trial_extension':
+      return cb.onTrialExtension
+    default:
+      return undefined
+  }
+}
+
+// Listener errors are swallowed — they're side effects, not part of the
+// success path, and shouldn't flip the flow into an error state.
+function runListener(listener: OfferCallback, offer: AcceptedOffer, customer: DirectCustomer | null): Promise<void> {
+  return Promise.resolve(listener(offer, customer)).catch((e) => {
+    console.error('Error in offer listener:', e)
+  })
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -41,12 +76,9 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 
 // --- Wire translation ---
 //
-// SDK types are lowercase/idiomatic; the server enforces uppercase enums.
-// Keep everything heading over the wire behind these helpers so new step or
-// offer types fail at compile time rather than at Mongoose-validation time.
-
-// Record-typed for exhaustiveness. Adding a new BuiltInStepType fails the
-// build here until its wire mapping is added.
+// SDK types use lowercase identifiers; the API expects uppercase enums.
+// Both maps are typed as exhaustive Records so adding a new built-in step
+// or offer type fails the build until its wire mapping is set.
 const STEP_TYPE_API_MAP: Record<Exclude<BuiltInStepType, 'success'>, Exclude<ApiStepType, 'CUSTOM'>> = {
   survey: 'SURVEY',
   offer: 'OFFER',
@@ -85,9 +117,9 @@ function toApiPauseInterval(interval: 'month' | 'week' | undefined): ApiPauseInt
 
 // --- Offer shape builders ---
 //
-// The server stores the same offer two ways: presentedOffers keeps the
-// blueprint's nested configs (discountConfig, pauseConfig, …); acceptedOffer
-// flattens the fields. Two builders, one source of truth.
+// Sessions record offers two ways: presentedOffers keeps the nested config
+// shape (discountConfig, pauseConfig, …); acceptedOffer flattens the fields.
+// Two builders, one source of truth.
 
 function toPresentedOfferConfig(rec: OfferDecision): Partial<PresentedOffer> {
   const base = toApiOfferType(rec.type)
@@ -97,7 +129,7 @@ function toPresentedOfferConfig(rec: OfferDecision): Partial<PresentedOffer> {
     case 'discount':
       return {
         ...base,
-        discountConfig: { couponId: o.couponId, customAmount: o.percent },
+        discountConfig: { couponId: o.couponId, customAmount: o.percentOff },
       }
     case 'pause':
       return {
@@ -123,11 +155,7 @@ function toPresentedOfferConfig(rec: OfferDecision): Partial<PresentedOffer> {
   }
 }
 
-function toAcceptedOfferPayload(
-  rec: OfferDecision,
-  coupons?: EmbedCoupon[],
-  result?: Record<string, unknown>,
-): AcceptedOfferPayload {
+function toAcceptedOfferPayload(rec: OfferDecision, result?: Record<string, unknown>): AcceptedOfferPayload {
   const base: AcceptedOfferPayload = { guid: rec.decisionId, ...toApiOfferType(rec.type) }
   if (base.offerType === 'CUSTOM') {
     return result ? { ...base, customOfferResult: result } : base
@@ -138,9 +166,9 @@ function toAcceptedOfferPayload(
       return {
         ...base,
         couponId: o.couponId,
-        couponAmount: o.percent,
+        couponAmount: o.percentOff,
         couponType: 'PERCENT',
-        couponDuration: o.months ?? coupons?.find((c) => c.id === o.couponId)?.couponDuration,
+        couponDuration: o.durationInMonths,
       }
     case 'pause':
       return {
@@ -152,7 +180,7 @@ function toAcceptedOfferPayload(
       return {
         ...base,
         newPlanId: o.plans?.[0]?.id,
-        newPlanPrice: o.plans?.[0]?.price,
+        newPlanPrice: o.plans?.[0]?.amount.value,
       }
     case 'trial_extension':
       return { ...base, trialExtensionDays: o.days }
@@ -168,7 +196,7 @@ function toAcceptedOfferPayload(
 export class CancelFlowMachine {
   private state: FlowState
   private cachedSnapshot: FlowState
-  private callbacks: Callbacks
+  private callbacks: FlowCallbacks
   private graph: StepGraph = { stepMap: {}, firstStepId: '', orderedStepIds: [] }
   private listeners: Set<() => void> = new Set()
 
@@ -177,7 +205,7 @@ export class CancelFlowMachine {
   private directCustomer: DirectCustomer | null = null
   private directSubscriptions: DirectSubscription[] | null = null
   private creds: SessionCredentials | null = null
-  private embedData: EmbedResponse | null = null
+  private config: SdkConfig | null = null
   private blueprintId: string | null = null
   private localSteps: Step[] | null = null
   private stepsViewed: StepViewed[] = []
@@ -186,14 +214,15 @@ export class CancelFlowMachine {
   private configMode: 'live' | 'test' = 'live'
   private stepEnteredAt: number = Date.now()
   private aborted = false
+  // Visited-step stack. `back` pops this so it lands on the actually-seen
+  // previous step (including synthetic offers a survey choice spawned),
+  // not the previous step in declared graph order.
+  private history: string[] = []
 
   constructor(config: FlowConfig) {
-    this.callbacks = {
-      onAccept: config.onAccept,
-      onCancel: config.onCancel,
-      onClose: config.onClose,
-      onStepChange: config.onStepChange,
-    }
+    // FlowConfig extends FlowCallbacks; storing the whole config covers
+    // every callback by name without a separate copy.
+    this.callbacks = config
     if (config.mode) this.configMode = config.mode
     if (config.appId && config.customer) {
       this.analyticsClient = new AnalyticsClient(config.appId, config.apiBaseUrl)
@@ -201,13 +230,14 @@ export class CancelFlowMachine {
       this.directSubscriptions = config.subscriptions ?? null
     }
 
-    // Token mode defers graph construction until initializeFromEmbed has
-    // the server's blueprint; stash any locally-declared steps so they can
-    // be merged later.
+    // Token mode defers graph construction until initializeFromConfig runs
+    // with the server-supplied steps; stash any locally-declared steps for
+    // merging then.
     if (config.session) {
       if (config.steps) this.localSteps = config.steps
     } else if (config.steps) {
-      this.graph = buildStepGraph(config.steps, defaultOfferCopy)
+      const merged = applyMergeFieldsToSteps(config.steps, this.directCustomer)
+      this.graph = buildStepGraph(merged, defaultOfferCopy)
     }
 
     this.state = this.buildInitialState(null)
@@ -247,6 +277,12 @@ export class CancelFlowMachine {
     return this.currentStep?.offer ?? null
   }
 
+  /** Whether `back()` would move anywhere — false on the first step and on success. */
+  get canGoBack(): boolean {
+    if (this.state.step === 'success') return false
+    return this.history.length > 0 || Boolean(this.currentStep?.defaultPreviousStep)
+  }
+
   /**
    * First step of a given type. Fine for the common "one step per type" case;
    * flows with multiple of a type should key on currentStepId instead.
@@ -283,13 +319,19 @@ export class CancelFlowMachine {
     }
     const nextId = this.projectedNextStepId()
     if (!nextId) return
-    this.transitionTo(nextId)
+    this.transitionTo(nextId, { recordHistory: true })
   }
 
   back = (): void => {
+    const popped = this.history.pop()
+    if (popped) {
+      this.transitionTo(popped)
+      return
+    }
+    // History is empty when the consumer triggered back without a prior
+    // forward navigation (e.g. starting state). Fall back to declared order.
     const prevId = this.currentStep?.defaultPreviousStep
-    if (!prevId) return
-    this.transitionTo(prevId)
+    if (prevId) this.transitionTo(prevId)
   }
 
   accept = async (result?: Record<string, unknown>): Promise<void> => {
@@ -302,12 +344,24 @@ export class CancelFlowMachine {
     this.setState({ isProcessing: true, error: null })
     try {
       const acceptedOffer = this.buildAcceptedOffer(offer, safeResult)
+      const customer = this.state.customer
 
-      if (this.isTokenMode()) {
+      // Handler wins over the server-side action. With no handler, token mode
+      // hits the server endpoint and local mode is a no-op (relying on
+      // onAccept's catch-all if anything).
+      const handler = handlerFor(offer.type, this.callbacks)
+      if (handler) {
+        await handler(acceptedOffer, customer)
+      } else if (this.isTokenMode()) {
         await this.executeTokenAction(acceptedOffer)
       }
 
-      await this.callbacks.onAccept?.(acceptedOffer)
+      // Listeners fire after the action succeeded, regardless of who ran it.
+      // Per-type listener first, then the catch-all onAccept.
+      const listener = listenerFor(offer.type, this.callbacks)
+      if (listener) await runListener(listener, acceptedOffer, customer)
+      await this.callbacks.onAccept?.(acceptedOffer, customer)
+
       this.markCurrentOfferAccepted()
       this.enterSuccessStep('saved')
       this.recordOutcome('saved', offer, safeResult)
@@ -319,7 +373,7 @@ export class CancelFlowMachine {
   decline = (): void => {
     this.markCurrentOfferDeclined()
     const nextId = this.currentStep?.defaultNextStep
-    if (nextId) this.transitionTo(nextId)
+    if (nextId) this.transitionTo(nextId, { recordHistory: true })
   }
 
   setFeedback = (text: string): void => {
@@ -329,11 +383,15 @@ export class CancelFlowMachine {
   cancel = async (): Promise<void> => {
     this.setState({ isProcessing: true, error: null })
     try {
-      if (this.isTokenMode()) {
+      const customer = this.state.customer
+
+      if (this.callbacks.handleCancel) {
+        await this.callbacks.handleCancel(customer)
+      } else if (this.isTokenMode()) {
         await this.apiClient!.cancelSubscription()
       }
 
-      await this.callbacks.onCancel?.()
+      await this.callbacks.onCancel?.(customer)
       this.enterSuccessStep('cancelled')
       this.recordOutcome('cancelled')
     } catch (error) {
@@ -353,22 +411,21 @@ export class CancelFlowMachine {
     this.listeners.clear()
   }
 
-  // Callbacks are wired via the constructor — caller is responsible for
-  // passing them in (or, in the React layer, ref-thunks that dispatch to the
-  // consumer's latest closure). Keeping this method to the embed-specific
-  // payload means callers can't accidentally clobber callback wiring.
-  initializeFromEmbed(embedData: EmbedResponse, apiClient: ChurnkeyApi, creds: SessionCredentials): void {
+  // Callbacks are wired through the constructor; this only takes the
+  // server-supplied config so callers can't accidentally clobber them.
+  initializeFromConfig(config: SdkConfig, apiClient: ChurnkeyApi, creds: SessionCredentials): void {
     this.apiClient = apiClient
     this.creds = creds
-    this.embedData = embedData
+    this.config = config
 
-    const result = transformEmbedResponse(embedData)
+    const result = transformSdkConfig(config)
     this.blueprintId = result.blueprintId
 
-    const steps = this.localSteps ? mergeLocalSteps(result.steps, this.localSteps) : result.steps
+    const merged = this.localSteps ? mergeLocalSteps(result.steps, this.localSteps) : result.steps
+    const steps = applyMergeFieldsToSteps(merged, config.customer ?? null)
     this.graph = buildStepGraph(steps, defaultOfferCopy)
 
-    this.state = this.buildInitialState(embedData.customer ?? null)
+    this.state = this.buildInitialState(config.customer ?? null)
     this.cachedSnapshot = { ...this.state }
     const first = this.firstStep()
     if (first) this.trackStepEnter(first)
@@ -389,7 +446,7 @@ export class CancelFlowMachine {
     return this.graph.surveyStepId ? this.graph.stepMap[this.graph.surveyStepId] : undefined
   }
 
-  private buildInitialState(customer: EmbedCustomer | null): FlowState {
+  private buildInitialState(customer: DirectCustomer | null): FlowState {
     const first = this.firstStep()
     return {
       step: first?.type ?? 'survey',
@@ -403,9 +460,9 @@ export class CancelFlowMachine {
     }
   }
 
-  // Mirrors the embed's projectedNextStep: on a survey step with a selected
-  // choice that has an offer, jump to the synthetic offer step; otherwise
-  // follow the default pointer.
+  // On a survey step with a selected reason that has an attached offer,
+  // jump to that offer's synthetic step; otherwise follow the default
+  // forward pointer.
   private projectedNextStepId(): string | undefined {
     const current = this.currentStep
     if (!current) return undefined
@@ -417,10 +474,14 @@ export class CancelFlowMachine {
   }
 
   // Single entry point for step changes. All navigation flows through here so
-  // view-timing and presentation tracking stay in one place.
-  private transitionTo(stepId: string): void {
+  // view-timing and presentation tracking stay in one place. Forward callers
+  // pass recordHistory; `back` omits it so popping isn't reversed.
+  private transitionTo(stepId: string, opts: { recordHistory?: boolean } = {}): void {
     const step = this.graph.stepMap[stepId]
     if (!step) return
+    if (opts.recordHistory && this.state.currentStepId && this.state.currentStepId !== stepId) {
+      this.history.push(this.state.currentStepId)
+    }
     this.setState({ step: step.type, currentStepId: stepId })
   }
 
@@ -480,8 +541,8 @@ export class CancelFlowMachine {
   private async executeTokenAction(offer: AcceptedOffer): Promise<void> {
     if (!this.apiClient) return
 
-    // Only built-in offer types hit a server action. Custom types have no
-    // server-side handler — the developer's onAccept callback owns the work.
+    // Only built-in offer types have a server action; custom types route
+    // entirely through the consumer's handler/onAccept.
     const o = offer as BuiltInOfferConfig
     switch (o.type) {
       case 'discount':
@@ -581,19 +642,18 @@ export class CancelFlowMachine {
       embedVersion: 'sdk-react',
     }
 
-    // Token-mode parity with the hosted embed. Session analytics, funnels,
-    // and FTC compliance reporting assume these fields are populated.
-    if (this.embedData) {
-      const { blueprint } = this.embedData
-      const surveyStep = blueprint.steps.find((s) => s.stepType === 'SURVEY')
+    // Token-mode session-record fields. Required by downstream analytics
+    // and compliance reporting on the dashboard.
+    if (this.config) {
+      const surveyStep = this.config.steps.find((s) => s.type === 'survey')
       payload.surveyId = surveyStep?.guid
-      payload.clickToCancelEnabled = this.embedData.clickToCancelEnabled ?? false
-      payload.strictFTCComplianceEnabled = this.embedData.strictFTCComplianceEnabled ?? false
+      payload.clickToCancelEnabled = this.config.settings.clickToCancelEnabled
+      payload.strictFTCComplianceEnabled = this.config.settings.strictFTCComplianceEnabled
       payload.usedClickToCancel = false
-      payload.autoOptimizationUsed = this.embedData.autoOptimizationUsed ?? false
-      payload.autoOptimizationKey = this.embedData.autoOptimizationKey
-      payload.discountCooldown = blueprint.discountCooldown
-      payload.pauseCooldown = blueprint.pauseCooldown
+      payload.autoOptimizationUsed = !!this.config.autoOptimizationKey
+      payload.autoOptimizationKey = this.config.autoOptimizationKey
+      payload.discountCooldown = this.config.settings.discountCooldown
+      payload.pauseCooldown = this.config.settings.pauseCooldown
       payload.discountCooldownApplied = false
       payload.pauseCooldownApplied = false
     }
@@ -623,7 +683,7 @@ export class CancelFlowMachine {
     payload.canceled = outcome === 'cancelled'
 
     if (outcome === 'saved' && acceptedOffer) {
-      payload.acceptedOffer = toAcceptedOfferPayload(acceptedOffer, this.embedData?.coupons, result)
+      payload.acceptedOffer = toAcceptedOfferPayload(acceptedOffer, result)
     }
 
     client.createSession(payload).catch(() => {})

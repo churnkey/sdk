@@ -1,8 +1,16 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
+import { RecipeBrowser } from './RecipeBrowser'
 import { TestHarness } from './TestHarness'
 
-const isTestMode = window.location.search.includes('test')
+const params = new URLSearchParams(window.location.search)
+const route = params.has('recipes') ? 'recipes' : params.has('test') ? 'test' : 'app'
 
-createRoot(document.getElementById('root')!).render(<StrictMode>{isTestMode ? <TestHarness /> : <App />}</StrictMode>)
+const Page = route === 'recipes' ? RecipeBrowser : route === 'test' ? TestHarness : App
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <Page />
+  </StrictMode>,
+)

@@ -1,167 +1,119 @@
-// Types mirroring the Churnkey embed API response shape.
+// Wire shape returned from the cancel-flow config endpoint in token mode.
+// Customer and subscription data uses the same Direct shape the SDK accepts
+// as input, so consumers see one consistent type. Steps and offers arrive
+// fully resolved — coupon ids already hydrated, plan ids already inlined.
 
-export interface EmbedResponse {
-  blueprint: BlueprintConfig
-  coupons: EmbedCoupon[]
-  offerPlans: EmbedPlan[]
-  customer: EmbedCustomer | null
-  sessions: EmbedSession[]
-  branding?: Record<string, unknown>
-  orgTranslations?: Record<string, unknown>
-  dynamicOffers?: {
-    discount?: { couponId?: string }
-    planChange?: { planIds?: string[] }
-  }
-  clickToCancelEnabled?: boolean
-  strictFTCComplianceEnabled?: boolean
-  autoOptimizationUsed?: boolean
+import type { DirectCustomer, DirectSubscription, PlanOption } from './types'
+
+export interface SdkConfig {
+  blueprintId: string
+  steps: SdkStep[]
+  customer: DirectCustomer
+  subscriptions: DirectSubscription[]
+  settings: SdkSettings
+  /** Bandit key used for auto-optimization, if it ran. */
   autoOptimizationKey?: string
 }
 
-export interface BlueprintConfig {
-  _id: string
-  name?: string
-  guid?: string
-  steps: BlueprintStep[]
+export interface SdkSettings {
+  clickToCancelEnabled: boolean
+  strictFTCComplianceEnabled: boolean
   discountCooldown?: number
   pauseCooldown?: number
 }
 
-export interface BlueprintStep {
-  stepType: 'OFFER' | 'SURVEY' | 'CONFIRM' | 'FREEFORM'
-  enabled?: boolean
-  guid?: string
-  offer?: BlueprintOffer
-  header?: string
+export type SdkStep = SdkSurveyStep | SdkOfferStep | SdkFeedbackStep | SdkConfirmStep
+
+interface SdkStepBase {
+  guid: string
+  title?: string
   description?: string
-  survey?: {
-    choices: BlueprintSurveyChoice[]
-    randomize?: boolean
-  }
-  freeform?: {
-    minLength?: number
-    placeholder?: string
-    required?: boolean
-  }
-  confirm?: {
-    acknowledgement?: boolean
-    acknowledgementText?: string
-  }
 }
 
-export interface BlueprintOffer {
-  offerType: 'DISCOUNT' | 'PAUSE' | 'PLAN_CHANGE' | 'TRIAL_EXTENSION' | 'REDIRECT' | 'CONTACT'
-  guid?: string
-  header?: string
-  description?: string
-  ctaText?: string
-  declineText?: string
-  discountConfig?: {
-    couponId: string
-    autoOptimize?: boolean
-    customAmount?: number
-    customDuration?: number
-  }
-  pauseConfig?: {
-    options?: Array<{ duration: number; interval: 'day' | 'week' | 'month' | 'year' }>
-    datePicker?: boolean
-    maxPauseLength?: number
-    pauseInterval?: string
-  }
-  planChangeConfig?: {
-    options: string[]
-  }
-  trialExtensionConfig?: {
-    trialExtensionDays: number
-  }
-  redirectConfig?: {
-    redirectUrl: string
-    redirectLabel?: string
-  }
+export interface SdkSurveyStep extends SdkStepBase {
+  type: 'survey'
+  reasons: SdkReason[]
 }
 
-export interface BlueprintSurveyChoice {
-  id?: string
-  guid?: string
-  value: string
-  followup?: boolean
-  followupQuestion?: string
-  followupOptions?: Array<{ value: string; guid?: string }>
-  offer?: BlueprintOffer
+export interface SdkOfferStep extends SdkStepBase {
+  type: 'offer'
+  offer: SdkOffer
 }
 
-export interface EmbedCoupon {
+export interface SdkFeedbackStep extends SdkStepBase {
+  type: 'feedback'
+  placeholder?: string
+  required?: boolean
+  minLength?: number
+}
+
+export interface SdkConfirmStep extends SdkStepBase {
+  type: 'confirm'
+}
+
+export interface SdkReason {
   id: string
-  couponType: 'PERCENT' | 'AMOUNT'
-  couponAmount: number
-  couponDuration?: number
-  name?: string
+  label: string
+  freeform?: boolean
+  offer?: SdkOffer
 }
 
-export interface EmbedPlan {
-  id: string
-  name?: string
-  price?: number
-  interval?: 'day' | 'week' | 'month' | 'year'
-  intervalCount?: number
+export type SdkOffer =
+  | SdkDiscountOffer
+  | SdkPauseOffer
+  | SdkPlanChangeOffer
+  | SdkTrialExtensionOffer
+  | SdkRedirectOffer
+  | SdkContactOffer
+
+interface SdkOfferBase {
+  /** Per-offer guid — used for analytics joins between presented and accepted offers. */
+  decisionId?: string
+  copy: SdkOfferCopy
+}
+
+export interface SdkDiscountOffer extends SdkOfferBase {
+  type: 'discount'
+  couponId?: string
+  percentOff?: number
+  /** Smallest currency unit (cents for USD, etc.). */
+  amountOff?: number
   currency?: string
-  features?: string[]
-  active?: boolean
-  productId?: string
+  durationInMonths?: number
 }
 
-export interface EmbedCustomer {
-  id: string
-  email?: string
-  currency?: string
-  subscriptions?: {
-    data: Array<{
-      id: string
-      status: string
-      current_period_end?: number
-      plan?: {
-        id: string
-        amount?: number
-        interval?: string
-        currency?: string
-      }
-      items?: {
-        data: Array<{
-          id: string
-          price?: {
-            id: string
-            unit_amount?: number
-            currency?: string
-            recurring?: {
-              interval?: string
-              interval_count?: number
-            }
-          }
-          quantity?: number
-        }>
-      }
-      trial_end?: number
-      cancel_at_period_end?: boolean
-      discount?: {
-        coupon?: {
-          id: string
-          percent_off?: number
-          amount_off?: number
-        }
-      }
-    }>
-  }
-  decorated?: {
-    customerName?: string
-    customerSubscription?: Record<string, unknown>
-    customAttributes?: Record<string, unknown>
-  }
+export interface SdkPauseOffer extends SdkOfferBase {
+  type: 'pause'
+  months: number
+  interval: 'month' | 'week'
+  datePicker?: boolean
 }
 
-export interface EmbedSession {
-  _id: string
-  createdAt?: string
-  acceptedOffer?: {
-    offerType: string
-  }
+export interface SdkPlanChangeOffer extends SdkOfferBase {
+  type: 'plan_change'
+  plans: PlanOption[]
+}
+
+export interface SdkTrialExtensionOffer extends SdkOfferBase {
+  type: 'trial_extension'
+  days: number
+}
+
+export interface SdkRedirectOffer extends SdkOfferBase {
+  type: 'redirect'
+  url: string
+  label?: string
+}
+
+export interface SdkContactOffer extends SdkOfferBase {
+  type: 'contact'
+  url?: string
+  label?: string
+}
+
+export interface SdkOfferCopy {
+  headline: string
+  body: string
+  cta: string
+  declineCta: string
 }

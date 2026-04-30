@@ -1,215 +1,138 @@
-import type {
-  BlueprintOffer,
-  BlueprintStep,
-  BlueprintSurveyChoice,
-  EmbedCoupon,
-  EmbedPlan,
-  EmbedResponse,
-} from './api-types'
-import { applyMergeFields, buildMergeAttrs, type MergeAttrs } from './merge-fields'
-import type { BuiltInOfferConfig, OfferConfig, OfferCopy, OfferDecision, Plan, ReasonConfig, Step } from './types'
+// Translate the SdkConfig response (token mode) into the runtime Step shape
+// the rest of the SDK works with. Token-mode flows arrive with offers fully
+// resolved — coupon ids hydrated to amounts and durations, plan ids inlined
+// as DirectPrice[], so this layer is a pure shape projection.
+
+import type { SdkConfig, SdkDiscountOffer, SdkOffer, SdkReason, SdkStep } from './api-types'
+import type { BuiltInOfferConfig, OfferConfig, OfferCopy, OfferDecision, ReasonConfig, Step } from './types'
 
 export interface TransformResult {
   steps: Step[]
   blueprintId: string
   metadata: {
     autoOptimizationKey?: string
-    autoOptimizationUsed?: boolean
   }
 }
 
-export function transformEmbedResponse(response: EmbedResponse): TransformResult {
-  const { blueprint, coupons, offerPlans } = response
-  const enabledSteps = blueprint.steps.filter((s) => s.enabled !== false)
-  const attrs = buildMergeAttrs(response.customer)
-
+export function transformSdkConfig(config: SdkConfig): TransformResult {
   return {
-    steps: transformSteps(enabledSteps, coupons, offerPlans, attrs),
-    blueprintId: blueprint._id,
+    steps: config.steps.map(transformStep),
+    blueprintId: config.blueprintId,
     metadata: {
-      autoOptimizationKey: response.autoOptimizationKey,
-      autoOptimizationUsed: response.autoOptimizationUsed,
+      autoOptimizationKey: config.autoOptimizationKey,
     },
   }
 }
 
-function transformSteps(
-  apiSteps: BlueprintStep[],
-  coupons: EmbedCoupon[],
-  plans: EmbedPlan[],
-  attrs: MergeAttrs = {},
-): Step[] {
-  const steps: Step[] = []
-  const merge = (text: string | undefined) => (text ? applyMergeFields(text, attrs) : text)
-
-  for (const apiStep of apiSteps) {
-    switch (apiStep.stepType) {
-      case 'SURVEY':
-        steps.push({
-          type: 'survey',
-          guid: apiStep.guid,
-          title: merge(apiStep.header),
-          description: merge(apiStep.description),
-          reasons: transformReasons(apiStep.survey?.choices ?? [], coupons, plans, attrs),
-        })
-        break
-
-      case 'OFFER': {
-        const offer = apiStep.offer
-          ? (buildOfferDecision(apiStep.offer, coupons, plans, attrs) ?? undefined)
-          : undefined
-        steps.push({
-          type: 'offer',
-          guid: apiStep.guid,
-          title: merge(apiStep.header),
-          description: merge(apiStep.description),
-          offer,
-        })
-        break
+function transformStep(step: SdkStep): Step {
+  switch (step.type) {
+    case 'survey':
+      return {
+        type: 'survey',
+        guid: step.guid,
+        title: step.title,
+        description: step.description,
+        reasons: step.reasons.map(transformReason),
       }
-
-      case 'FREEFORM':
-        steps.push({
-          type: 'feedback',
-          guid: apiStep.guid,
-          title: merge(apiStep.header),
-          description: merge(apiStep.description),
-          placeholder: apiStep.freeform?.placeholder,
-          required: apiStep.freeform?.required,
-          minLength: apiStep.freeform?.minLength,
-        })
-        break
-
-      case 'CONFIRM':
-        steps.push({
-          type: 'confirm',
-          guid: apiStep.guid,
-          title: merge(apiStep.header),
-          description: merge(apiStep.description),
-        })
-        break
-    }
+    case 'offer':
+      return {
+        type: 'offer',
+        guid: step.guid,
+        title: step.title,
+        description: step.description,
+        offer: transformOfferDecision(step.offer),
+      }
+    case 'feedback':
+      return {
+        type: 'feedback',
+        guid: step.guid,
+        title: step.title,
+        description: step.description,
+        placeholder: step.placeholder,
+        required: step.required,
+        minLength: step.minLength,
+      }
+    case 'confirm':
+      return {
+        type: 'confirm',
+        guid: step.guid,
+        title: step.title,
+        description: step.description,
+      }
   }
-
-  return steps
 }
 
-export function transformReasons(
-  choices: BlueprintSurveyChoice[],
-  coupons: EmbedCoupon[],
-  plans: EmbedPlan[],
-  attrs: MergeAttrs = {},
-): ReasonConfig[] {
-  return choices.map((choice, index) => {
-    const id = choice.guid ?? choice.id ?? `reason-${index}`
-    const reason: ReasonConfig = {
-      id,
-      label: applyMergeFields(choice.value, attrs),
-    }
-
-    if (choice.offer) {
-      reason.offer = transformOffer(choice.offer, coupons, plans)
-    }
-
-    return reason
-  })
+function transformReason(r: SdkReason): ReasonConfig {
+  const out: ReasonConfig = {
+    id: r.id,
+    label: r.label,
+    freeform: r.freeform,
+  }
+  if (r.offer) out.offer = transformOfferConfig(r.offer)
+  return out
 }
 
-export function transformOffer(
-  apiOffer: BlueprintOffer,
-  coupons: EmbedCoupon[],
-  plans: EmbedPlan[],
-): OfferConfig | undefined {
-  switch (apiOffer.offerType) {
-    case 'DISCOUNT': {
-      const couponId = apiOffer.discountConfig?.couponId
-      const coupon = couponId ? coupons.find((c) => c.id === couponId) : undefined
-      if (!coupon && !apiOffer.discountConfig?.customAmount) return undefined
+function transformOfferDecision(o: SdkOffer): OfferDecision {
+  return { ...transformOfferConfig(o), copy: o.copy, decisionId: o.decisionId }
+}
 
-      const percent =
-        coupon?.couponType === 'PERCENT' ? coupon.couponAmount : (apiOffer.discountConfig?.customAmount ?? 0)
-      const months = coupon?.couponDuration ?? apiOffer.discountConfig?.customDuration ?? 1
-
+function transformOfferConfig(o: SdkOffer): OfferConfig {
+  switch (o.type) {
+    case 'discount': {
+      const d: SdkDiscountOffer = o
       return {
         type: 'discount',
-        percent,
-        months,
-        couponId: couponId,
+        couponId: d.couponId,
+        percentOff: d.percentOff,
+        amountOff: d.amountOff,
+        currency: d.currency,
+        durationInMonths: d.durationInMonths,
       }
     }
-
-    case 'PAUSE': {
-      const option = apiOffer.pauseConfig?.options?.[0]
-      const months = option?.duration ?? apiOffer.pauseConfig?.maxPauseLength ?? 1
-      const interval = (option?.interval ?? apiOffer.pauseConfig?.pauseInterval ?? 'month') as 'month' | 'week'
-
+    case 'pause':
       return {
         type: 'pause',
-        months,
-        interval,
-        datePicker: apiOffer.pauseConfig?.datePicker,
+        months: o.months,
+        interval: o.interval,
+        datePicker: o.datePicker,
       }
-    }
-
-    case 'PLAN_CHANGE': {
-      const planIds = apiOffer.planChangeConfig?.options ?? []
-      const sdkPlans: Plan[] = planIds
-        .map((id) => plans.find((p) => p.id === id))
-        .filter((p): p is EmbedPlan => p != null)
-        .map((p) => ({
-          id: p.id,
-          name: p.name ?? p.id,
-          price: (p.price ?? 0) / 100, // API stores cents
-          interval: (p.interval ?? 'month') as 'month' | 'year',
-          currency: p.currency ?? 'USD',
-          features: p.features,
-        }))
-
-      if (sdkPlans.length === 0) return undefined
-      return { type: 'plan_change', plans: sdkPlans }
-    }
-
-    case 'TRIAL_EXTENSION': {
-      const days = apiOffer.trialExtensionConfig?.trialExtensionDays ?? 7
-      return { type: 'trial_extension', days }
-    }
-
-    case 'REDIRECT': {
-      const url = apiOffer.redirectConfig?.redirectUrl
-      if (!url) return undefined
+    case 'plan_change':
+      return {
+        type: 'plan_change',
+        plans: o.plans,
+      }
+    case 'trial_extension':
+      return {
+        type: 'trial_extension',
+        days: o.days,
+      }
+    case 'redirect':
       return {
         type: 'redirect',
-        url,
-        label: apiOffer.redirectConfig?.redirectLabel ?? 'Learn more',
+        url: o.url,
+        label: o.label ?? '',
       }
-    }
-
-    case 'CONTACT':
-      return { type: 'contact' }
-
-    default:
-      return undefined
+    case 'contact':
+      return {
+        type: 'contact',
+        url: o.url,
+        label: o.label,
+      }
   }
 }
 
-export function buildOfferCopy(apiOffer: BlueprintOffer, offerConfig: OfferConfig, attrs: MergeAttrs = {}): OfferCopy {
-  const defaults = defaultOfferCopy(offerConfig)
-  const resolve = (text: string | undefined, fallback: string) => (text ? applyMergeFields(text, attrs) : fallback)
-  return {
-    headline: resolve(apiOffer.header, defaults.headline),
-    body: resolve(apiOffer.description, defaults.body),
-    cta: resolve(apiOffer.ctaText, defaults.cta),
-    declineCta: resolve(apiOffer.declineText, defaults.declineCta),
-  }
-}
-
+/**
+ * Default offer copy used by step-graph.ts when a local-mode offer doesn't
+ * include explicit copy. Token-mode offers come with copy already filled in
+ * by the server, so this only fires for local mode.
+ */
 export function defaultOfferCopy(offer: OfferConfig): OfferCopy {
   const o = offer as BuiltInOfferConfig
   switch (o.type) {
     case 'discount':
       return {
-        headline: `How about ${o.percent}% off?`,
-        body: `We'd like to offer you ${o.percent}% off for ${o.months} month${o.months === 1 ? '' : 's'}.`,
+        headline: o.percentOff != null ? `How about ${o.percentOff}% off?` : 'Special offer',
+        body: discountBody(o),
         cta: 'Accept offer',
         declineCta: 'No thanks',
       }
@@ -258,18 +181,8 @@ export function defaultOfferCopy(offer: OfferConfig): OfferCopy {
   }
 }
 
-export function buildOfferDecision(
-  apiOffer: BlueprintOffer,
-  coupons: EmbedCoupon[],
-  plans: EmbedPlan[],
-  attrs: MergeAttrs = {},
-): OfferDecision | null {
-  const offerConfig = transformOffer(apiOffer, coupons, plans)
-  if (!offerConfig) return null
-
-  return {
-    ...offerConfig,
-    copy: buildOfferCopy(apiOffer, offerConfig, attrs),
-    decisionId: apiOffer.guid,
-  }
+function discountBody(o: { percentOff?: number; durationInMonths?: number }): string {
+  if (o.percentOff == null) return "We'd like to offer you a discount."
+  const months = o.durationInMonths ?? 1
+  return `We'd like to offer you ${o.percentOff}% off for ${months} month${months === 1 ? '' : 's'}.`
 }

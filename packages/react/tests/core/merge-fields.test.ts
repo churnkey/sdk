@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { applyMergeFields, buildMergeAttrs } from '../../src/core/merge-fields'
+import { applyMergeFields, applyMergeFieldsToSteps, buildMergeAttrs } from '../../src/core/merge-fields'
+import type { Step } from '../../src/core/types'
 
 describe('applyMergeFields', () => {
   it('substitutes fields with values from attrs', () => {
@@ -44,30 +45,97 @@ describe('buildMergeAttrs', () => {
     expect(buildMergeAttrs(null)).toEqual({})
   })
 
-  it('derives name variants from decorated.customerName', () => {
+  it('derives name variants from first + last name', () => {
     const attrs = buildMergeAttrs({
       id: 'cus_1',
-      decorated: { customerName: 'Jane Smith' },
-    } as never)
+      name: 'Jane',
+      lastName: 'Smith',
+    })
     expect(attrs.CUSTOMER_NAME).toBe('Jane Smith')
     expect(attrs['CUSTOMER_NAME.FIRST']).toBe('Jane')
     expect(attrs['CUSTOMER_NAME.LAST']).toBe('Smith')
   })
 
-  it('omits LAST when the name is a single word', () => {
-    const attrs = buildMergeAttrs({ id: 'cus_1', decorated: { customerName: 'Cher' } } as never)
+  it('omits LAST when only first name is provided', () => {
+    const attrs = buildMergeAttrs({ id: 'cus_1', name: 'Cher' })
+    expect(attrs.CUSTOMER_NAME).toBe('Cher')
     expect(attrs['CUSTOMER_NAME.FIRST']).toBe('Cher')
     expect(attrs['CUSTOMER_NAME.LAST']).toBeUndefined()
   })
 
-  it('includes email and custom attributes', () => {
+  it('includes email and metadata', () => {
     const attrs = buildMergeAttrs({
       id: 'cus_1',
       email: 'jane@acme.com',
-      decorated: { customAttributes: { PLAN: 'pro', TEAM_SIZE: 12 } },
-    } as never)
+      metadata: { PLAN: 'pro', TEAM_SIZE: 12 },
+    })
     expect(attrs.CUSTOMER_EMAIL).toBe('jane@acme.com')
     expect(attrs.PLAN).toBe('pro')
     expect(attrs.TEAM_SIZE).toBe('12')
+  })
+})
+
+describe('applyMergeFieldsToSteps', () => {
+  const customer = { id: 'cus_1', name: 'Jane', lastName: 'Smith', email: 'jane@acme.com' }
+
+  it('substitutes placeholders in step title and description', () => {
+    const steps: Step[] = [
+      { type: 'feedback', title: 'Hi {{CUSTOMER_NAME.FIRST|there}}', description: '<p>Email: {{CUSTOMER_EMAIL|}}</p>' },
+    ]
+    const [out] = applyMergeFieldsToSteps(steps, customer)
+    const feedback = out as Extract<Step, { type: 'feedback' }>
+    expect(feedback.title).toBe('Hi Jane')
+    expect(feedback.description).toBe('<p>Email: jane@acme.com</p>')
+  })
+
+  it('substitutes placeholders in offer copy', () => {
+    const steps: Step[] = [
+      {
+        type: 'offer',
+        offer: {
+          type: 'contact',
+          copy: {
+            headline: 'Get in touch!',
+            body: '{{CUSTOMER_NAME.FIRST|}}, our support channel is ready',
+            cta: 'Contact',
+            declineCta: 'No thanks',
+          },
+        },
+      },
+    ]
+    const [out] = applyMergeFieldsToSteps(steps, customer)
+    const offerStep = out as Extract<Step, { type: 'offer' }>
+    expect(offerStep.offer?.copy.body).toBe('Jane, our support channel is ready')
+    expect(offerStep.offer?.copy.headline).toBe('Get in touch!')
+  })
+
+  it('substitutes placeholders in survey reason labels', () => {
+    const steps: Step[] = [
+      { type: 'survey', reasons: [{ id: 'r1', label: 'Hi {{CUSTOMER_NAME.FIRST|}}, why leave?' }] },
+    ]
+    const [out] = applyMergeFieldsToSteps(steps, customer)
+    const survey = out as Extract<Step, { type: 'survey' }>
+    expect(survey.reasons[0].label).toBe('Hi Jane, why leave?')
+  })
+
+  it('falls back to placeholder fallback when customer is null', () => {
+    const steps: Step[] = [{ type: 'feedback', title: 'Hi {{CUSTOMER_NAME.FIRST|there}}' }]
+    const [out] = applyMergeFieldsToSteps(steps, null)
+    expect((out as Extract<Step, { type: 'feedback' }>).title).toBe('Hi there')
+  })
+
+  it('leaves strings without placeholders untouched', () => {
+    const steps: Step[] = [{ type: 'confirm', title: 'Confirm cancellation' }]
+    const [out] = applyMergeFieldsToSteps(steps, customer)
+    const confirm = out as Extract<Step, { type: 'confirm' }>
+    expect(confirm.title).toBe('Confirm cancellation')
+  })
+
+  it('passes SuccessStep through unchanged', () => {
+    const steps: Step[] = [{ type: 'success', savedTitle: 'Welcome {{CUSTOMER_NAME.FIRST|}}!' }]
+    const [out] = applyMergeFieldsToSteps(steps, customer)
+    // SuccessStep titles aren't merge-substituted today (rendered via outcome
+    // branching at render time). Verify the helper is a no-op for this type.
+    expect((out as { savedTitle: string }).savedTitle).toBe('Welcome {{CUSTOMER_NAME.FIRST|}}!')
   })
 })

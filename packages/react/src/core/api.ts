@@ -1,13 +1,11 @@
-import type { EmbedResponse } from './api-types'
+import type { SdkConfig } from './api-types'
 import type { SessionCredentials } from './token'
 import type { DirectCustomer, DirectSubscription } from './types'
 
 const DEFAULT_BASE_URL = 'https://api.churnkey.co/v1'
 
-// Wire enums — exact mirror of the server's Mongoose enum validators.
-// Typed as literal unions so payload builders fail at compile time if they
-// emit a value outside the accepted set (e.g. lowercase 'month' instead of
-// 'MONTH'). If the server adds a new enum value, widen the union here.
+// Wire enums accepted by the API. Literal unions so payload builders fail
+// at compile time if they emit a value outside the accepted set.
 export type ApiStepType = 'OFFER' | 'SURVEY' | 'CONFIRM' | 'FREEFORM' | 'CUSTOM'
 export type ApiOfferType = 'DISCOUNT' | 'PAUSE' | 'PLAN_CHANGE' | 'TRIAL_EXTENSION' | 'CONTACT' | 'REDIRECT' | 'CUSTOM'
 export type ApiPauseInterval = 'MONTH' | 'WEEK'
@@ -87,7 +85,8 @@ export interface SessionPayload {
   mode: ApiMode
   provider?: string
   embedVersion?: string
-  // Token-mode passthrough (mirrors fields churnkey-embed sends)
+  // Token-mode session-record fields. Populated automatically when the SDK
+  // is configured with a session token; ignored in local/analytics mode.
   clickToCancelEnabled?: boolean
   strictFTCComplianceEnabled?: boolean
   usedClickToCancel?: boolean
@@ -142,9 +141,9 @@ export class ChurnkeyApi {
     return res
   }
 
-  async fetchConfig(): Promise<EmbedResponse> {
-    const res = await this.request(this.orgUrl('embed'))
-    return (await res.json()) as EmbedResponse
+  async fetchConfig(): Promise<SdkConfig> {
+    const res = await this.request(this.orgUrl('cancel-flow/config'))
+    return (await res.json()) as SdkConfig
   }
 
   async applyDiscount(couponId: string, blueprintId?: string): Promise<void> {
@@ -174,7 +173,7 @@ export class ChurnkeyApi {
   }
 
   async createSession(payload: SessionPayload): Promise<void> {
-    await this.request(`${this.baseUrl}/api/sessions`, payload)
+    await this.request(`${this.baseUrl}/api/sessions/sdk`, payload)
   }
 }
 
@@ -225,7 +224,7 @@ export function directDataToSessionCustomer(
     planId: price?.id,
     planPrice: price?.amount.value,
     currency: price?.amount.currency ?? customer.currency,
-    billingInterval: toApiBillingInterval(price?.interval),
+    billingInterval: toApiBillingInterval(price?.duration?.interval),
     created: toIsoString(sub?.start),
     onTrial: sub ? sub.status.name === 'trial' : undefined,
     customAttributes: customer.metadata,

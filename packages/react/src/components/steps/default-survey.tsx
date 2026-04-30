@@ -1,8 +1,12 @@
 import { useCallback, useRef } from 'react'
 import type { ReasonButtonProps, SurveyStepProps } from '../../core/types'
 import { cn } from '../../core/utils'
+import { RichText } from '../rich-text'
+import { Checkmark } from './shared'
 
-function DefaultReasonButton({ reason, isSelected, onSelect }: ReasonButtonProps) {
+function DefaultReasonButton({ reason, index, isSelected, onSelect }: ReasonButtonProps) {
+  const letter = String.fromCharCode(65 + index)
+
   return (
     <button
       type="button"
@@ -12,6 +16,9 @@ function DefaultReasonButton({ reason, isSelected, onSelect }: ReasonButtonProps
       onClick={() => onSelect(reason.id)}
       className={cn('ck-reason-button', isSelected && 'ck-reason-button--selected')}
     >
+      <span aria-hidden className="ck-reason-badge">
+        {isSelected ? <Checkmark color="#fff" size={12} /> : letter}
+      </span>
       <span className="ck-reason-label">{reason.label}</span>
     </button>
   )
@@ -30,7 +37,6 @@ export function DefaultSurvey({
   const ReasonButton = components?.ReasonButton ?? DefaultReasonButton
   const listRef = useRef<HTMLDivElement>(null)
 
-  // Arrow key navigation within the radiogroup
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
@@ -45,7 +51,6 @@ export function DefaultSurvey({
       }
       onSelectReason(reasons[nextIdx].id)
 
-      // Move focus to the newly selected button
       const buttons = listRef.current?.querySelectorAll<HTMLElement>('[role="radio"]')
       buttons?.[nextIdx]?.focus()
     },
@@ -54,6 +59,9 @@ export function DefaultSurvey({
 
   return (
     <div className={cn('ck-step ck-step-survey', classNames?.root)}>
+      <h2 className={cn('ck-step-title', classNames?.title)}>{title}</h2>
+      {description && <RichText html={description} className={cn('ck-step-description', classNames?.description)} />}
+
       <div
         ref={listRef}
         className={cn('ck-reason-list', classNames?.reasonList)}
@@ -61,10 +69,11 @@ export function DefaultSurvey({
         aria-label={title}
         onKeyDown={handleKeyDown}
       >
-        {reasons.map((reason) => (
+        {reasons.map((reason, i) => (
           <ReasonButton
             key={reason.id}
             reason={reason}
+            index={i}
             isSelected={selectedReason === reason.id}
             onSelect={onSelectReason}
           />

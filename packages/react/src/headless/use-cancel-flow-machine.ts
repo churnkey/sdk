@@ -7,49 +7,49 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChurnkeyApi } from '../core/api'
 import { CancelFlowMachine } from '../core/machine'
 import { decodeSessionToken } from '../core/token'
-import type { AcceptedOffer, FlowConfig, FlowState } from '../core/types'
+import type { FlowCallbacks, FlowConfig, FlowState } from '../core/types'
 
 export interface CancelFlowMachineHandle {
   machine: CancelFlowMachine
   state: FlowState
   isLoading: boolean
   loadError: Error | null
-  /** Re-fetch the embed config (token mode only). No-op if no session. */
+  /** Re-fetch the flow config (token mode only). No-op without a session. */
   retry: () => void
 }
 
 /**
  * Wires a CancelFlowMachine to React lifecycle. Used internally by both the
- * `CancelFlow` component and the `useCancelFlow` hook - not part of the
+ * `CancelFlow` component and the `useCancelFlow` hook — not part of the
  * public API.
  *
- * Callbacks are passed to the machine via thunks that dereference a ref
- * updated each render. Two reasons:
- *   1. The consumer's latest closure is always called.
- *   2. The fetch effect's dep list stays stable. Without this, inline-arrow
- *      handlers from the consumer would change identity each render, the
- *      effect would re-fire, and the token-mode flow would reset to step 1.
+ * Callbacks reach the machine via thunks that dereference a ref updated each
+ * render. This buys two things: the consumer's latest closure always runs,
+ * and the fetch effect's dep list stays stable so inline-arrow handlers
+ * don't trigger a re-fetch and reset the flow to step 1.
  */
 export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandle {
-  const callbacksRef = useRef({
-    onAccept: config.onAccept,
-    onCancel: config.onCancel,
-    onClose: config.onClose,
-    onStepChange: config.onStepChange,
-  })
-  callbacksRef.current = {
-    onAccept: config.onAccept,
-    onCancel: config.onCancel,
-    onClose: config.onClose,
-    onStepChange: config.onStepChange,
-  }
+  // FlowConfig extends FlowCallbacks, so storing the whole config gives us
+  // access to every callback by name without a separate copy.
+  const callbacksRef = useRef(config)
+  callbacksRef.current = config
 
   const [machine] = useState(() => {
-    const dispatch = {
-      onAccept: async (offer: AcceptedOffer) => callbacksRef.current.onAccept?.(offer),
-      onCancel: async () => callbacksRef.current.onCancel?.(),
-      onClose: () => callbacksRef.current.onClose?.(),
-      onStepChange: (step: string, prevStep: string) => callbacksRef.current.onStepChange?.(step, prevStep),
+    const cb = callbacksRef
+    const dispatch: FlowCallbacks = {
+      handleDiscount: (o, c) => cb.current.handleDiscount?.(o, c),
+      handlePause: (o, c) => cb.current.handlePause?.(o, c),
+      handlePlanChange: (o, c) => cb.current.handlePlanChange?.(o, c),
+      handleTrialExtension: (o, c) => cb.current.handleTrialExtension?.(o, c),
+      handleCancel: (c) => cb.current.handleCancel?.(c),
+      onAccept: (o, c) => cb.current.onAccept?.(o, c),
+      onDiscount: (o, c) => cb.current.onDiscount?.(o, c),
+      onPause: (o, c) => cb.current.onPause?.(o, c),
+      onPlanChange: (o, c) => cb.current.onPlanChange?.(o, c),
+      onTrialExtension: (o, c) => cb.current.onTrialExtension?.(o, c),
+      onCancel: (c) => cb.current.onCancel?.(c),
+      onClose: () => cb.current.onClose?.(),
+      onStepChange: (step, prevStep) => cb.current.onStepChange?.(step, prevStep),
     }
     return new CancelFlowMachine({ ...config, ...dispatch })
   })
@@ -72,9 +72,9 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
     const api = new ChurnkeyApi(creds, config.apiBaseUrl)
     api
       .fetchConfig()
-      .then((embedData) => {
+      .then((sdkConfig) => {
         if (cancelled) return
-        machine.initializeFromEmbed(embedData, api, creds)
+        machine.initializeFromConfig(sdkConfig, api, creds)
         setIsLoading(false)
       })
       .catch((err) => {
