@@ -2,6 +2,7 @@ node_modules/
 dist/
 .turbo/
 *.tsbuildinfo
+*.tgz
 .DS_Store
 .env
 .env.*
