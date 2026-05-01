@@ -1,6 +1,6 @@
 {
   "name": "@churnkey/react",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Production-ready cancel flow for React. Drop-in component, headless hook, or full customization. Works standalone or with Churnkey for AI-powered retention.",
   "license": "MIT",
   "repository": {
@@ -52,7 +52,10 @@
         "default": "./dist/core.cjs"
       }
     },
-    "./styles.css": "./dist/styles.css",
+    "./styles.css": {
+      "types": "./dist/styles.css.d.ts",
+      "default": "./dist/styles.css"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.cjs",
@@ -63,7 +66,7 @@
     "package.json"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && node -e \"require('fs').writeFileSync('dist/styles.css.d.ts','export {}\\n')\"",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",

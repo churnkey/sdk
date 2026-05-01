@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.1.2 — 2026-05-01
+
+### Fixed
+
+- `import '@churnkey/react/styles.css'` no longer triggers TS2882 ("Cannot find module or type declarations for side-effect import") under `moduleResolution: "bundler" | "node16" | "nodenext"`. The `./styles.css` export now ships a `types` condition pointing at an empty `styles.css.d.ts`, satisfying TypeScript's resolver for side-effect-only imports.
+
 ## 0.1.1 — 2026-04-30
 
 ### Fixed
