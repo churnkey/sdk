@@ -1,0 +1,43 @@
+{
+  "name": "@churnkey/mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for Churnkey. Read-only access to sessions, analytics, and DSR/unsubscribe endpoints.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/churnkey/sdk.git",
+    "directory": "packages/mcp"
+  },
+  "keywords": ["churnkey", "mcp", "model-context-protocol", "claude", "cursor", "subscription", "retention"],
+  "type": "module",
+  "bin": {
+    "churnkey-mcp": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0"
+  }
+}

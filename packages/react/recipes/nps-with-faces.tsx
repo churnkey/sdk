@@ -48,6 +48,7 @@ export function NpsWithFaces({ step, onNext }: CustomStepProps) {
               aria-pressed={isSelected}
               style={{
                 appearance: 'none',
+                textAlign: 'center',
                 flex: 1,
                 padding: '12px 0',
                 border: `1.5px solid ${isSelected ? 'var(--ck-color-primary)' : 'var(--ck-color-border)'}`,
