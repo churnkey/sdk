@@ -2,7 +2,13 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
-## 0.1.0 — Unreleased
+## 0.1.1 — Unreleased
+
+### Fixed
+
+- Bin no longer silently exits when invoked via `npx` or installed as a dependency. The 0.1.0 entrypoint relied on `process.argv[1] === fileURLToPath(import.meta.url)` to decide whether to start the server, but `npm`/`pnpm`/`yarn` install the bin as a symlink, so the comparison failed and `main()` never ran. Split into a dedicated `dist/bin.js` entry that always runs.
+
+## 0.1.0 — 2026-05-06
 
 First public release.
 

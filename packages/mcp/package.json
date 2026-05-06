@@ -1,6 +1,6 @@
 {
   "name": "@churnkey/mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Model Context Protocol server for Churnkey. Read-only access to sessions, analytics, and DSR/unsubscribe endpoints.",
   "license": "MIT",
   "repository": {
@@ -11,7 +11,7 @@
   "keywords": ["churnkey", "mcp", "model-context-protocol", "claude", "cursor", "subscription", "retention"],
   "type": "module",
   "bin": {
-    "churnkey-mcp": "./dist/index.js"
+    "churnkey-mcp": "./dist/bin.js"
   },
   "exports": {
     ".": {
