@@ -23,14 +23,12 @@ const aggregateSessionsInput = z.object({
     .array(z.enum(BREAKDOWN_VALUES))
     .optional()
     .describe(
-      'Group counts by these dimensions. Multiple dimensions produce a cross-tab; e.g. ["month","saveType"] returns one row per (month, saveType) pair. Omit for a single grand total. Time dimensions: day, week, month, invoiceMonth.',
+      'Group counts by these dimensions. Multiple dimensions produce a cross-tab; e.g. ["month","saveType"] returns one row per (month, saveType) pair. Omit for a single grand total. Time dimensions: day, week, month.',
     ),
 })
 
-const apiUsageInput = z.object({
-  startDate: z.string().optional().describe('Inclusive lower bound. ISO 8601 date or datetime.'),
-  endDate: z.string().optional().describe('Inclusive upper bound. ISO 8601 date or datetime.'),
-})
+const WAREHOUSE_NOTE =
+  'Data source: the Churnkey analytics warehouse, refreshed roughly every 3 hours. Sessions from the last few hours may not appear yet — for "did this just happen" questions, expect lag.'
 
 export function sessionTools(client: ChurnkeyClient): ToolDefinition[] {
   return [
@@ -44,11 +42,11 @@ export function sessionTools(client: ChurnkeyClient): ToolDefinition[] {
         '',
         'Use this when you need session-level detail (e.g. "show me the 10 most recent sessions where a discount was offered"). For counts and breakdowns, prefer aggregate_sessions — it ships less data.',
         '',
-        'Mode (live vs test) is determined by the API key prefix; pass a `test_`-prefixed key in your MCP server env to query test data.',
+        WAREHOUSE_NOTE,
       ].join('\n'),
       inputSchema: listSessionsInput,
       annotations: { readOnlyHint: true, openWorldHint: true },
-      handler: async (args) => client.get('/data/sessions', { query: buildQuery(args) }),
+      handler: async (args) => client.get('/data/warehouse/sessions', { query: buildQuery(args) }),
     },
     {
       name: 'aggregate_sessions',
@@ -63,19 +61,12 @@ export function sessionTools(client: ChurnkeyClient): ToolDefinition[] {
         '- breakdownBy: ["planId"], filter not: { canceled: true } → saved-session counts per plan',
         '',
         'Filters work the same as list_sessions.',
+        '',
+        WAREHOUSE_NOTE,
       ].join('\n'),
       inputSchema: aggregateSessionsInput,
       annotations: { readOnlyHint: true, openWorldHint: true },
-      handler: async (args) => client.get('/data/session-aggregation', { query: buildQuery(args) }),
-    },
-    {
-      name: 'get_api_usage',
-      title: 'Get Churnkey API usage',
-      description:
-        'Return Churnkey API call volume for the org over a date range. Useful for confirming the embed/SDK is firing in production, or diagnosing a sudden drop in tracked sessions.',
-      inputSchema: apiUsageInput,
-      annotations: { readOnlyHint: true, openWorldHint: true },
-      handler: async (args) => client.get('/data/api-usage', { query: args }),
+      handler: async (args) => client.get('/data/warehouse/session-aggregation', { query: buildQuery(args) }),
     },
   ]
 }

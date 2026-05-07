@@ -1,17 +1,5 @@
 import type { ChurnkeyMcpConfig } from './config'
 
-export class ChurnkeyApiError extends Error {
-  readonly status: number
-  readonly body: unknown
-
-  constructor(status: number, message: string, body: unknown) {
-    super(message)
-    this.name = 'ChurnkeyApiError'
-    this.status = status
-    this.body = body
-  }
-}
-
 export interface RequestOptions {
   query?: Record<string, unknown>
   body?: unknown
@@ -57,43 +45,30 @@ export class ChurnkeyClient {
     })
 
     const text = await res.text()
-    let parsed: unknown = text
-    if (text) {
-      try {
-        parsed = JSON.parse(text)
-      } catch {
-        // leave as text
-      }
-    }
+    const parsed = parseJson(text)
 
     if (!res.ok) {
-      throw new ChurnkeyApiError(res.status, mapErrorMessage(res.status, parsed), parsed)
-    }
-
-    if (parsed && typeof parsed === 'object' && 'data' in (parsed as Record<string, unknown>)) {
-      return (parsed as { data: T }).data
+      throw new Error(mapErrorMessage(res.status, parsed))
     }
     return parsed as T
   }
 }
 
+function parseJson(text: string): unknown {
+  if (!text) return text
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
+}
+
 function mapErrorMessage(status: number, body: unknown): string {
   const apiMessage =
-    body && typeof body === 'object' && 'message' in (body as Record<string, unknown>)
-      ? String((body as Record<string, unknown>).message)
-      : null
+    body && typeof body === 'object' && 'message' in body ? String((body as { message: unknown }).message) : null
 
   if (status === 401) {
     return 'Churnkey API rejected the credentials. Check CHURNKEY_APP_ID and CHURNKEY_API_KEY in your MCP server config.'
-  }
-  if (status === 403) {
-    return apiMessage ?? 'Churnkey API forbids this action for the supplied API key.'
-  }
-  if (status === 404) {
-    return apiMessage ?? 'Resource not found.'
-  }
-  if (status === 422) {
-    return apiMessage ?? 'Invalid request parameters.'
   }
   if (status >= 500) {
     return apiMessage ?? `Churnkey API returned ${status}. Try again or check status.churnkey.co.`

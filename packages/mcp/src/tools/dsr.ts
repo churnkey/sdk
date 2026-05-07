@@ -3,10 +3,7 @@ import type { ChurnkeyClient } from '../client'
 import type { ToolDefinition } from './types'
 
 const accessInput = z.object({
-  email: z
-    .string()
-    .email()
-    .describe('Customer email (exact match) to fetch all stored Churnkey data for. Case-insensitive.'),
+  email: z.string().email().describe('Customer email to fetch all stored Churnkey data for.'),
 })
 
 const deleteInput = z.object({
@@ -14,7 +11,7 @@ const deleteInput = z.object({
     .string()
     .email()
     .describe(
-      'Customer email (exact match) to permanently delete from Churnkey. All sessions, feedback, and PII associated with this email are removed.',
+      'Customer email to permanently delete from Churnkey. All sessions, feedback, and PII associated with this email are removed.',
     ),
 })
 

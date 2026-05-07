@@ -1,7 +1,7 @@
 {
   "name": "@churnkey/mcp",
-  "version": "0.1.1",
-  "description": "Model Context Protocol server for Churnkey. Read-only access to sessions, analytics, and DSR/unsubscribe endpoints.",
+  "version": "0.3.0",
+  "description": "Model Context Protocol server for Churnkey. Lets agents query sessions, payment-recovery analytics, and DSR endpoints with a Data API key.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -29,7 +29,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "start": "node dist/index.js"
+    "start": "node dist/bin.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
