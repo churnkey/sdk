@@ -1,9 +1,7 @@
 import { z } from 'zod'
 
-/**
- * Mirrors src/helpers/shared.js OFFER_TYPE_LIST in churnkey-api.
- * Keep in sync if new offer types are added there.
- */
+// Mirrors OFFER_TYPE_LIST in churnkey-api (src/helpers/shared.js).
+// Keep the two in sync if new offer types are added.
 export const OFFER_TYPE_VALUES = [
   'PAUSE',
   'DISCOUNT',
@@ -14,25 +12,19 @@ export const OFFER_TYPE_VALUES = [
   'CUSTOM',
 ] as const
 
-/**
- * `saveType` is derived: null when canceled=true, otherwise the offerType the
- * customer accepted, or 'ABANDON' if the session ended without a decision.
- */
+// `saveType` is derived: null when canceled, otherwise the accepted offerType,
+// otherwise 'ABANDON' (customer left without deciding).
 export const SAVE_TYPE_VALUES = [...OFFER_TYPE_VALUES, 'ABANDON'] as const
 
-/** Common Stripe billing intervals. Other values pass through as strings. */
 export const BILLING_INTERVAL_VALUES = ['day', 'week', 'month', 'year'] as const
 
-/**
- * Breakdown dimensions accepted by /v1/data/session-aggregation.
- * Time dimensions (day/week/month/invoiceMonth) produce time series;
- * combine with attribute dimensions to break a series down further.
- */
+// Breakdown dimensions accepted by /v1/data/warehouse/session-aggregation. Time
+// dimensions (day/week/month) produce time series; combine with attribute
+// dimensions to break a series down further.
 export const BREAKDOWN_VALUES = [
   'day',
   'week',
   'month',
-  'invoiceMonth',
   'saveType',
   'offerType',
   'response',
@@ -45,7 +37,6 @@ export const BREAKDOWN_VALUES = [
   'billingInterval',
   'couponId',
   'pauseDuration',
-  'currency',
   'sessionCurrency',
   'bounced',
   'ageMonths',
@@ -64,7 +55,6 @@ const dateRange = {
   endDate: z.string().optional().describe('Inclusive upper bound on session createdAt. ISO 8601 date or datetime.'),
 }
 
-/** Filters supported by both list_sessions and aggregate_sessions. */
 const filterShape = {
   sessionId: z.string().optional().describe('Single Churnkey session ID. Returns the matching session only.'),
   customerEmail: z
@@ -108,50 +98,28 @@ const filterShape = {
   ageYears: z.number().int().optional().describe('Customer account age in years at session start.'),
 }
 
-/** Negation versions of the same filters — pass "not: { saveType: 'DISCOUNT' }" etc. */
-const notShape = {
-  sessionId: filterShape.sessionId,
-  customerEmail: filterShape.customerEmail,
-  customerId: filterShape.customerId,
-  segmentId: filterShape.segmentId,
-  abtest: filterShape.abtest,
-  saveType: filterShape.saveType,
-  offerType: filterShape.offerType,
-  response: filterShape.response,
-  aborted: filterShape.aborted,
-  canceled: filterShape.canceled,
-  trial: filterShape.trial,
-  bounced: filterShape.bounced,
-  planId: filterShape.planId,
-  billingInterval: filterShape.billingInterval,
-  couponId: filterShape.couponId,
-  pauseDuration: filterShape.pauseDuration,
-  sessionCurrency: filterShape.sessionCurrency,
-  ageYears: filterShape.ageYears,
-}
-
 export const sharedFilterFields = {
   ...dateRange,
   ...filterShape,
   not: z
-    .object(notShape)
-    .partial()
+    .object(filterShape)
     .optional()
     .describe(
-      'Exclusion filters. Each key is the same as the top-level filter but matches "not equal" instead. Example: { saveType: "ABANDON" } returns only saved sessions.',
+      'Exclusion filters. Each key matches "not equal" instead of equal. Example: { saveType: "ABANDON" } returns only saved sessions.',
     ),
 }
 
-/**
- * Convert structured input ({ saveType, not: { canceled }, breakdownBy }) into the
- * flat query-string shape the API expects ({ saveType, '-canceled', breakdown }).
- */
-export function buildQuery(args: Record<string, unknown>): Record<string, unknown> {
-  const { not, breakdownBy, ...rest } = args as {
-    not?: Record<string, unknown>
-    breakdownBy?: readonly string[]
-    [k: string]: unknown
-  }
+interface BuildQueryArgs {
+  not?: Record<string, unknown>
+  breakdownBy?: readonly string[]
+  [k: string]: unknown
+}
+
+// Convert the structured tool input into the flat query-string shape the
+// underlying /v1/data/warehouse/* endpoints expect: nested `not` keys become `-key`,
+// and `breakdownBy` arrays are joined with `-`.
+export function buildQuery(args: BuildQueryArgs): Record<string, unknown> {
+  const { not, breakdownBy, ...rest } = args
 
   const query: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(rest)) {

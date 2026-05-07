@@ -2,7 +2,21 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
-## 0.1.1 — Unreleased
+## 0.3.0 — Unreleased
+
+### Added
+
+- `aggregate_payment_recoveries` and `list_payment_recoveries` tools, backed by `/v1/data/warehouse/recovery-aggregation` and `/v1/data/warehouse/recoveries`. Aggregation returns count, invoice/recovered/pending/lost amounts in original currency and USD, with breakdowns by time, card brand, decline reason, outcome, blueprint, currency, and recovered/active state.
+
+### Changed
+
+- `list_sessions` and `aggregate_sessions` now point at the new warehouse-backed routes (`/v1/data/warehouse/sessions` and `/v1/data/warehouse/session-aggregation`). The legacy `/v1/data/sessions` and `/v1/data/session-aggregation` routes are unchanged on the API side and continue to serve real-time Mongo data; the MCP just chooses the warehouse path because lag is acceptable for agent use cases and warehouse queries scale better. Tool descriptions surface the ~3-hour lag.
+
+### Removed (BREAKING)
+
+- `get_api_usage` tool. All remaining tools read from the warehouse; API request logs are not synced there. The `/v1/data/api-usage` REST endpoint is unchanged.
+
+## 0.1.1 — 2026-05-06
 
 ### Fixed
 
