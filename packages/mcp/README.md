@@ -19,12 +19,12 @@ Each tool's input schema is fully described to the MCP client — enums for `sav
 
 ## Setup
 
-1. Get your **App ID** and **Data API Key** from `app.churnkey.co/settings/data-api`.
+1. Get your **App ID** and **Data API Key** from [Churnkey → Settings → Organization](https://app.churnkey.co/settings/organization). Don't have an account? [Create one](https://app.churnkey.co/register?intent=sdk).
 2. Add the server to your MCP client config.
 
-### Claude Desktop / Claude Code
+### Claude Desktop
 
-`~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `~/.claude/claude_desktop_config.json`:
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
@@ -40,6 +40,23 @@ Each tool's input schema is fully described to the MCP client — enums for `sav
   }
 }
 ```
+
+Fully quit and reopen the app for the server to load.
+
+### Claude Code
+
+Easiest — register from the CLI:
+
+```bash
+claude mcp add churnkey \
+  -e CHURNKEY_APP_ID=your_app_id \
+  -e CHURNKEY_API_KEY=your_api_key \
+  -- npx -y @churnkey/mcp
+```
+
+Alternatively, add the server to `~/.claude.json` (global, all projects) or to `.mcp.json` in your project root (project-scoped, can be checked into git). The block has the same shape as the Claude Desktop config above.
+
+Restart your Claude Code session to pick up the new server.
 
 ### Cursor
 
