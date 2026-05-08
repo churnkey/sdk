@@ -50,6 +50,7 @@ import '@churnkey/react/styles.css'
 - [`@churnkey/react`](./packages/react/README.md) — full API reference, customization, headless usage, custom step types
 - [`@churnkey/node`](./packages/node/README.md) — `createToken` and `authHash`
 - [`@churnkey/mcp`](./packages/mcp/README.md) — MCP server for Claude / Cursor / Claude Desktop
+- [Sign up free](https://app.churnkey.co/register?intent=sdk) — get an `appId` to enable analytics; no billing provider required
 - [churnkey.co](https://churnkey.co) — dashboard, hosted embed, AI retention features
 
 ## Repo layout
