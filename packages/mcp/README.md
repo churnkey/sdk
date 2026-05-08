@@ -19,7 +19,7 @@ Each tool's input schema is fully described to the MCP client — enums for `sav
 
 ## Setup
 
-1. Get your **App ID** and **Data API Key** from [Churnkey → Settings → Organization](https://app.churnkey.co/settings/organization). Don't have an account? [Sign up free](https://app.churnkey.co/register?intent=sdk) — analytics access is included.
+1. Get your **App ID** and **Data API Key** from [Churnkey → Settings → Organization](https://app.churnkey.co/settings/organization). Don't have an account? [Create one](https://app.churnkey.co/register?intent=sdk).
 2. Add the server to your MCP client config.
 
 ### Claude Desktop

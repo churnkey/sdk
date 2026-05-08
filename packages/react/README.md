@@ -177,7 +177,7 @@ The hook returns the current state (`step`, `reasons`, `currentOffer`, `feedback
 
 ## Add analytics
 
-[Sign up free at Churnkey](https://app.churnkey.co/register?intent=sdk) for an `appId`. Analytics is included on every plan and works without a billing provider connection. The SDK records each session so you can see why customers cancel, which offers work, and what your save rate looks like.
+Create a [free Churnkey account](https://app.churnkey.co/register?intent=sdk) and pass your `appId`. The SDK records each session so you can see why customers cancel, which offers work, and what your save rate looks like.
 
 ```tsx
 <CancelFlow
