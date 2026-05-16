@@ -46,6 +46,10 @@ export interface ResolvedStep {
   required?: boolean
   minLength?: number
 
+  // confirm
+  losses?: string[]
+  lossesLabel?: string
+
   // success
   savedTitle?: string
   savedDescription?: string
@@ -159,6 +163,8 @@ function normalizeStep(step: Step, index: number): ResolvedStep {
         ...base,
         title: s.title,
         description: s.description,
+        losses: s.losses,
+        lossesLabel: s.lossesLabel,
         classNames: s.classNames,
       }
     }
