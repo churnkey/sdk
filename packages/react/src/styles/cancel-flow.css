@@ -45,7 +45,18 @@
   /* Typography */
   --ck-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
   --ck-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  /* Display face used by step titles and other visual headlines. Defaults
+     to the body family so existing consumers see no change; set it to a
+     dedicated display face (Tiempos, Canela, Source Serif, etc.) to give
+     headings their own treatment without touching the selector. */
+  --ck-font-display: var(--ck-font-family);
   --ck-font-size: 14px;
+
+  /* Step title typography — split out so brands that ship a display face at
+     a single weight (Tiempos Medium, etc.) can set the weight and letter-
+     spacing without overriding the selector. */
+  --ck-step-title-weight: 600;
+  --ck-step-title-letter-spacing: -0.015em;
 
   /* Geometry */
   --ck-radius-sm: 6px;
@@ -53,6 +64,19 @@
   --ck-radius-lg: 12px;
   --ck-radius-xl: 16px;
   --ck-border-radius: var(--ck-radius-lg);
+
+  /* Elevation — shadow tokens for the modal and for inner "card" elements
+     (selected reasons, plan cards, pause segments). Brands can flatten or
+     deepen the elevation language by overriding these. */
+  --ck-shadow-modal: 0 20px 25px -5px rgba(12, 10, 9, 0.1), 0 8px 10px -6px rgba(12, 10, 9, 0.06);
+  --ck-shadow-card: 0 1px 2px rgba(12, 10, 9, 0.04), 0 1px 3px rgba(12, 10, 9, 0.06);
+
+  /* Overlay tint behind the modal. Defaults to a tinted version of the
+     primary color so any primary swap naturally re-tints the overlay.
+     Falls back gracefully on browsers without color-mix() support — the
+     declaration is invalid in those, so the rule below it (or the inline
+     style) wins. */
+  --ck-overlay-color: color-mix(in srgb, var(--ck-color-primary) 40%, transparent);
 
   /* Motion */
   --ck-motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -120,7 +144,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Fallback for browsers without color-mix() support — used if the token
+     evaluates to an invalid value. Modern engines (Chrome 111+, Safari
+     16.2+, Firefox 113+) resolve --ck-overlay-color from the :root rule. */
   background: rgba(12, 10, 9, 0.5);
+  /* biome-ignore lint/suspicious/noDuplicateProperties: progressive enhancement fallback */
+  background: var(--ck-overlay-color);
   z-index: 9999;
 }
 
@@ -138,9 +167,7 @@
 .ck-cancel-flow .ck-modal {
   background: var(--ck-color-surface);
   border-radius: var(--ck-radius-xl);
-  box-shadow:
-    0 20px 25px -5px rgba(12, 10, 9, 0.1),
-    0 8px 10px -6px rgba(12, 10, 9, 0.06);
+  box-shadow: var(--ck-shadow-modal);
   width: 100%;
   max-width: 440px;
   max-height: 90vh;
@@ -149,11 +176,10 @@
 }
 
 /* The default modal shadow is built for white surfaces; deepen it on */
-/* dark so it reads as elevation rather than a black bar. */
-.ck-cancel-flow[data-color-scheme="dark"] .ck-modal {
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.5),
-    0 8px 10px -6px rgba(0, 0, 0, 0.4);
+/* dark so it reads as elevation rather than a black bar. Consumers can */
+/* override --ck-shadow-modal at this scope to control the dark variant. */
+.ck-cancel-flow[data-color-scheme="dark"] {
+  --ck-shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
 }
 
 /* --- Close button (sole chrome element) --- */
@@ -232,11 +258,20 @@
 }
 
 .ck-cancel-flow .ck-step-title {
+  font-family: var(--ck-font-display);
   font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
+  font-weight: var(--ck-step-title-weight);
+  letter-spacing: var(--ck-step-title-letter-spacing);
+  line-height: 1.2;
   color: var(--ck-color-text);
   margin: 0 0 8px;
+}
+
+/* When the title isn't followed by a description, the only thing between
+   it and the step body is the title's own 8px margin. That's too tight —
+   give it space that matches the rhythm of title → description → body. */
+.ck-cancel-flow .ck-step-title:not(:has(+ .ck-step-description)) {
+  margin-bottom: 28px;
 }
 
 .ck-cancel-flow .ck-step-description {
@@ -344,9 +379,7 @@
 
 .ck-cancel-flow .ck-reason-button--selected {
   border-color: var(--ck-color-primary);
-  box-shadow:
-    0 1px 2px rgba(12, 10, 9, 0.04),
-    0 1px 3px rgba(12, 10, 9, 0.06);
+  box-shadow: var(--ck-shadow-card);
 }
 
 .ck-cancel-flow .ck-reason-badge {
@@ -403,72 +436,70 @@
 }
 
 .ck-cancel-flow .ck-offer-discount-phrase {
+  font-family: var(--ck-font-display);
   font-size: 26px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
+  font-weight: var(--ck-step-title-weight);
+  letter-spacing: var(--ck-step-title-letter-spacing);
   line-height: 1.2;
   color: var(--ck-color-text);
 }
 
-/* Pause: segmented duration + resume-date callout. */
-.ck-cancel-flow .ck-pause-segments {
-  display: grid;
-  gap: 6px;
+/* Pause: resume date is the typographic anchor, month chips below. */
+.ck-cancel-flow .ck-pause-card {
+  padding: 32px 24px 22px;
   background: var(--ck-color-surface-muted);
-  padding: 4px;
-  border-radius: var(--ck-radius-md);
-  margin-bottom: 12px;
+  border-radius: var(--ck-radius-lg);
+  text-align: center;
+  margin: 8px 0 20px;
 }
 
-.ck-cancel-flow .ck-pause-segment {
+.ck-cancel-flow .ck-pause-eyebrow {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ck-color-text-muted);
+  margin-bottom: 6px;
+}
+
+.ck-cancel-flow .ck-pause-date {
+  font-family: var(--ck-font-display);
+  font-size: 36px;
+  font-weight: 500;
+  color: var(--ck-color-text);
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  margin-bottom: 22px;
+}
+
+.ck-cancel-flow .ck-pause-chips {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ck-cancel-flow .ck-pause-chip {
   appearance: none;
-  padding: 10px 8px;
-  border: none;
-  border-radius: var(--ck-radius-sm);
-  background: transparent;
-  font-size: 14px;
+  padding: 8px 14px;
+  font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   color: var(--ck-color-text-secondary);
-  cursor: pointer;
-  transition: all var(--ck-motion-fast);
-}
-
-.ck-cancel-flow .ck-pause-segment--selected {
   background: var(--ck-color-surface);
-  color: var(--ck-color-text);
-  box-shadow:
-    0 1px 2px rgba(12, 10, 9, 0.04),
-    0 1px 3px rgba(12, 10, 9, 0.06);
-}
-
-.ck-cancel-flow .ck-pause-resume {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: var(--ck-color-primary-soft);
+  border: 1px solid var(--ck-color-border);
   border-radius: var(--ck-radius-md);
+  cursor: pointer;
+  transition:
+    background var(--ck-motion-fast),
+    color var(--ck-motion-fast),
+    border-color var(--ck-motion-fast);
 }
 
-.ck-cancel-flow .ck-pause-resume-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ck-color-primary);
-}
-
-.ck-cancel-flow .ck-pause-resume-date {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ck-color-text);
-  font-variant-numeric: tabular-nums;
-  margin-top: 2px;
-}
-
-.ck-cancel-flow .ck-pause-resume-icon {
-  color: var(--ck-color-primary);
+.ck-cancel-flow .ck-pause-chip--selected {
+  background: var(--ck-color-primary);
+  color: #fff;
+  border-color: var(--ck-color-primary);
 }
 
 /* Trial extension: day count badge + new end date in accent-soft container. */
@@ -518,8 +549,9 @@
 }
 
 .ck-cancel-flow .ck-trial-end-date {
+  font-family: var(--ck-font-display);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: var(--ck-step-title-weight);
   color: var(--ck-color-text);
   margin-top: 2px;
 }
@@ -578,14 +610,13 @@
 
 .ck-cancel-flow .ck-plan-card--selected {
   border-color: var(--ck-color-primary);
-  box-shadow:
-    0 4px 6px -1px rgba(12, 10, 9, 0.06),
-    0 2px 4px -2px rgba(12, 10, 9, 0.06);
+  box-shadow: var(--ck-shadow-card);
 }
 
 .ck-cancel-flow .ck-plan-name {
+  font-family: var(--ck-font-display);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: var(--ck-step-title-weight);
   letter-spacing: -0.01em;
   color: var(--ck-color-text);
   margin-bottom: 4px;
@@ -721,6 +752,41 @@
   font-weight: 600;
 }
 
+/* Loss list — what the customer is giving up. Rendered when the confirm
+   step config includes `losses`. */
+.ck-cancel-flow .ck-loss-block {
+  margin-bottom: 20px;
+}
+
+.ck-cancel-flow .ck-loss-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ck-color-text-secondary);
+  margin-bottom: 8px;
+}
+
+.ck-cancel-flow .ck-loss-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ck-cancel-flow .ck-loss-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 3px 0;
+  font-size: 14.5px;
+  color: var(--ck-color-text);
+}
+
+.ck-cancel-flow .ck-loss-bullet {
+  color: var(--ck-color-text-muted);
+  font-size: 8px;
+  line-height: 1;
+  transform: translateY(-2px);
+}
+
 /* --- Success step --- */
 /* No box-padding here — .ck-content already supplies the surrounding */
 /* inset. The 8px top compensates for the missing title row above the */
@@ -738,8 +804,9 @@
   width: 56px;
   height: 56px;
   border-radius: 999px;
-  background: var(--ck-color-success-soft);
-  color: var(--ck-color-success);
+  /* Sand disc, ink check — the check is the success cue, the disc is just elevation. */
+  background: var(--ck-color-surface-muted);
+  color: var(--ck-color-text);
   margin-bottom: 20px;
 }
 

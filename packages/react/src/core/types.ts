@@ -246,6 +246,10 @@ export interface ConfirmStep {
   guid?: string
   title?: string
   description?: string
+  /** Optional bullet list of what the customer is giving up. Rendered between the description and the period-end notice. */
+  losses?: string[]
+  /** Heading above the loss list. Defaults to "You'll lose access to:". */
+  lossesLabel?: string
   confirmLabel?: string
   goBackLabel?: string
   classNames?: ConfirmClassNames
@@ -318,6 +322,10 @@ export interface ConfirmClassNames {
   root?: string
   title?: string
   description?: string
+  lossList?: string
+  lossLabel?: string
+  lossItem?: string
+  lossBullet?: string
   confirmButton?: string
   goBackButton?: string
   periodEndNotice?: string
@@ -342,18 +350,72 @@ export interface StructuralClassNames {
 
 // ─── Appearance ──────────────────────────────────────────────────────────────
 
+/**
+ * Typed surface for `appearance.variables`. Every key maps to a `--ck-*`
+ * CSS custom property. Consumers who need a token not in this list can
+ * still set the underlying CSS variable directly — these are the ones
+ * exposed through the typed JS API.
+ */
 export interface AppearanceVariables {
-  colorPrimary: string
-  colorPrimaryHover: string
+  // Surfaces
   colorBackground: string
+  colorSurface: string
+  colorSurfaceMuted: string
+
+  // Borders
+  colorBorder: string
+  colorBorderStrong: string
+
+  // Text
   colorText: string
   colorTextSecondary: string
-  colorBorder: string
-  colorDanger: string
+  colorTextMuted: string
+
+  // Primary
+  colorPrimary: string
+  colorPrimaryHover: string
+  colorPrimarySoft: string
+
+  // Semantic
   colorSuccess: string
+  colorSuccessSoft: string
+  colorDanger: string
+  colorDangerHover: string
+  colorDangerSoft: string
+
+  // Typography
   fontFamily: string
+  fontFamilyMono: string
+  /**
+   * Display face used by step titles and other visual headlines. Defaults
+   * to `fontFamily`. Set this when your brand uses a separate display face
+   * (Tiempos, Canela, etc.) for headings.
+   */
+  fontFamilyDisplay: string
   fontSize: string
+  /** Weight applied to the step title. Default `'600'`. */
+  fontWeightDisplay: string
+  /** Letter spacing applied to the step title. Default `'-0.015em'`. */
+  letterSpacingDisplay: string
+
+  // Geometry
   borderRadius: string
+  radiusSm: string
+  radiusMd: string
+  radiusLg: string
+  radiusXl: string
+
+  // Elevation
+  shadowModal: string
+  shadowCard: string
+
+  // Overlay
+  /**
+   * Color of the dim behind the modal. Accepts any CSS color (rgba,
+   * color-mix, etc.). Defaults to a tinted version of the primary color
+   * so any primary swap automatically re-tints the overlay.
+   */
+  overlayColor: string
 }
 
 export interface Appearance {
@@ -480,6 +542,8 @@ export interface FeedbackStepProps {
 export interface ConfirmStepProps {
   title: string
   description?: string
+  losses?: string[]
+  lossesLabel?: string
   confirmLabel: string
   goBackLabel: string
   periodEnd?: string

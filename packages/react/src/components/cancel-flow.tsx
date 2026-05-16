@@ -253,6 +253,8 @@ function StepRenderer({
         <Confirm
           title={config?.title ?? defaultTitles.confirm}
           description={config?.description}
+          losses={config?.losses}
+          lossesLabel={config?.lossesLabel}
           confirmLabel={config?.confirmLabel ?? 'Cancel subscription'}
           goBackLabel={config?.goBackLabel ?? 'Go back'}
           onConfirm={machine.cancel}

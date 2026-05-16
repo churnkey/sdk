@@ -11,17 +11,53 @@ export function cn(...classes: (string | undefined | null | false)[]): string {
 // CSS custom properties. Light/dark variants live in CSS — these
 // overrides apply on top of whichever scheme is active.
 const VAR_MAP: Record<string, keyof AppearanceVariables> = {
-  '--ck-color-primary': 'colorPrimary',
-  '--ck-color-primary-hover': 'colorPrimaryHover',
+  // Surfaces
   '--ck-color-bg': 'colorBackground',
+  '--ck-color-surface': 'colorSurface',
+  '--ck-color-surface-muted': 'colorSurfaceMuted',
+
+  // Borders
+  '--ck-color-border': 'colorBorder',
+  '--ck-color-border-strong': 'colorBorderStrong',
+
+  // Text
   '--ck-color-text': 'colorText',
   '--ck-color-text-secondary': 'colorTextSecondary',
-  '--ck-color-border': 'colorBorder',
-  '--ck-color-danger': 'colorDanger',
+  '--ck-color-text-muted': 'colorTextMuted',
+
+  // Primary
+  '--ck-color-primary': 'colorPrimary',
+  '--ck-color-primary-hover': 'colorPrimaryHover',
+  '--ck-color-primary-soft': 'colorPrimarySoft',
+
+  // Semantic
   '--ck-color-success': 'colorSuccess',
+  '--ck-color-success-soft': 'colorSuccessSoft',
+  '--ck-color-danger': 'colorDanger',
+  '--ck-color-danger-hover': 'colorDangerHover',
+  '--ck-color-danger-soft': 'colorDangerSoft',
+
+  // Typography
   '--ck-font-family': 'fontFamily',
+  '--ck-font-mono': 'fontFamilyMono',
+  '--ck-font-display': 'fontFamilyDisplay',
   '--ck-font-size': 'fontSize',
+  '--ck-step-title-weight': 'fontWeightDisplay',
+  '--ck-step-title-letter-spacing': 'letterSpacingDisplay',
+
+  // Geometry
   '--ck-border-radius': 'borderRadius',
+  '--ck-radius-sm': 'radiusSm',
+  '--ck-radius-md': 'radiusMd',
+  '--ck-radius-lg': 'radiusLg',
+  '--ck-radius-xl': 'radiusXl',
+
+  // Elevation
+  '--ck-shadow-modal': 'shadowModal',
+  '--ck-shadow-card': 'shadowCard',
+
+  // Overlay
+  '--ck-overlay-color': 'overlayColor',
 }
 
 export function appearanceToStyle(appearance?: Appearance): CSSProperties | undefined {
