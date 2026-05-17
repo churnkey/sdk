@@ -1,6 +1,6 @@
 {
   "name": "@churnkey/react",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Production-ready cancel flow for React. Drop-in component, headless hook, or full customization. Works standalone or with Churnkey for AI-powered retention.",
   "license": "MIT",
   "repository": {

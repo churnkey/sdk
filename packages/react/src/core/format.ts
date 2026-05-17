@@ -90,6 +90,11 @@ export function formatMonthDay(date: Date, locale?: string): string {
   return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
 }
 
+/** "April 30" — long month form for prominent date displays. */
+export function formatMonthDayLong(date: Date, locale?: string): string {
+  return date.toLocaleDateString(locale, { month: 'long', day: 'numeric' })
+}
+
 // ─── Discount phrasing ─────────────────────────────────────────────────────
 
 /**
