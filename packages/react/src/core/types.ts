@@ -200,8 +200,9 @@ export interface ReasonConfig {
   label: string
   /**
    * When true, picking this reason reveals a text input below the reason list.
-   * The text the customer types lands on the session as `surveyChoiceValue`
-   * (the reason's `id` still travels as `surveyChoiceId`).
+   * The typed text lands on the session as `followupResponse`. `surveyChoiceId`
+   * still carries the reason's `id` and `surveyChoiceValue` still carries the
+   * static `label`, so analytics groupings stay stable.
    */
   freeform?: boolean
   offer?: OfferConfig

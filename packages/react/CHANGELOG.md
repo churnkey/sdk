@@ -2,6 +2,52 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.3.0 — 2026-05-19
+
+### Added
+
+- `customer: DirectCustomer | null` and `subscriptions: DirectSubscription[]` are now passed to every step component, not just custom ones. `SurveyStepProps`, `OfferStepProps`, `FeedbackStepProps`, `ConfirmStepProps`, and `SuccessStepProps` all receive them. Defaults use this to render context-aware UI without consumers shuttling props through.
+- Follow-up text input on survey reasons. A reason with `freeform: true` reveals a textarea below the reason list when selected. The typed text travels to the session as `followupResponse` — the same field the embed widget uses — so dashboard groupings line up across both clients.
+- `useCancelFlow()` returns `setFollowupResponse` (action) and `followupResponse` (state), plus `retry` for refetching the config in token mode.
+- `DefaultPlanChangeOffer` is current-plan aware: the card matching the customer's current price id renders disabled with a "Current" badge, and the initial selection seeds to the first non-current plan.
+- `DefaultConfirm` derives the period-end notice from `subscriptions[0].status.currentPeriod.end`. Canceled subscriptions, missing periods, and unparseable dates omit the notice cleanly.
+- `formatPeriodEnd(subscriptions)` exported from `@churnkey/react/core` for consumers reusing the logic.
+- `BUILT_IN_OFFER_TYPES` exported from `@churnkey/react/core`.
+- `ModalProps.overlayClassName` and `StructuralClassNames.overlay` — style the dim layer behind the modal without overriding the whole `Modal`.
+- Standalone `OfferStep`s without explicit `copy` now fall back to the same default copy that survey-attached offers use. Previously a standalone offer with no copy rendered empty strings.
+- Unregistered offer types (offer `type` not in `BUILT_IN_OFFER_TYPES` and no `CustomOffer` registered) auto-decline and advance, mirroring the existing fallback for unregistered step types.
+
+### Changed
+
+- **Session payload shape aligned with the embed widget.** `surveyChoiceValue` is now always the static reason label. Typed follow-up text travels separately on the new `followupResponse` field instead of overloading `surveyChoiceValue`. Dashboards keyed off `surveyChoiceValue` for reason groupings get more reliable buckets as a side effect.
+- Default overlay color changed from a primary-tinted `color-mix(...)` to a neutral translucent ink. Set `--ck-overlay-color` to the old `color-mix(in srgb, var(--ck-color-primary) 40%, transparent)` if you want the previous behavior.
+- `DefaultSurvey` no longer hijacks arrow keys for reason navigation. Native tab navigation between radio buttons works as expected; the custom roving-tabindex pattern was producing focus surprises.
+- `AcceptedOffer.reasonId` is now `string | undefined`. Standalone `OfferStep`s have no reason to carry; only offers routed from a survey reason populate it.
+- `decisionId` no longer leaks into the consumer-facing `AcceptedOffer` payload. It was SDK-internal.
+
+### Removed
+
+The following props were declared in 0.2.0 but never wired to behavior. Removing them now to keep the public surface honest:
+
+- `PauseOffer.datePicker`
+- `PlanChangeOffer.currentPlanId` — derived now from the customer's subscriptions
+- `ConfirmStepProps.periodEnd` — derived now from `subscriptions[0].status.currentPeriod.end`
+- `CancelFlowProps.layout`
+- `CancelFlowProps.animation`
+
+### Breaking changes
+
+- **Step-component overrides** (`components.Survey`, `Offer`, `Feedback`, `Confirm`, `Success`): must accept the new `customer` and `subscriptions` props. TypeScript will flag every site.
+- **Survey overrides**: rename `freeformText` / `onFreeformChange` to `followupResponse` / `onFollowupResponseChange`. The `SurveyClassNames.freeformInput` slot is now `followupInput`. The internal `.ck-reason-freeform` CSS class is `.ck-reason-followup`.
+- **Headless consumers**: `setFreeformText` is now `setFollowupResponse`.
+- **Session-analytics consumers**: typed follow-up text now arrives on `followupResponse` rather than overloading `surveyChoiceValue`. If a downstream consumer was reading the typed text from `surveyChoiceValue`, point it at `followupResponse` instead.
+- Removed props above are no longer accepted.
+- `AcceptedOffer.reasonId` is now optional.
+
+### Notes
+
+- The session payload changes match what `@churnkey/embed` already sends, so the same dashboard queries work for both clients.
+
 ## 0.2.0 — 2026-05-16
 
 ### Added
