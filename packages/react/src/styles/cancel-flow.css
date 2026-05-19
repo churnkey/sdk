@@ -347,7 +347,7 @@
   margin-bottom: 20px;
 }
 
-.ck-cancel-flow .ck-reason-freeform {
+.ck-cancel-flow .ck-reason-followup {
   width: 100%;
   font-family: var(--ck-font);
   font-size: 14px;
@@ -361,7 +361,7 @@
   min-height: 72px;
 }
 
-.ck-cancel-flow .ck-reason-freeform:focus {
+.ck-cancel-flow .ck-reason-followup:focus {
   outline: none;
   border-color: var(--ck-color-primary);
 }

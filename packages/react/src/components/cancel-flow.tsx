@@ -190,8 +190,8 @@ function StepRenderer({
           reasons={machine.reasons}
           selectedReason={state.selectedReason}
           onSelectReason={machine.selectReason}
-          freeformText={state.freeformText}
-          onFreeformChange={machine.setFreeformText}
+          followupResponse={state.followupResponse}
+          onFollowupResponseChange={machine.setFollowupResponse}
           onNext={machine.next}
           classNames={config?.classNames}
           components={components}

@@ -311,12 +311,12 @@ export class CancelFlowMachine {
 
   selectReason = (id: string): void => {
     if (!this.reasons.find((r) => r.id === id)) return
-    // Clear freeform text on reason change so it doesn't carry across selections.
-    this.setState({ selectedReason: id, freeformText: '' })
+    // Clear follow-up text on reason change so it doesn't carry across selections.
+    this.setState({ selectedReason: id, followupResponse: '' })
   }
 
-  setFreeformText = (text: string): void => {
-    this.setState({ freeformText: text })
+  setFollowupResponse = (text: string): void => {
+    this.setState({ followupResponse: text })
   }
 
   next = (result?: Record<string, unknown>): void => {
@@ -460,7 +460,7 @@ export class CancelFlowMachine {
       step: first?.type ?? 'survey',
       currentStepId: this.graph.firstStepId,
       selectedReason: null,
-      freeformText: '',
+      followupResponse: '',
       feedback: '',
       outcome: null,
       isProcessing: false,
@@ -636,17 +636,18 @@ export class CancelFlowMachine {
 
   private buildBasePayload(): SessionPayload {
     const selectedReason = this.reasons.find((r) => r.id === this.state.selectedReason)
-    // For freeform reasons, the typed text replaces the static label as
-    // surveyChoiceValue. surveyChoiceId still carries the reason id so
-    // analytics groupings hold.
-    const surveyChoiceValue =
-      selectedReason?.freeform && this.state.freeformText ? this.state.freeformText : selectedReason?.label
+    // surveyChoiceValue is always the static label so dashboard groupings
+    // by reason stay stable. Typed text from `freeform: true` reasons
+    // travels separately on followupResponse, mirroring the embed payload.
+    const followupResponse =
+      selectedReason?.freeform && this.state.followupResponse ? this.state.followupResponse : undefined
     const payload: SessionPayload = {
       blueprintId: this.blueprintId ?? undefined,
       customer: this.resolveSessionCustomer(),
       canceled: false,
       surveyChoiceId: this.state.selectedReason ?? undefined,
-      surveyChoiceValue,
+      surveyChoiceValue: selectedReason?.label,
+      followupResponse,
       feedback: this.state.feedback || undefined,
       presentedOffers: this.presentedOffers,
       stepsViewed: this.stepsViewed,

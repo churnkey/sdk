@@ -295,7 +295,7 @@ export interface SurveyClassNames {
   reasonButton?: string
   reasonButtonSelected?: string
   reasonLabel?: string
-  freeformInput?: string
+  followupInput?: string
   continueButton?: string
 }
 
@@ -513,10 +513,10 @@ export interface SurveyStepProps {
   reasons: ReasonConfig[]
   selectedReason: string | null
   onSelectReason: (id: string) => void
-  /** Free-text value when the selected reason has `freeform: true`. */
-  freeformText: string
-  /** Set the freeform text. The SDK forwards the value to the session. */
-  onFreeformChange: (text: string) => void
+  /** Free-text value when the selected reason has `freeform: true`. Lands on the session as `followupResponse`. */
+  followupResponse: string
+  /** Set the follow-up response. The SDK forwards the value to the session. */
+  onFollowupResponseChange: (text: string) => void
   onNext: () => void
   classNames?: SurveyClassNames
   components?: Partial<ComponentOverrides>
@@ -600,7 +600,7 @@ export interface FlowState {
   step: string
   currentStepId: string
   selectedReason: string | null
-  freeformText: string
+  followupResponse: string
   feedback: string
   outcome: 'saved' | 'cancelled' | null
   isProcessing: boolean

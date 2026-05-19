@@ -1703,23 +1703,23 @@ describe('CancelFlowMachine', () => {
       ],
     }
 
-    it('initial freeformText is empty', () => {
+    it('initial followupResponse is empty', () => {
       const machine = new CancelFlowMachine(withFreeform)
-      expect(machine.getSnapshot().freeformText).toBe('')
+      expect(machine.getSnapshot().followupResponse).toBe('')
     })
 
-    it('setFreeformText updates state', () => {
+    it('setFollowupResponse updates state', () => {
       const machine = new CancelFlowMachine(withFreeform)
-      machine.setFreeformText('Switching to a competitor')
-      expect(machine.getSnapshot().freeformText).toBe('Switching to a competitor')
+      machine.setFollowupResponse('Switching to a competitor')
+      expect(machine.getSnapshot().followupResponse).toBe('Switching to a competitor')
     })
 
-    it('resets freeformText when switching reasons', () => {
+    it('resets followupResponse when switching reasons', () => {
       const machine = new CancelFlowMachine(withFreeform)
       machine.selectReason('other')
-      machine.setFreeformText('typed something')
+      machine.setFollowupResponse('typed something')
       machine.selectReason('expensive')
-      expect(machine.getSnapshot().freeformText).toBe('')
+      expect(machine.getSnapshot().followupResponse).toBe('')
     })
   })
 

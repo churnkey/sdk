@@ -15,7 +15,7 @@ export function useCancelFlow(config: FlowConfig) {
     stepIndex: machine.stepIndex,
     totalSteps: machine.totalSteps,
     selectReason: machine.selectReason,
-    setFreeformText: machine.setFreeformText,
+    setFollowupResponse: machine.setFollowupResponse,
     setFeedback: machine.setFeedback,
     accept: machine.accept,
     decline: machine.decline,
