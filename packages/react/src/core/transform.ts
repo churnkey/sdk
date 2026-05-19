@@ -66,8 +66,8 @@ function transformReason(r: SdkReason): ReasonConfig {
   const out: ReasonConfig = {
     id: r.id,
     label: r.label,
-    freeform: r.freeform,
   }
+  if (r.freeform) out.freeform = true
   if (r.offer) out.offer = transformOfferConfig(r.offer)
   return out
 }
@@ -94,7 +94,6 @@ function transformOfferConfig(o: SdkOffer): OfferConfig {
         type: 'pause',
         months: o.months,
         interval: o.interval,
-        datePicker: o.datePicker,
       }
     case 'plan_change':
       return {

@@ -240,7 +240,10 @@ export class CancelFlowMachine {
       this.graph = buildStepGraph(merged, defaultOfferCopy)
     }
 
-    this.state = this.buildInitialState(null)
+    // Seed state from local props for open-source and analytics modes. Token
+    // mode overwrites both fields once initializeFromConfig settles, so these
+    // values only matter for the pre-fetch render.
+    this.state = this.buildInitialState(this.directCustomer, this.directSubscriptions ?? [])
     this.cachedSnapshot = { ...this.state }
 
     // Defer entry tracking in token mode — firing trackStepEnter before the
@@ -308,7 +311,12 @@ export class CancelFlowMachine {
 
   selectReason = (id: string): void => {
     if (!this.reasons.find((r) => r.id === id)) return
-    this.setState({ selectedReason: id })
+    // Clear freeform text on reason change so it doesn't carry across selections.
+    this.setState({ selectedReason: id, freeformText: '' })
+  }
+
+  setFreeformText = (text: string): void => {
+    this.setState({ freeformText: text })
   }
 
   next = (result?: Record<string, unknown>): void => {
@@ -425,7 +433,7 @@ export class CancelFlowMachine {
     const steps = applyMergeFieldsToSteps(merged, config.customer ?? null)
     this.graph = buildStepGraph(steps, defaultOfferCopy)
 
-    this.state = this.buildInitialState(config.customer ?? null)
+    this.state = this.buildInitialState(config.customer ?? null, config.subscriptions ?? [])
     this.cachedSnapshot = { ...this.state }
     const first = this.firstStep()
     if (first) this.trackStepEnter(first)
@@ -446,17 +454,19 @@ export class CancelFlowMachine {
     return this.graph.surveyStepId ? this.graph.stepMap[this.graph.surveyStepId] : undefined
   }
 
-  private buildInitialState(customer: DirectCustomer | null): FlowState {
+  private buildInitialState(customer: DirectCustomer | null, subscriptions: DirectSubscription[]): FlowState {
     const first = this.firstStep()
     return {
       step: first?.type ?? 'survey',
       currentStepId: this.graph.firstStepId,
       selectedReason: null,
+      freeformText: '',
       feedback: '',
       outcome: null,
       isProcessing: false,
       error: null,
       customer,
+      subscriptions,
     }
   }
 
@@ -592,14 +602,14 @@ export class CancelFlowMachine {
   }
 
   // Offer passed in so accept() can capture it before enterSuccessStep
-  // potentially moves currentStepId off the offer step.
+  // potentially moves currentStepId off the offer step. copy and decisionId
+  // are SDK-internal — strip them from the consumer-facing payload.
   private buildAcceptedOffer(offer: OfferDecision, result?: Record<string, unknown>): AcceptedOffer {
-    const { copy: _, ...offerConfig } = offer
-    return {
-      ...offerConfig,
-      reasonId: this.state.selectedReason!,
-      ...(result ? { result } : {}),
-    }
+    const { copy: _copy, decisionId: _decisionId, ...offerConfig } = offer
+    const accepted: AcceptedOffer = offerConfig
+    if (this.state.selectedReason) accepted.reasonId = this.state.selectedReason
+    if (result) accepted.result = result
+    return accepted
   }
 
   // Terminal transition. Prefer moving currentStepId to a declared success
@@ -626,12 +636,17 @@ export class CancelFlowMachine {
 
   private buildBasePayload(): SessionPayload {
     const selectedReason = this.reasons.find((r) => r.id === this.state.selectedReason)
+    // For freeform reasons, the typed text replaces the static label as
+    // surveyChoiceValue. surveyChoiceId still carries the reason id so
+    // analytics groupings hold.
+    const surveyChoiceValue =
+      selectedReason?.freeform && this.state.freeformText ? this.state.freeformText : selectedReason?.label
     const payload: SessionPayload = {
       blueprintId: this.blueprintId ?? undefined,
       customer: this.resolveSessionCustomer(),
       canceled: false,
       surveyChoiceId: this.state.selectedReason ?? undefined,
-      surveyChoiceValue: selectedReason?.label,
+      surveyChoiceValue,
       feedback: this.state.feedback || undefined,
       presentedOffers: this.presentedOffers,
       stepsViewed: this.stepsViewed,

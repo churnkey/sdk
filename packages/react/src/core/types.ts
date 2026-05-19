@@ -122,13 +122,11 @@ export interface PauseOffer {
   type: 'pause'
   months: number
   interval?: 'month' | 'week'
-  datePicker?: boolean
 }
 
 export interface PlanChangeOffer {
   type: 'plan_change'
   plans: PlanOption[]
-  currentPlanId?: string
 }
 
 /**
@@ -187,8 +185,11 @@ export interface OfferCopy {
 }
 
 export type AcceptedOffer = OfferConfig & {
-  reasonId: string
-  decisionId?: string
+  /** Survey reason that routed to this offer. Absent when the offer was
+   *  declared as a standalone `OfferStep`. */
+  reasonId?: string
+  /** Payload from custom offers — whatever your component passed to
+   *  `onAccept(result)`. Built-in offer types do not populate this. */
   result?: Record<string, unknown>
 }
 
@@ -197,6 +198,11 @@ export type AcceptedOffer = OfferConfig & {
 export interface ReasonConfig {
   id: string
   label: string
+  /**
+   * When true, picking this reason reveals a text input below the reason list.
+   * The text the customer types lands on the session as `surveyChoiceValue`
+   * (the reason's `id` still travels as `surveyChoiceId`).
+   */
   freeform?: boolean
   offer?: OfferConfig
 }
@@ -222,9 +228,10 @@ export interface OfferStep {
   title?: string
   description?: string
   /**
-   * Offer attached to this step. Set this for proactive save offers shown
-   * outside a survey; the SDK also populates it automatically on synthetic
-   * offer steps spawned from survey choices.
+   * Offer attached to this step. Set this to declare a standalone offer
+   * step (one that isn't routed from a survey reason). The SDK also
+   * populates this automatically on synthetic offer steps spawned from
+   * survey choices.
    */
   offer?: OfferDecision
   classNames?: OfferClassNames
@@ -411,9 +418,9 @@ export interface AppearanceVariables {
 
   // Overlay
   /**
-   * Color of the dim behind the modal. Accepts any CSS color (rgba,
-   * color-mix, etc.). Defaults to a tinted version of the primary color
-   * so any primary swap automatically re-tints the overlay.
+   * Color of the dim behind the modal. Defaults to a neutral translucent
+   * ink. Set to `color-mix(in srgb, var(--ck-color-primary) 40%, transparent)`
+   * to derive the overlay from your primary color, or any CSS color value.
    */
   overlayColor: string
 }
@@ -430,6 +437,7 @@ export interface Appearance {
 export interface CustomStepProps {
   step: CustomStepConfig
   customer: DirectCustomer | null
+  subscriptions: DirectSubscription[]
   onNext: (result?: Record<string, unknown>) => void
   onBack: () => void
 }
@@ -437,6 +445,7 @@ export interface CustomStepProps {
 export interface CustomOfferProps {
   offer: OfferDecision
   customer: DirectCustomer | null
+  subscriptions: DirectSubscription[]
   onAccept: (result?: Record<string, unknown>) => Promise<void>
   onDecline: () => void
   isProcessing: boolean
@@ -481,6 +490,7 @@ export interface ModalProps {
   onClose: () => void
   children: ReactNode
   className?: string
+  overlayClassName?: string
 }
 
 export interface CloseButtonProps {
@@ -498,9 +508,15 @@ export interface BackButtonProps {
 export interface SurveyStepProps {
   title: string
   description?: string
+  customer: DirectCustomer | null
+  subscriptions: DirectSubscription[]
   reasons: ReasonConfig[]
   selectedReason: string | null
   onSelectReason: (id: string) => void
+  /** Free-text value when the selected reason has `freeform: true`. */
+  freeformText: string
+  /** Set the freeform text. The SDK forwards the value to the session. */
+  onFreeformChange: (text: string) => void
   onNext: () => void
   classNames?: SurveyClassNames
   components?: Partial<ComponentOverrides>
@@ -509,6 +525,8 @@ export interface SurveyStepProps {
 export interface OfferStepProps {
   title?: string
   description?: string
+  customer: DirectCustomer | null
+  subscriptions: DirectSubscription[]
   offer: OfferDecision
   /**
    * Accept the offer. The optional `result` is included on the resulting
@@ -530,6 +548,8 @@ export interface OfferStepProps {
 export interface FeedbackStepProps {
   title: string
   description?: string
+  customer: DirectCustomer | null
+  subscriptions: DirectSubscription[]
   placeholder?: string
   required: boolean
   minLength: number
@@ -542,11 +562,12 @@ export interface FeedbackStepProps {
 export interface ConfirmStepProps {
   title: string
   description?: string
+  customer: DirectCustomer | null
+  subscriptions: DirectSubscription[]
   losses?: string[]
   lossesLabel?: string
   confirmLabel: string
   goBackLabel: string
-  periodEnd?: string
   onConfirm: () => Promise<void>
   onGoBack: () => void
   isProcessing: boolean
@@ -558,6 +579,8 @@ export interface SuccessStepProps {
   offer?: OfferDecision
   title: string
   description?: string
+  customer: DirectCustomer | null
+  subscriptions: DirectSubscription[]
   onClose: () => void
   classNames?: SuccessClassNames
 }
@@ -577,11 +600,13 @@ export interface FlowState {
   step: string
   currentStepId: string
   selectedReason: string | null
+  freeformText: string
   feedback: string
   outcome: 'saved' | 'cancelled' | null
   isProcessing: boolean
   error: Error | null
   customer: DirectCustomer | null
+  subscriptions: DirectSubscription[]
 }
 
 // ─── Flow config ─────────────────────────────────────────────────────────────
@@ -649,10 +674,4 @@ export interface CancelFlowProps extends FlowCallbacks {
   classNames?: StructuralClassNames
   components?: Partial<ComponentOverrides>
   customComponents?: CustomComponents
-  layout?: {
-    desktop?: 'modal' | 'inline' | 'drawer'
-    mobile?: 'sheet' | 'fullscreen' | 'inline'
-    breakpoint?: number
-  }
-  animation?: 'css' | 'framer' | 'none'
 }

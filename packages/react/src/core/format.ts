@@ -1,3 +1,5 @@
+import type { DirectSubscription } from './types'
+
 // Currencies whose smallest unit equals one major unit (no fractional part).
 // Stripe and most billing providers store these without an implicit /100.
 const ZERO_DECIMAL_CURRENCIES: ReadonlySet<string> = new Set([
@@ -93,6 +95,24 @@ export function formatMonthDay(date: Date, locale?: string): string {
 /** "April 30" — long month form for prominent date displays. */
 export function formatMonthDayLong(date: Date, locale?: string): string {
   return date.toLocaleDateString(locale, { month: 'long', day: 'numeric' })
+}
+
+/**
+ * Long-form access period end ("June 14, 2026") for the first subscription's
+ * current period. Returns null for canceled subscriptions, missing periods,
+ * and unparseable dates so Confirm can drop the "access continues until"
+ * notice cleanly instead of rendering "Invalid Date".
+ */
+export function formatPeriodEnd(
+  subscriptions: DirectSubscription[] | null | undefined,
+  locale?: string,
+): string | null {
+  const status = subscriptions?.[0]?.status
+  if (!status || !('currentPeriod' in status) || !status.currentPeriod?.end) return null
+  const end = status.currentPeriod.end
+  const d = end instanceof Date ? end : new Date(end)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleDateString(locale, { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
 // ─── Discount phrasing ─────────────────────────────────────────────────────

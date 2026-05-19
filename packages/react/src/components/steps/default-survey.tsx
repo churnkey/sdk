@@ -30,12 +30,16 @@ export function DefaultSurvey({
   reasons,
   selectedReason,
   onSelectReason,
+  freeformText,
+  onFreeformChange,
   onNext,
   classNames,
   components,
 }: SurveyStepProps) {
   const ReasonButton = components?.ReasonButton ?? DefaultReasonButton
   const listRef = useRef<HTMLDivElement>(null)
+  const selected = reasons.find((r) => r.id === selectedReason)
+  const showFreeform = selected?.freeform === true
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -79,6 +83,17 @@ export function DefaultSurvey({
           />
         ))}
       </div>
+
+      {showFreeform && (
+        <textarea
+          className={cn('ck-reason-freeform', classNames?.freeformInput)}
+          placeholder="Tell us more (optional)"
+          rows={3}
+          value={freeformText}
+          onChange={(e) => onFreeformChange(e.target.value)}
+          aria-label="Additional detail"
+        />
+      )}
 
       <button
         type="button"

@@ -2,6 +2,14 @@ import type { CSSProperties } from 'react'
 import type { Appearance, AppearanceVariables } from './types'
 
 export const BUILT_IN_STEP_TYPES: readonly string[] = ['survey', 'offer', 'feedback', 'confirm', 'success']
+export const BUILT_IN_OFFER_TYPES: readonly string[] = [
+  'discount',
+  'pause',
+  'trial_extension',
+  'plan_change',
+  'contact',
+  'redirect',
+]
 
 export function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(' ')

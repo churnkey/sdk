@@ -12,7 +12,7 @@ export type {
   SdkStep,
   SdkSurveyStep,
 } from './api-types'
-export { calculateDiscountedPrice, formatPrice } from './format'
+export { calculateDiscountedPrice, formatPeriodEnd, formatPrice } from './format'
 export { CancelFlowMachine } from './machine'
 export type { ResolvedStep } from './step-graph'
 export type { SessionCredentials } from './token'
@@ -73,4 +73,4 @@ export type {
   SurveyStepProps,
   TrialExtensionOffer,
 } from './types'
-export { appearanceToStyle, BUILT_IN_STEP_TYPES, cn, defaultTitles } from './utils'
+export { appearanceToStyle, BUILT_IN_OFFER_TYPES, BUILT_IN_STEP_TYPES, cn, defaultTitles } from './utils'
