@@ -5,7 +5,16 @@
 // as their text content, so the wrapper is transparent and only the inner
 // `{{…}}` needs substitution.
 
-import type { DirectCustomer, FeedbackStep, OfferDecision, OfferStep, ReasonConfig, Step, SurveyStep } from './types'
+import type {
+  DirectCustomer,
+  FeedbackStep,
+  OfferConfig,
+  OfferDecision,
+  OfferStep,
+  ReasonConfig,
+  Step,
+  SurveyStep,
+} from './types'
 
 export type MergeAttrs = Record<string, string>
 
@@ -78,7 +87,7 @@ function mergeStep(step: Step, attrs: MergeAttrs): Step {
         ...s,
         title: maybeMerge(s.title, attrs),
         description: maybeMerge(s.description, attrs),
-        offer: s.offer ? mergeOfferDecision(s.offer, attrs) : undefined,
+        offer: s.offer ? mergeOffer(s.offer, attrs) : undefined,
       }
     }
     case 'feedback': {
@@ -105,7 +114,10 @@ function mergeReason(r: ReasonConfig, attrs: MergeAttrs): ReasonConfig {
   return { ...r, label: applyMergeFields(r.label, attrs) }
 }
 
-function mergeOfferDecision(o: OfferDecision, attrs: MergeAttrs): OfferDecision {
+// Standalone OfferSteps may arrive without copy (the step graph synthesizes
+// defaults later); merging copy is a no-op when there's nothing to merge.
+function mergeOffer(o: OfferConfig | OfferDecision, attrs: MergeAttrs): OfferConfig | OfferDecision {
+  if (!('copy' in o)) return o
   return {
     ...o,
     copy: {

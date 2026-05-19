@@ -1640,4 +1640,114 @@ describe('CancelFlowMachine', () => {
       expect(machine.getSnapshot().customer).toEqual(mockCustomer)
     })
   })
+
+  describe('state.subscriptions and state.customer', () => {
+    const subscription = {
+      id: 's',
+      start: '2024-01-01',
+      status: { name: 'active' as const, currentPeriod: { start: '2025-04-01', end: '2025-05-01' } },
+      items: [{ price: { id: 'p', amount: { value: 100, currency: 'USD' } } }],
+    }
+
+    it('exposes the customer and subscriptions from analytics-mode props', () => {
+      // Regression: state.customer used to be null in analytics mode despite
+      // the customer prop being set, because buildInitialState was passed
+      // null at construction time.
+      const machine = new CancelFlowMachine({
+        ...baseConfig,
+        appId: 'a',
+        customer: { id: 'cus_1', email: 'jane@acme.com' },
+        subscriptions: [subscription],
+      })
+      const snap = machine.getSnapshot()
+      expect(snap.customer).toEqual({ id: 'cus_1', email: 'jane@acme.com' })
+      expect(snap.subscriptions).toEqual([subscription])
+    })
+
+    it('defaults to no customer and empty subscriptions in open-source mode', () => {
+      const machine = new CancelFlowMachine(baseConfig)
+      const snap = machine.getSnapshot()
+      expect(snap.customer).toBeNull()
+      expect(snap.subscriptions).toEqual([])
+    })
+
+    it('populates state.subscriptions from the server config in token mode', () => {
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder' })
+      machine.initializeFromConfig(
+        sdkConfig({
+          customer: { id: 'cus_1' },
+          subscriptions: [subscription],
+          steps: [
+            { type: 'survey', guid: 's1', reasons: [{ id: 'r1', label: 'Test' }] },
+            { type: 'confirm', guid: 'c1' },
+          ],
+        }),
+        {} as any,
+        { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+      )
+      expect(machine.getSnapshot().subscriptions).toEqual([subscription])
+    })
+  })
+
+  describe('freeform reasons', () => {
+    const withFreeform = {
+      steps: [
+        {
+          type: 'survey' as const,
+          reasons: [
+            { id: 'other', label: 'Other', freeform: true },
+            { id: 'expensive', label: 'Too expensive' },
+          ],
+        },
+        { type: 'confirm' as const },
+      ],
+    }
+
+    it('initial followupResponse is empty', () => {
+      const machine = new CancelFlowMachine(withFreeform)
+      expect(machine.getSnapshot().followupResponse).toBe('')
+    })
+
+    it('setFollowupResponse updates state', () => {
+      const machine = new CancelFlowMachine(withFreeform)
+      machine.setFollowupResponse('Switching to a competitor')
+      expect(machine.getSnapshot().followupResponse).toBe('Switching to a competitor')
+    })
+
+    it('resets followupResponse when switching reasons', () => {
+      const machine = new CancelFlowMachine(withFreeform)
+      machine.selectReason('other')
+      machine.setFollowupResponse('typed something')
+      machine.selectReason('expensive')
+      expect(machine.getSnapshot().followupResponse).toBe('')
+    })
+  })
+
+  describe('standalone OfferStep accepts', () => {
+    it('omits reasonId when the offer was not routed from a survey', async () => {
+      const onAccept = vi.fn()
+      const machine = new CancelFlowMachine({
+        steps: [
+          {
+            type: 'offer',
+            guid: 'pause_prompt',
+            offer: {
+              type: 'pause',
+              months: 2,
+              copy: { headline: 'Pause?', body: '', cta: 'Pause', declineCta: 'No' },
+            },
+          },
+          { type: 'confirm' },
+        ],
+        onAccept,
+      })
+
+      await machine.accept()
+
+      expect(onAccept).toHaveBeenCalledTimes(1)
+      const [accepted] = onAccept.mock.calls[0]
+      expect(accepted.type).toBe('pause')
+      expect(accepted.reasonId).toBeUndefined()
+    })
+  })
 })

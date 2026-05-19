@@ -71,12 +71,11 @@
   --ck-shadow-modal: 0 20px 25px -5px rgba(12, 10, 9, 0.1), 0 8px 10px -6px rgba(12, 10, 9, 0.06);
   --ck-shadow-card: 0 1px 2px rgba(12, 10, 9, 0.04), 0 1px 3px rgba(12, 10, 9, 0.06);
 
-  /* Overlay tint behind the modal. Defaults to a tinted version of the
-     primary color so any primary swap naturally re-tints the overlay.
-     Falls back gracefully on browsers without color-mix() support — the
-     declaration is invalid in those, so the rule below it (or the inline
-     style) wins. */
-  --ck-overlay-color: color-mix(in srgb, var(--ck-color-primary) 40%, transparent);
+  /* Dim behind the modal. Neutral translucent ink by default. Brands that
+     want a primary-tinted overlay can override this with their own value —
+     e.g. `color-mix(in srgb, var(--ck-color-primary) 40%, transparent)` for
+     auto re-tinting on primary swaps. */
+  --ck-overlay-color: rgba(12, 10, 9, 0.5);
 
   /* Motion */
   --ck-motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -144,11 +143,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Fallback for browsers without color-mix() support — used if the token
-     evaluates to an invalid value. Modern engines (Chrome 111+, Safari
-     16.2+, Firefox 113+) resolve --ck-overlay-color from the :root rule. */
-  background: rgba(12, 10, 9, 0.5);
-  /* biome-ignore lint/suspicious/noDuplicateProperties: progressive enhancement fallback */
   background: var(--ck-overlay-color);
   z-index: 9999;
 }
@@ -351,6 +345,25 @@
   flex-direction: column;
   gap: 8px;
   margin-bottom: 20px;
+}
+
+.ck-cancel-flow .ck-reason-followup {
+  width: 100%;
+  font-family: var(--ck-font);
+  font-size: 14px;
+  color: var(--ck-color-text);
+  background: var(--ck-color-surface);
+  border: 1px solid var(--ck-color-border);
+  border-radius: var(--ck-radius-md);
+  padding: 10px 12px;
+  margin-bottom: 20px;
+  resize: vertical;
+  min-height: 72px;
+}
+
+.ck-cancel-flow .ck-reason-followup:focus {
+  outline: none;
+  border-color: var(--ck-color-primary);
 }
 
 .ck-cancel-flow .ck-reason-button {
@@ -613,6 +626,17 @@
   box-shadow: var(--ck-shadow-card);
 }
 
+.ck-cancel-flow .ck-plan-card--current {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background: var(--ck-color-surface-muted);
+}
+
+.ck-cancel-flow .ck-plan-card--current:hover {
+  border-color: var(--ck-color-border);
+  background: var(--ck-color-surface-muted);
+}
+
 .ck-cancel-flow .ck-plan-name {
   font-family: var(--ck-font-display);
   font-size: 16px;
@@ -620,6 +644,21 @@
   letter-spacing: -0.01em;
   color: var(--ck-color-text);
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ck-cancel-flow .ck-plan-current-badge {
+  font-family: var(--ck-font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--ck-color-text-secondary);
+  background: var(--ck-color-surface);
+  border: 1px solid var(--ck-color-border);
+  padding: 2px 6px;
+  border-radius: var(--ck-radius-sm);
 }
 
 .ck-cancel-flow .ck-plan-tagline {

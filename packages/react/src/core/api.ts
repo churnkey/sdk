@@ -77,6 +77,8 @@ export interface SessionPayload {
   aborted?: boolean
   surveyChoiceId?: string
   surveyChoiceValue?: string
+  /** Free-text from a `freeform: true` reason. The reason's static `label` still travels on `surveyChoiceValue`. */
+  followupResponse?: string
   feedback?: string
   acceptedOffer?: AcceptedOfferPayload
   presentedOffers?: PresentedOffer[]

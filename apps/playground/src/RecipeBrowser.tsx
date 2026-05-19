@@ -35,6 +35,7 @@ const RECIPES: Recipe[] = [
       <NpsWithFaces
         step={{ type: 'nps', title: 'How was your experience?' }}
         customer={null}
+        subscriptions={[]}
         onNext={noop}
         onBack={noop}
       />
@@ -53,6 +54,7 @@ const RECIPES: Recipe[] = [
           copy: { headline: '', body: '', cta: '', declineCta: '' },
         }}
         customer={null}
+        subscriptions={[]}
         onAccept={noopAsync}
         onDecline={noop}
         isProcessing={false}
@@ -93,6 +95,8 @@ const RECIPES: Recipe[] = [
             declineCta: 'No thanks, continue',
           },
         }}
+        customer={null}
+        subscriptions={[]}
         onAccept={noopAsync}
         onDecline={noop}
         isProcessing={false}
@@ -117,6 +121,8 @@ const RECIPES: Recipe[] = [
             declineCta: 'No thanks, continue',
           },
         }}
+        customer={null}
+        subscriptions={[]}
         onAccept={noopAsync}
         onDecline={noop}
         isProcessing={false}
@@ -135,6 +141,8 @@ const RECIPES: Recipe[] = [
         description="You'll lose these features you put to good use:"
         confirmLabel="Continue cancellation"
         goBackLabel="Keep my subscription"
+        customer={null}
+        subscriptions={[]}
         onConfirm={noopAsync}
         onGoBack={noop}
         isProcessing={false}

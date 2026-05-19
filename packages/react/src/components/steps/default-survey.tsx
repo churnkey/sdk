@@ -1,4 +1,3 @@
-import { useCallback, useRef } from 'react'
 import type { ReasonButtonProps, SurveyStepProps } from '../../core/types'
 import { cn } from '../../core/utils'
 import { RichText } from '../rich-text'
@@ -12,7 +11,6 @@ function DefaultReasonButton({ reason, index, isSelected, onSelect }: ReasonButt
       type="button"
       role="radio"
       aria-checked={isSelected}
-      tabIndex={isSelected ? 0 : -1}
       onClick={() => onSelect(reason.id)}
       className={cn('ck-reason-button', isSelected && 'ck-reason-button--selected')}
     >
@@ -30,45 +28,22 @@ export function DefaultSurvey({
   reasons,
   selectedReason,
   onSelectReason,
+  followupResponse,
+  onFollowupResponseChange,
   onNext,
   classNames,
   components,
 }: SurveyStepProps) {
   const ReasonButton = components?.ReasonButton ?? DefaultReasonButton
-  const listRef = useRef<HTMLDivElement>(null)
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-      e.preventDefault()
-
-      const currentIdx = reasons.findIndex((r) => r.id === selectedReason)
-      let nextIdx: number
-      if (e.key === 'ArrowDown') {
-        nextIdx = currentIdx < reasons.length - 1 ? currentIdx + 1 : 0
-      } else {
-        nextIdx = currentIdx > 0 ? currentIdx - 1 : reasons.length - 1
-      }
-      onSelectReason(reasons[nextIdx].id)
-
-      const buttons = listRef.current?.querySelectorAll<HTMLElement>('[role="radio"]')
-      buttons?.[nextIdx]?.focus()
-    },
-    [reasons, selectedReason, onSelectReason],
-  )
+  const selected = reasons.find((r) => r.id === selectedReason)
+  const showFollowup = selected?.freeform === true
 
   return (
     <div className={cn('ck-step ck-step-survey', classNames?.root)}>
       <h2 className={cn('ck-step-title', classNames?.title)}>{title}</h2>
       {description && <RichText html={description} className={cn('ck-step-description', classNames?.description)} />}
 
-      <div
-        ref={listRef}
-        className={cn('ck-reason-list', classNames?.reasonList)}
-        role="radiogroup"
-        aria-label={title}
-        onKeyDown={handleKeyDown}
-      >
+      <div className={cn('ck-reason-list', classNames?.reasonList)} role="radiogroup" aria-label={title}>
         {reasons.map((reason, i) => (
           <ReasonButton
             key={reason.id}
@@ -79,6 +54,17 @@ export function DefaultSurvey({
           />
         ))}
       </div>
+
+      {showFollowup && (
+        <textarea
+          className={cn('ck-reason-followup', classNames?.followupInput)}
+          placeholder="Tell us more (optional)"
+          rows={3}
+          value={followupResponse}
+          onChange={(e) => onFollowupResponseChange(e.target.value)}
+          aria-label="Additional detail"
+        />
+      )}
 
       <button
         type="button"

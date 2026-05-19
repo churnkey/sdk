@@ -37,7 +37,7 @@ function trapFocus(container: HTMLElement): () => void {
   return () => container.removeEventListener('keydown', handleKeyDown)
 }
 
-export function DefaultModal({ open, onClose, children, className }: ModalProps) {
+export function DefaultModal({ open, onClose, children, className, overlayClassName }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
@@ -74,7 +74,7 @@ export function DefaultModal({ open, onClose, children, className }: ModalProps)
   return (
     <div
       ref={overlayRef}
-      className="ck-overlay"
+      className={cn('ck-overlay', overlayClassName)}
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose()
       }}

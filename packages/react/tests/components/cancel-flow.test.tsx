@@ -292,4 +292,171 @@ describe('CancelFlow', () => {
     // Body content renders below it.
     expect(screen.getByText('Too expensive')).toBeInTheDocument()
   })
+
+  it('forwards classNames.overlay to the overlay element', () => {
+    renderFlow({ classNames: { overlay: 'my-overlay-class' } })
+    // The overlay is the outermost dialog wrapper. Walk up from the dialog
+    // node to find it; querying by class would couple the test to the SDK's
+    // own class names.
+    const dialog = screen.getByRole('dialog')
+    const overlay = dialog.parentElement
+    expect(overlay).not.toBeNull()
+    expect(overlay).toHaveClass('my-overlay-class')
+  })
+
+  it('warns and skips an unregistered custom offer type', async () => {
+    const user = userEvent.setup()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const stepsWithUnknownOffer: Step[] = [
+      {
+        type: 'survey',
+        reasons: [
+          {
+            id: 'pick',
+            label: 'Pick me',
+            // Custom offer type with no customComponents entry; the SDK
+            // should warn and advance via decline rather than render blank.
+            offer: { type: 'mystery-offer', data: {} },
+          },
+        ],
+      },
+      { type: 'confirm', title: 'Confirm cancellation' },
+    ]
+    render(
+      <CancelFlow
+        steps={stepsWithUnknownOffer}
+        onAccept={vi.fn().mockResolvedValue(undefined)}
+        onCancel={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    await user.click(screen.getByText('Pick me'))
+    await user.click(screen.getByText('Continue'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Confirm cancellation')).toBeInTheDocument()
+    })
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('No component registered for offer type "mystery-offer"'))
+    warn.mockRestore()
+  })
+
+  it('renders a freeform textarea when the selected reason has freeform: true', async () => {
+    const user = userEvent.setup()
+    const freeformSteps: Step[] = [
+      {
+        type: 'survey',
+        reasons: [
+          { id: 'other', label: 'Other', freeform: true },
+          { id: 'expensive', label: 'Too expensive' },
+        ],
+      },
+      { type: 'confirm', title: 'Confirm cancellation' },
+    ]
+    render(
+      <CancelFlow
+        steps={freeformSteps}
+        onAccept={vi.fn().mockResolvedValue(undefined)}
+        onCancel={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    // No textarea before any reason is selected.
+    expect(screen.queryByLabelText('Additional detail')).toBeNull()
+
+    await user.click(screen.getByText('Other'))
+    const textarea = await screen.findByLabelText('Additional detail')
+
+    await user.type(textarea, 'switching to a competitor')
+    expect(textarea).toHaveValue('switching to a competitor')
+
+    // Switching to a non-freeform reason hides the textarea and clears state.
+    await user.click(screen.getByText('Too expensive'))
+    expect(screen.queryByLabelText('Additional detail')).toBeNull()
+  })
+
+  it('renders the period-end notice when the active subscription has a current period', () => {
+    render(
+      <CancelFlow
+        appId="app_test"
+        customer={{ id: 'cus_1' }}
+        subscriptions={[
+          {
+            id: 'sub_1',
+            start: '2024-01-01',
+            status: { name: 'active', currentPeriod: { start: '2025-04-01', end: '2025-05-01' } },
+            items: [{ price: { id: 'p', amount: { value: 100, currency: 'USD' } } }],
+          },
+        ]}
+        steps={[{ type: 'confirm', title: 'Confirm cancellation' }]}
+        onCancel={vi.fn().mockResolvedValue(undefined)}
+      />,
+    )
+
+    // Intl.DateTimeFormat output varies by runtime locale; assert the
+    // notice fires and at least carries the year. Tighter date matching
+    // would couple the test to the test runner's locale.
+    const notice = screen.getByText(/Your access continues until .*2025/)
+    expect(notice).toBeInTheDocument()
+  })
+
+  it("marks the customer's current plan and excludes it from preselection", async () => {
+    const user = userEvent.setup()
+    const planChangeSteps: Step[] = [
+      {
+        type: 'survey',
+        reasons: [
+          {
+            id: 'too-many-features',
+            label: 'Paying for too much',
+            offer: {
+              type: 'plan_change',
+              plans: [
+                { id: 'pro', name: 'Pro', amount: { value: 2900, currency: 'USD' } },
+                { id: 'starter', name: 'Starter', amount: { value: 900, currency: 'USD' } },
+              ],
+            },
+          },
+        ],
+      },
+      { type: 'confirm' },
+    ]
+    const onAccept = vi.fn<(offer: AcceptedOffer) => Promise<void>>().mockResolvedValue(undefined)
+    // Customer's current plan is 'pro', via subscriptions[0].items[0].price.id.
+    render(
+      <CancelFlow
+        steps={planChangeSteps}
+        onAccept={onAccept}
+        onCancel={vi.fn().mockResolvedValue(undefined)}
+        appId="app_test"
+        customer={{ id: 'cus_1' }}
+        subscriptions={[
+          {
+            id: 'sub_1',
+            start: '2024-01-01',
+            status: { name: 'active', currentPeriod: { start: '2025-04-01', end: '2025-05-01' } },
+            items: [{ price: { id: 'pro', amount: { value: 2900, currency: 'USD' } } }],
+          },
+        ]}
+      />,
+    )
+
+    await user.click(screen.getByText('Paying for too much'))
+    await user.click(screen.getByText('Continue'))
+
+    const proCard = screen.getByText('Pro').closest('button')
+    expect(proCard).toBeDisabled()
+    expect(proCard?.textContent).toContain('Current')
+
+    // Preselection skips 'pro' so the accept button targets 'starter' without
+    // further interaction.
+    const acceptButton = await screen.findByText('Switch to Starter')
+    await user.click(acceptButton)
+
+    await waitFor(() => {
+      expect(onAccept).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'plan_change', result: { planId: 'starter' } }),
+        expect.objectContaining({ id: 'cus_1' }),
+      )
+    })
+  })
 })

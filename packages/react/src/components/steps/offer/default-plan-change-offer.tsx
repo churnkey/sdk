@@ -8,6 +8,7 @@ import { Checkmark } from '../shared'
 export function DefaultPlanChangeOffer({
   title,
   description,
+  subscriptions,
   offer,
   onAccept,
   onDecline,
@@ -16,7 +17,11 @@ export function DefaultPlanChangeOffer({
 }: OfferStepProps) {
   const o = offer as OfferDecision & { plans?: PlanOption[] }
   const plans = o.plans ?? []
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(plans[0]?.id ?? null)
+  // Mark the customer's current plan via their first subscription's first
+  // price; switching to that same plan would be a no-op so it gets disabled.
+  const currentPlanId = subscriptions[0]?.items[0]?.price.id
+  const initialPlanId = plans.find((p) => p.id !== currentPlanId)?.id ?? null
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(initialPlanId)
   const selectedPlan = plans.find((p) => p.id === selectedPlanId) ?? null
 
   const headline = title ?? offer.copy.headline
@@ -38,16 +43,25 @@ export function DefaultPlanChangeOffer({
             const interval = plan.duration?.interval ?? 'month'
             const currency = plan.amount.currency ?? 'USD'
             const isSelected = plan.id === selectedPlanId
+            const isCurrent = plan.id === currentPlanId
 
             return (
               <button
                 type="button"
                 key={plan.id}
                 onClick={() => setSelectedPlanId(plan.id)}
-                className={cn('ck-plan-card', isSelected && 'ck-plan-card--selected')}
+                disabled={isCurrent}
+                className={cn(
+                  'ck-plan-card',
+                  isSelected && 'ck-plan-card--selected',
+                  isCurrent && 'ck-plan-card--current',
+                )}
                 aria-pressed={isSelected}
               >
-                <div className="ck-plan-name">{plan.name ?? plan.id}</div>
+                <div className="ck-plan-name">
+                  {plan.name ?? plan.id}
+                  {isCurrent && <span className="ck-plan-current-badge">Current</span>}
+                </div>
                 {plan.tagline && <div className="ck-plan-tagline">{plan.tagline}</div>}
 
                 <div className="ck-plan-price-row">

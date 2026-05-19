@@ -1,3 +1,4 @@
+import { formatPeriodEnd } from '../../core/format'
 import type { ConfirmStepProps } from '../../core/types'
 import { cn } from '../../core/utils'
 import { RichText } from '../rich-text'
@@ -5,17 +6,18 @@ import { RichText } from '../rich-text'
 export function DefaultConfirm({
   title,
   description,
+  subscriptions,
   losses,
   lossesLabel,
   confirmLabel,
   goBackLabel,
-  periodEnd,
   onConfirm,
   onGoBack,
   isProcessing,
   classNames,
 }: ConfirmStepProps) {
   const hasLosses = Array.isArray(losses) && losses.length > 0
+  const periodEnd = formatPeriodEnd(subscriptions)
   return (
     <div className={cn('ck-step ck-step-confirm', classNames?.root)}>
       <h2 className={cn('ck-step-title', classNames?.title)}>{title}</h2>

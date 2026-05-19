@@ -13,7 +13,7 @@ import type {
   SuccessStep,
   SurveyStep,
 } from '../core/types'
-import { appearanceToStyle, defaultTitles } from '../core/utils'
+import { appearanceToStyle, BUILT_IN_OFFER_TYPES, defaultTitles } from '../core/utils'
 import { useCancelFlowMachine } from '../headless/use-cancel-flow-machine'
 import { DefaultConfirm } from './steps/default-confirm'
 import { DefaultFeedback } from './steps/default-feedback'
@@ -79,7 +79,7 @@ function LoadStatus({
 
   return (
     <div className="ck-cancel-flow" data-color-scheme={scheme} style={appearanceStyle}>
-      <Modal open={true} onClose={handleClose} className={classNames?.modal}>
+      <Modal open={true} onClose={handleClose} className={classNames?.modal} overlayClassName={classNames?.overlay}>
         <CloseButton onClose={handleClose} className={classNames?.closeButton} />
         <div className="ck-content">
           {isLoading && (
@@ -148,7 +148,7 @@ function FlowShell({ machine, state, appearance, classNames, components, customC
 
   return (
     <div className="ck-cancel-flow" data-color-scheme={scheme} style={appearanceStyle}>
-      <Modal open={true} onClose={machine.close} className={classNames?.modal}>
+      <Modal open={true} onClose={machine.close} className={classNames?.modal} overlayClassName={classNames?.overlay}>
         <CloseButton onClose={machine.close} className={classNames?.closeButton} />
         <div className="ck-content">
           {machine.canGoBack && <BackButton onBack={machine.back} className={classNames?.backButton} />}
@@ -185,9 +185,13 @@ function StepRenderer({
         <Survey
           title={config?.title ?? defaultTitles.survey}
           description={config?.description}
+          customer={state.customer}
+          subscriptions={state.subscriptions}
           reasons={machine.reasons}
           selectedReason={state.selectedReason}
           onSelectReason={machine.selectReason}
+          followupResponse={state.followupResponse}
+          onFollowupResponseChange={machine.setFollowupResponse}
           onNext={machine.next}
           classNames={config?.classNames}
           components={components}
@@ -206,11 +210,15 @@ function StepRenderer({
           <CustomOffer
             offer={offer}
             customer={state.customer}
+            subscriptions={state.subscriptions}
             onAccept={machine.accept}
             onDecline={machine.decline}
             isProcessing={state.isProcessing}
           />
         )
+      }
+      if (!BUILT_IN_OFFER_TYPES.includes(offer.type)) {
+        return <UnregisteredOfferFallback offerType={offer.type} onSkip={machine.decline} />
       }
       const Offer = components?.Offer ?? DefaultOffer
       const config = stepConfig as OfferStep | undefined
@@ -218,6 +226,8 @@ function StepRenderer({
         <Offer
           title={config?.title}
           description={config?.description}
+          customer={state.customer}
+          subscriptions={state.subscriptions}
           offer={offer}
           onAccept={machine.accept}
           onDecline={machine.decline}
@@ -235,6 +245,8 @@ function StepRenderer({
         <Feedback
           title={config?.title ?? defaultTitles.feedback}
           description={config?.description}
+          customer={state.customer}
+          subscriptions={state.subscriptions}
           placeholder={config?.placeholder}
           required={config?.required ?? false}
           minLength={config?.minLength ?? 0}
@@ -253,6 +265,8 @@ function StepRenderer({
         <Confirm
           title={config?.title ?? defaultTitles.confirm}
           description={config?.description}
+          customer={state.customer}
+          subscriptions={state.subscriptions}
           losses={config?.losses}
           lossesLabel={config?.lossesLabel}
           confirmLabel={config?.confirmLabel ?? 'Cancel subscription'}
@@ -281,6 +295,8 @@ function StepRenderer({
               ? (config?.savedDescription ?? 'Your offer has been applied.')
               : (config?.cancelledDescription ?? "We're sorry to see you go.")
           }
+          customer={state.customer}
+          subscriptions={state.subscriptions}
           onClose={machine.close}
           classNames={config?.classNames}
         />
@@ -305,6 +321,7 @@ function StepRenderer({
             data: config?.data,
           }}
           customer={state.customer}
+          subscriptions={state.subscriptions}
           onNext={machine.next}
           onBack={machine.back}
         />
@@ -313,12 +330,20 @@ function StepRenderer({
   }
 }
 
-// Skips a custom step the consumer didn't register a component for. The skip
-// runs in an effect so we don't mutate machine state during render.
+// Skip runs in an effect so we don't mutate machine state during render.
 function UnregisteredStepFallback({ step, onSkip }: { step: string; onSkip: () => void }) {
   useEffect(() => {
     console.warn(`[churnkey] No component registered for step type "${step}". Skipping.`)
     onSkip()
   }, [step, onSkip])
+  return null
+}
+
+// Pass machine.decline as onSkip so the auto-advance doesn't record an accept.
+function UnregisteredOfferFallback({ offerType, onSkip }: { offerType: string; onSkip: () => void }) {
+  useEffect(() => {
+    console.warn(`[churnkey] No component registered for offer type "${offerType}". Skipping.`)
+    onSkip()
+  }, [offerType, onSkip])
   return null
 }

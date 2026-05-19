@@ -105,8 +105,11 @@ describe('applyMergeFieldsToSteps', () => {
     ]
     const [out] = applyMergeFieldsToSteps(steps, customer)
     const offerStep = out as Extract<Step, { type: 'offer' }>
-    expect(offerStep.offer?.copy.body).toBe('Jane, our support channel is ready')
-    expect(offerStep.offer?.copy.headline).toBe('Get in touch!')
+    // The fixture provides copy inline, so this is the decision-shape branch.
+    const offer = offerStep.offer
+    if (!offer || !('copy' in offer)) throw new Error('Expected offer with copy')
+    expect(offer.copy.body).toBe('Jane, our support channel is ready')
+    expect(offer.copy.headline).toBe('Get in touch!')
   })
 
   it('substitutes placeholders in survey reason labels', () => {
