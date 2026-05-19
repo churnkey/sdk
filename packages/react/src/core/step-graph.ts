@@ -80,7 +80,7 @@ export function buildStepGraph(
 ): StepGraph {
   if (steps.length === 0) return EMPTY_GRAPH
 
-  const resolved = steps.map((step, i) => normalizeStep(step, i))
+  const resolved = steps.map((step, i) => normalizeStep(step, i, defaultOfferCopy))
   linkNeighbors(resolved)
 
   const stepMap: Record<string, ResolvedStep> = {}
@@ -117,7 +117,11 @@ export function buildStepGraph(
   }
 }
 
-function normalizeStep(step: Step, index: number): ResolvedStep {
+function normalizeStep(
+  step: Step,
+  index: number,
+  defaultOfferCopy: (offer: OfferConfig) => OfferDecision['copy'],
+): ResolvedStep {
   // Prefer the caller-provided guid; otherwise generate a stable slug. Stable
   // ids matter for analytics and React keys.
   const guid = (step as { guid?: string }).guid ?? `step-${index}-${step.type}`
@@ -141,7 +145,10 @@ function normalizeStep(step: Step, index: number): ResolvedStep {
         ...base,
         title: s.title,
         description: s.description,
-        offer: s.offer,
+        // Standalone offers may arrive without `copy` — toDecision fills it
+        // in from defaultOfferCopy. Token-mode offers already carry copy
+        // from the server, so toDecision passes them through unchanged.
+        offer: s.offer ? toDecision(s.offer, defaultOfferCopy) : undefined,
         classNames: s.classNames,
       }
     }

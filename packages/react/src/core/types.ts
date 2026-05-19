@@ -229,11 +229,11 @@ export interface OfferStep {
   description?: string
   /**
    * Offer attached to this step. Set this to declare a standalone offer
-   * step (one that isn't routed from a survey reason). The SDK also
-   * populates this automatically on synthetic offer steps spawned from
-   * survey choices.
+   * step (one that isn't routed from a survey reason). `copy` is optional —
+   * the SDK synthesizes default copy from the offer config when none is
+   * provided, the same way it does for survey-attached offers.
    */
-  offer?: OfferDecision
+  offer?: OfferConfig | OfferDecision
   classNames?: OfferClassNames
 }
 
