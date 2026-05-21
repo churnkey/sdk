@@ -97,6 +97,38 @@ Restart the client after editing config.
 
 Use a `test_`-prefixed API key for staging data.
 
+## Local API testing
+
+When testing against a local `churnkey-api` server, start the API on port 3000, then run:
+
+```bash
+pnpm test:mcp --app-id your_app_id --api-key test_data_your_key
+```
+
+The command builds `@churnkey/mcp`, starts the MCP server over stdio, and defaults `CHURNKEY_API_URL` to `http://localhost:3000/v1`. Pass `--api-url` to override the API base URL:
+
+```bash
+pnpm test:mcp --app-id your_app_id --api-key test_data_your_key --api-url http://localhost:3001/v1
+```
+
+For MCP client configs, point the client directly at the built server and provide the same environment variables:
+
+```json
+{
+  "mcpServers": {
+    "churnkey-local": {
+      "command": "node",
+      "args": ["/Users/ig/Documents/Churnkey/sdk/packages/mcp/dist/bin.js"],
+      "env": {
+        "CHURNKEY_APP_ID": "your_app_id",
+        "CHURNKEY_API_KEY": "test_data_your_key",
+        "CHURNKEY_API_URL": "http://localhost:3000/v1"
+      }
+    }
+  }
+}
+```
+
 ## Programmatic use
 
 You can also embed the server in another Node process:
