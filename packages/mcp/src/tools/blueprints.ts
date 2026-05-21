@@ -20,6 +20,7 @@ const draftUpdates = z
       .optional()
       .describe('Locale keys already translated for this blueprint. Usually preserve the existing value.'),
   })
+  .strict()
   .describe('Allowed draft-only blueprint fields. Published/locked blueprints cannot be updated.')
 
 const updateDraftInput = blueprintIdInput.extend({
