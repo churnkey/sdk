@@ -39,6 +39,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
+    "test:mcp": "pnpm build >/dev/null && node scripts/test-mcp.mjs",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "start": "node dist/bin.js"
