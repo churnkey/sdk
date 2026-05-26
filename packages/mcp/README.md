@@ -14,7 +14,7 @@ Model Context Protocol server for [Churnkey](https://churnkey.co). Lets AI agent
 | `get_blueprint` | Full cancel flow blueprint by ID. Use this before draft updates so unchanged fields can be preserved. |
 | `update_blueprint_draft` | Draft-only updates for allowed blueprint fields (`name`, `brandImage`, `primaryColor`, `steps`, `translatedLanguages`). Passing a published blueprint ID edits the corresponding working copy. Writes an audit log. |
 | `publish_blueprint` | Publish a draft blueprint as the live org/segment version. Requires `confirm: "publish"` and writes an audit log. |
-| `list_segments` | Active cancel flow segments in current priority order. |
+| `list_segments` | Active cancel flow segment metadata in current priority order. Segment audience filter rules are not returned. |
 | `reorder_segments` | Reorder cancel flow segment priority. Requires `confirm: "reorder_segments"` and writes an audit log. |
 | `dsr_access` | GDPR/CCPA data access by email. |
 | `dsr_delete` | GDPR/CCPA data delete by email. *Destructive.* |
