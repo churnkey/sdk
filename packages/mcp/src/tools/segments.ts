@@ -22,7 +22,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'list_segments',
       title: 'List cancel flow segments',
       description:
-        'List active cancel flow segments for the authenticated org in current priority order. Use before reorder_segments.',
+        'List active cancel flow segment metadata for the authenticated org in current priority order. Segment audience filter rules are not returned. Use before reorder_segments.',
       inputSchema: z.object({}),
       annotations: { readOnlyHint: true, openWorldHint: true },
       handler: async () => client.get('/data/segments'),
