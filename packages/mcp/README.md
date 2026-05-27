@@ -11,8 +11,9 @@ Model Context Protocol server for [Churnkey](https://churnkey.co). Lets AI agent
 | `aggregate_payment_recoveries` | Failed-payment recovery (dunning) counts and dollar amounts — invoice / recovered / pending / lost, in original currency and USD. Group by time, card brand, decline reason, outcome, blueprint, currency, recovered/active state. |
 | `list_payment_recoveries` | Individual failed-payment recovery campaigns. Same filter set as the aggregation. |
 | `list_blueprints` | Current cancel flow inventory for the org: the default flow plus segment flows, with status (`Active`, `Setup Pending`, or `Inactive`), a `published` boolean, compact draft metadata, and compact `publishedBlueprint` metadata. |
-| `get_blueprint` | Full cancel flow blueprint by ID. Use this before draft updates so unchanged fields can be preserved. |
-| `update_blueprint_draft` | Draft-only updates for allowed blueprint fields (`name`, `brandImage`, `primaryColor`, `steps`, `translatedLanguages`). Passing a published blueprint ID edits the corresponding working copy. Writes an audit log. |
+| `get_blueprint` | Full cancel flow blueprint by ID. Use this for inspection or advanced replacement workflows. |
+| `update_blueprint_draft` | Draft-only updates for top-level blueprint fields (`name`, `brandImage`, `primaryColor`, `translatedLanguages`). Passing a published blueprint ID edits the corresponding working copy. Writes an audit log. |
+| `update_blueprint_step` | Sparse draft step edits by `stepGuid` or `stepIndex`, without sending the full `steps` array. Copy edits clear stale translations; publish refreshes translations. Writes an audit log. |
 | `publish_blueprint` | Publish a draft blueprint as the live org/segment version. Requires `confirm: "publish"` and writes an audit log. |
 | `list_segments` | Active cancel flow segment metadata in current priority order. Segment audience filter rules are not returned. |
 | `reorder_segments` | Reorder cancel flow segment priority. Requires `confirm: "reorder_segments"` and writes an audit log. |
@@ -21,7 +22,7 @@ Model Context Protocol server for [Churnkey](https://churnkey.co). Lets AI agent
 
 Session and recovery tools read from the Churnkey analytics warehouse — sessions refresh every ~3 hours, recoveries every ~20 minutes. DSR tools read/write the operational store directly (no lag).
 
-Blueprint draft updates are intentionally separate from publishing. An agent can update the unlocked working copy directly, or pass the currently published blueprint ID and let the API resolve the working copy, then publish only via the separate confirmed `publish_blueprint` tool. Segment reordering is also a separate confirmed action because order affects which flow customers see.
+Blueprint draft updates are intentionally separate from publishing. Use `update_blueprint_step` for normal step copy/content edits so the agent sends only the targeted fields instead of the full `steps` array with translations. Copy edits clear stale translations for the affected step content, and `publish_blueprint` refreshes translations before making the draft live. Segment reordering is also a separate confirmed action because order affects which flow customers see.
 
 Each tool's input schema is fully described to the MCP client — enums for `saveType` / `offerType` / `billingInterval` / breakdown dimensions, `not` object for exclusions, structured types for booleans and numbers. Mode (live vs test) is set by the API key prefix; pass a `test_`-prefixed key to query test data.
 
