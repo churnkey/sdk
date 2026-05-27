@@ -42,7 +42,6 @@ describe('blueprintTools', () => {
       name: 'Updated flow',
       primaryColor: '#123456',
       brandImage: 'https://example.com/brand.png',
-      steps: [{ stepType: 'SURVEY' }],
       translatedLanguages: ['es'],
     }
 
@@ -61,7 +60,6 @@ describe('blueprintTools', () => {
           name: 'Updated flow',
           primaryColor: '#123456',
           brandImage: 'https://example.com/brand.png',
-          steps: [{ stepType: 'SURVEY' }],
           translatedLanguages: ['es'],
         },
       }),
@@ -77,9 +75,71 @@ describe('blueprintTools', () => {
     expect(() =>
       tool.inputSchema.parse({
         blueprintId: 'bp_123',
-        updates: { liveVersion: true },
+        updates: { steps: [{ stepType: 'SURVEY' }] },
       }),
     ).toThrow()
+  })
+
+  it('routes update_blueprint_step with a compact step patch body', async () => {
+    const { tool, post } = findTool('update_blueprint_step')
+    const updates = {
+      header: 'New header',
+      offer: { description: 'New offer description' },
+      surveyChoices: [{ choiceGuid: 'choice_123', value: 'Too expensive', followupQuestion: 'What price works?' }],
+    }
+
+    await tool.handler({ blueprintId: 'bp_123', stepGuid: 'step_123', updates })
+
+    expect(post).toHaveBeenCalledWith('/data/blueprints/bp_123/step', {
+      body: { stepGuid: 'step_123', stepIndex: undefined, updates },
+    })
+  })
+
+  it('requires one step selector and supported step patch fields', () => {
+    const { tool } = findTool('update_blueprint_step')
+
+    expect(() =>
+      tool.inputSchema.parse({
+        blueprintId: 'bp_123',
+        stepGuid: 'step_123',
+        updates: { header: 'New header', enabled: true },
+      }),
+    ).not.toThrow()
+
+    expect(() =>
+      tool.inputSchema.parse({
+        blueprintId: 'bp_123',
+        updates: { header: 'New header' },
+      }),
+    ).not.toThrow()
+
+    expect(() =>
+      tool.inputSchema.parse({
+        blueprintId: 'bp_123',
+        stepGuid: 'step_123',
+        updates: { steps: [] },
+      }),
+    ).toThrow()
+
+    expect(() =>
+      tool.inputSchema.parse({
+        blueprintId: 'bp_123',
+        stepGuid: 'step_123',
+        updates: { surveyChoices: [{ choiceGuid: 'choice_123', label: 'Nope' }] },
+      }),
+    ).toThrow()
+  })
+
+  it('requires exactly one step selector before routing update_blueprint_step', async () => {
+    const { tool, post } = findTool('update_blueprint_step')
+
+    await expect(tool.handler({ blueprintId: 'bp_123', updates: { header: 'New header' } })).rejects.toThrow(
+      'Pass exactly one of stepGuid or stepIndex.',
+    )
+    await expect(
+      tool.handler({ blueprintId: 'bp_123', stepGuid: 'step_123', stepIndex: 0, updates: { header: 'New header' } }),
+    ).rejects.toThrow('Pass exactly one of stepGuid or stepIndex.')
+    expect(post).not.toHaveBeenCalled()
   })
 
   it('routes publish_blueprint only with the explicit confirmation', async () => {
