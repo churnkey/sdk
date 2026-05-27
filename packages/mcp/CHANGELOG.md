@@ -7,7 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect 
 ### Added
 
 - `aggregate_payment_recoveries` and `list_payment_recoveries` tools, backed by `/v1/data/warehouse/recovery-aggregation` and `/v1/data/warehouse/recoveries`. Aggregation returns count, invoice/recovered/pending/lost amounts in original currency and USD, with breakdowns by time, card brand, decline reason, outcome, blueprint, currency, and recovered/active state.
-- Cancel-flow configuration tools: `list_blueprints`, `get_blueprint`, `update_blueprint_draft`, `publish_blueprint`, `list_segments`, and `reorder_segments`. Draft updates are kept separate from confirmed live-impacting publish/reorder actions, and the API writes audit logs for configuration changes.
+- Cancel-flow configuration tools: `list_blueprints`, `get_blueprint`, `update_blueprint_draft`, `update_blueprint_step`, `publish_blueprint`, `list_segments`, and `reorder_segments`. Draft updates are kept separate from confirmed live-impacting publish/reorder actions, sparse step edits avoid full `steps` payloads, and the API writes audit logs for configuration changes.
 
 ### Changed
 
