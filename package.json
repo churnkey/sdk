@@ -5,7 +5,7 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "test": "turbo test",
-    "test:mcp": "pnpm --filter @churnkey/mcp test:mcp",
+    "local-run": "pnpm --filter @churnkey/mcp local-run",
     "typecheck": "turbo typecheck",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
