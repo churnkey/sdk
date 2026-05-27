@@ -44,7 +44,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'list_blueprints',
       title: 'List cancel flow blueprints',
       description:
-        'List the current cancel flow inventory for the authenticated org: the default org flow plus segment flows, each with compact draft and published metadata. Use editableBlueprintId for draft updates, or fetch a full blueprint before changing steps.',
+        'List the current cancel flow inventory for the authenticated org: the default org flow plus segment flows, each with status, compact draft metadata, and compact published metadata. Status mirrors the dashboard badges: Active, Setup Pending, or Inactive. Use editableBlueprintId for draft updates, or fetch a full blueprint before changing steps.',
       inputSchema: z.object({}),
       annotations: { readOnlyHint: true, openWorldHint: true },
       handler: async () => client.get('/data/blueprints'),

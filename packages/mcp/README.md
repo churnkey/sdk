@@ -10,7 +10,7 @@ Model Context Protocol server for [Churnkey](https://churnkey.co). Lets AI agent
 | `aggregate_sessions` | Session counts, optionally grouped by `breakdownBy` dimensions (saveType, offerType, planId, day/week/month, …). Same filter set as `list_sessions`. |
 | `aggregate_payment_recoveries` | Failed-payment recovery (dunning) counts and dollar amounts — invoice / recovered / pending / lost, in original currency and USD. Group by time, card brand, decline reason, outcome, blueprint, currency, recovered/active state. |
 | `list_payment_recoveries` | Individual failed-payment recovery campaigns. Same filter set as the aggregation. |
-| `list_blueprints` | Current cancel flow inventory for the org: the default flow plus segment flows, with compact draft and published metadata. |
+| `list_blueprints` | Current cancel flow inventory for the org: the default flow plus segment flows, with status (`Active`, `Setup Pending`, or `Inactive`) plus compact draft and published metadata. |
 | `get_blueprint` | Full cancel flow blueprint by ID. Use this before draft updates so unchanged fields can be preserved. |
 | `update_blueprint_draft` | Draft-only updates for allowed blueprint fields (`name`, `brandImage`, `primaryColor`, `steps`, `translatedLanguages`). Passing a published blueprint ID edits the corresponding working copy. Writes an audit log. |
 | `publish_blueprint` | Publish a draft blueprint as the live org/segment version. Requires `confirm: "publish"` and writes an audit log. |
