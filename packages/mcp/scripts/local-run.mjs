@@ -9,7 +9,7 @@ const DEFAULT_API_URL = 'http://localhost:3000/v1'
 function usage(exitCode = 0) {
   const stream = exitCode === 0 ? process.stderr : process.stderr
   stream.write(`Usage:
-  pnpm test:mcp --app-id <app_id> --api-key <data_api_key>
+  pnpm local-run --app-id <app_id> --api-key <data_api_key>
 
 Options:
   --app-id <value>   Churnkey app ID. Falls back to CHURNKEY_APP_ID.

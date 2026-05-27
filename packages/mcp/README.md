@@ -102,7 +102,7 @@ Use a `test_`-prefixed API key for staging data.
 When testing against a local `churnkey-api` server, start the API on port 3000, then run:
 
 ```bash
-pnpm test:mcp --app-id your_app_id --api-key test_data_your_key
+pnpm local-run --app-id your_app_id --api-key test_data_your_key
 ```
 
 The command builds `@churnkey/mcp`, starts the MCP server over stdio, and defaults `CHURNKEY_API_URL` to `http://localhost:3000/v1`. Pass `--api-url` only if your local API is running somewhere else.
