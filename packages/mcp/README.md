@@ -13,16 +13,23 @@ Model Context Protocol server for [Churnkey](https://churnkey.co). Lets AI agent
 | `list_blueprints` | Current cancel flow inventory for the org: the default flow plus every non-deleted segment flow. Each flow has `status` (`active` / `setup_pending` / `inactive`), `published` and `hasUnpublishedChanges` booleans, `editableBlueprintId`, `publishedBlueprintId`, and compact `draft` / `publishedBlueprint` metadata. Status is a coarse subset of the dashboard badges; the "Unpublished Changes" badge is `status: "active"` + `hasUnpublishedChanges: true`. |
 | `get_blueprint` | Full cancel flow blueprint by ID, including the `steps` array (each step/offer/survey-choice carries its `guid` for use with `update_blueprint_step`). Large for translated blueprints. |
 | `update_blueprint_draft` | Draft-only updates for top-level blueprint fields (`name`, `brandImage`, `primaryColor`, `translatedLanguages`). Passing a published blueprint ID edits the corresponding working copy. Writes an audit log. |
-| `update_blueprint_step` | Sparse draft step edits by `stepGuid` or `stepIndex`, without sending the full `steps` array. Copy edits clear stale translations; publish refreshes translations. Writes an audit log. |
+| `update_blueprint_step` | Sparse draft step edits by `stepGuid` or `stepIndex`, without sending the full `steps` array — step/offer copy, `enabled`, and behavioral config (survey `randomize`/`followupRequired`/`minLength`, freeform/confirm config). Copy edits clear stale translations; publish refreshes translations. Writes an audit log. |
+| `update_blueprint_offer` | Edit one offer's type and functional config (discount/pause/trial/redirect/plan-change) on a draft, by `stepGuid` (+ optional `choiceGuid`/`optionGuid`). Writes an audit log. |
+| `edit_survey_structure` | Add/remove/reorder survey choices and configure follow-ups (`add_choice`/`remove_choice`/`reorder_choices`/`set_followup`) on a draft survey step. Writes an audit log. |
+| `add_blueprint_step` / `remove_blueprint_step` | Add a step at a canonical `place` (server builds the base step) or remove one by `stepGuid` on a draft. Writes an audit log. |
 | `publish_blueprint` | Publish a draft blueprint as the live org/segment version. Requires `confirm: "publish"` and writes an audit log. |
 | `list_segments` | Cancel flow segment metadata in priority order (response order = priority; `priority` is the 0-based index). Includes disabled segments (`enabled` flag) and each segment's audience `filter` rules. A/B variant segments appear as separate entries. |
 | `reorder_segments` | Reorder cancel flow segment priority. Requires `confirm: "reorder_segments"` and writes an audit log. |
+| `set_segment_enabled` | Enable/disable a segment (live targeting on/off). Requires `confirm: "set_segment_enabled"` and writes an audit log. |
+| `update_segment_filter` | Replace a segment's audience filter rules (whole-array replace). Requires `confirm: "update_segment_filter"` and writes an audit log. |
 | `dsr_access` | GDPR/CCPA data access by email. |
 | `dsr_delete` | GDPR/CCPA data delete by email. *Destructive.* |
 
 Session and recovery tools read from the Churnkey analytics warehouse — sessions refresh every ~3 hours, recoveries every ~20 minutes. DSR tools read/write the operational store directly (no lag).
 
-Blueprint draft updates are intentionally separate from publishing. Use `update_blueprint_step` for normal step copy/content edits so the agent sends only the targeted fields instead of the full `steps` array with translations. Copy edits clear stale translations for the affected step content, and `publish_blueprint` refreshes translations before making the draft live. Segment reordering is also a separate confirmed action because order affects which flow customers see.
+Blueprint edits are **granular and draft-only**: each tool mutates the unlocked working copy and sends only the targeted fields (never the full `steps` array with translations). `update_blueprint_step` handles copy + behavioral flags, `update_blueprint_offer` handles offer config, `edit_survey_structure` handles survey choices/follow-ups, and `add_blueprint_step`/`remove_blueprint_step` handle step structure. Copy edits clear stale translations for the affected content; `publish_blueprint` refreshes translations before making the draft live and is the only live-impacting blueprint action (so it's the one that requires a `confirm`).
+
+Segment tools (`reorder_segments`, `set_segment_enabled`, `update_segment_filter`) act on **live** config directly (segments have no draft cycle), so each requires an explicit `confirm` literal and writes an audit log.
 
 Each tool's input schema is fully described to the MCP client — enums for `saveType` / `offerType` / `billingInterval` / breakdown dimensions, `not` object for exclusions, structured types for booleans and numbers.
 

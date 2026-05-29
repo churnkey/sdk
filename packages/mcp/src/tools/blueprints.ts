@@ -85,6 +85,34 @@ const stepUpdates = z
       .strict()
       .optional()
       .describe('Offer copy updates for offer steps.'),
+    survey: z
+      .object({
+        randomize: z.boolean().optional().describe('Randomize survey response order.'),
+        followupRequired: z.boolean().optional().describe('Whether a follow-up response is required.'),
+        minLength: z.number().int().min(0).optional().describe('Minimum follow-up character length.'),
+      })
+      .strict()
+      .optional()
+      .describe('Survey behavior flags for survey steps (behavioral; does not affect translations).'),
+    freeformConfig: z
+      .object({
+        inputRequired: z.boolean().optional().describe('Require freeform feedback before continuing.'),
+        minLength: z.number().int().min(0).optional().describe('Minimum freeform character length.'),
+      })
+      .strict()
+      .optional()
+      .describe('Config for freeform steps (behavioral; does not affect translations).'),
+    confirmConfig: z
+      .object({
+        discountNotice: z.boolean().optional().describe('Warn customers with an active discount they will lose it.'),
+        requireAcknowledgement: z
+          .boolean()
+          .optional()
+          .describe('Require explicit acknowledgement on the confirm step.'),
+      })
+      .strict()
+      .optional()
+      .describe('Config for confirm steps (behavioral; does not affect translations).'),
     surveyChoices: z
       .array(surveyChoicePatch)
       .optional()
@@ -120,6 +148,110 @@ function requireOneStepSelector(args: { stepGuid?: unknown; stepIndex?: unknown 
     throw new Error('Pass exactly one of stepGuid or stepIndex.')
   }
 }
+
+// update_blueprint_offer (G3). Config fields span all offer types; the server validates them against
+// the offer's own offerType. Kept as one strict object (not a discriminated union) so offerType can be
+// omitted for config-only edits and the tool schema stays a plain object.
+const offerConfig = z
+  .object({
+    couponId: z
+      .string()
+      .optional()
+      .describe('DISCOUNT: Stripe/provider coupon ID. Omit to derive a custom coupon from customAmount.'),
+    customAmount: z.number().int().min(0).optional().describe('DISCOUNT: custom discount amount in CENTS.'),
+    customDuration: z.enum(['ONCE', 'FOREVER']).optional().describe('DISCOUNT: how long the custom discount applies.'),
+    autoOptimize: z.boolean().optional().describe('DISCOUNT: let Churnkey pick the discount.'),
+    maxPauseLength: z.number().int().min(1).optional().describe('PAUSE: maximum pause length.'),
+    pauseInterval: z.enum(['MONTH', 'WEEK']).optional().describe('PAUSE: unit for maxPauseLength.'),
+    datePicker: z
+      .boolean()
+      .optional()
+      .describe('PAUSE: let the customer pick a resume date (supported providers only).'),
+    trialExtensionDays: z.number().int().min(1).optional().describe('TRIAL_EXTENSION: days to extend the trial.'),
+    redirectUrl: z.string().optional().describe('REDIRECT: URL to send the customer to.'),
+    redirectLabel: z.string().optional().describe('REDIRECT: button label.'),
+    options: z.array(z.string()).optional().describe('PLAN_CHANGE: plan/price IDs the customer can switch to.'),
+  })
+  .strict()
+  .describe("Offer-type-specific config. The server validates which fields are allowed against the offer's offerType.")
+
+const updateOfferInput = blueprintIdInput.extend({
+  stepGuid: z.string().min(1).describe('Guid of the step that owns or contains the offer.'),
+  choiceGuid: z
+    .string()
+    .min(1)
+    .optional()
+    .describe('Edit the offer attached to this survey choice (instead of the step offer).'),
+  optionGuid: z
+    .string()
+    .min(1)
+    .optional()
+    .describe('Edit the offer attached to this structured follow-up option. Requires choiceGuid.'),
+  offerType: z
+    .enum(['PAUSE', 'DISCOUNT', 'CONTACT', 'PLAN_CHANGE', 'REDIRECT', 'TRIAL_EXTENSION'])
+    .optional()
+    .describe('Change the offer type. Switching type seeds default config for the new type.'),
+  header: z.string().optional().describe('Offer headline. Clears stale offer translations.'),
+  description: z.string().optional().describe('Offer description. Clears stale offer translations.'),
+  config: offerConfig.optional(),
+})
+
+// edit_survey_structure (G5). One object with an `op` discriminator; per-op fields are validated
+// server-side. Kept as a plain object (not a zod discriminatedUnion) so the tool schema exposes `.shape`.
+const editSurveyInput = blueprintIdInput.extend({
+  op: z
+    .enum(['add_choice', 'remove_choice', 'reorder_choices', 'set_followup'])
+    .describe('Structural operation to perform on the survey step.'),
+  stepGuid: z.string().min(1).describe('Guid of the survey step (from get_blueprint).'),
+  value: z.string().optional().describe('add_choice: choice display text (default "New Response").'),
+  type: z.enum(['RADIO', 'INPUT']).optional().describe('add_choice: choice type (default RADIO).'),
+  index: z.number().int().min(0).optional().describe('add_choice: insert position (default append).'),
+  followup: z
+    .object({ question: z.string().optional() })
+    .strict()
+    .optional()
+    .describe('add_choice: attach a follow-up question (also sets the choice type to INPUT).'),
+  choiceGuid: z.string().min(1).optional().describe('remove_choice / set_followup: target choice guid.'),
+  choiceIndex: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe('remove_choice / set_followup: target choice index (legacy).'),
+  choiceGuids: z
+    .array(z.string().min(1))
+    .min(1)
+    .optional()
+    .describe('reorder_choices: the complete set of existing choice guids in the new order (must be a permutation).'),
+  mode: z
+    .enum(['freeform', 'structured', 'freeform-structured', 'none'])
+    .optional()
+    .describe('set_followup: follow-up mode. "none" removes the follow-up.'),
+  question: z.string().optional().describe('set_followup: follow-up question text.'),
+  structured: z
+    .object({
+      freeformLabel: z.string().optional().describe('Label for the free-text option in freeform-structured mode.'),
+      options: z
+        .array(z.object({ value: z.string().min(1), guid: z.string().min(1).optional() }).strict())
+        .optional()
+        .describe('Structured follow-up options; the server assigns a guid to any option without one.'),
+    })
+    .strict()
+    .optional()
+    .describe('set_followup: structured follow-up options config.'),
+})
+
+const addStepInput = blueprintIdInput.extend({
+  place: z
+    .enum(['INITIAL_OFFER', 'SURVEY', 'FREEFORM', 'FINAL_OFFER', 'CONFIRM'])
+    .describe(
+      'Canonical step slot. Each slot can hold one step. FINAL_OFFER requires an existing INITIAL_OFFER (a single offer is the initial offer). Offer steps are created with a base DISCOUNT offer — configure it with update_blueprint_offer.',
+    ),
+})
+
+const removeStepInput = blueprintIdInput.extend({
+  stepGuid: z.string().min(1).describe('Guid of the step to remove (from get_blueprint).'),
+})
 
 export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
   return [
@@ -170,9 +302,9 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Patch a single draft blueprint step without sending the full steps array. Prefer stepGuid; use stepIndex only for legacy blueprints without step guids. If you pass a published blueprint ID, the API resolves it to the corresponding unlocked working copy.',
         '',
-        'Allowed updates: step header, description, enabled, offer header/description, and survey choice value/followupQuestion by choiceGuid or choiceIndex.',
+        'Allowed updates: step header, description, enabled; offer header/description; survey behavior (randomize, followupRequired, minLength); freeform config (inputRequired, minLength); confirm config (discountNotice, requireAcknowledgement); and survey choice value/followupQuestion by choiceGuid or choiceIndex.',
         '',
-        'Copy changes clear stale translations for the affected step/offer/survey choice. Auto translation is refreshed on publish, not during this draft patch.',
+        'Copy changes clear stale translations for the affected step/offer/survey choice; behavioral flags (enabled, randomize, followupRequired, minLength, inputRequired, discountNotice, requireAcknowledgement) do not. Auto translation is refreshed on publish, not during this draft patch. For offer pricing/coupon config use update_blueprint_offer; for adding/removing/reordering survey choices use edit_survey_structure.',
         '',
         WRITE_NOTE,
       ].join('\n'),
@@ -183,6 +315,75 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         const { blueprintId, stepGuid, stepIndex, updates } = args
         return client.post(`/data/blueprints/${blueprintId}/step`, { body: { stepGuid, stepIndex, updates } })
       },
+    },
+    {
+      name: 'update_blueprint_offer',
+      title: 'Update a draft cancel flow offer',
+      description: [
+        'Patch the type and functional config of a single offer on a draft blueprint, without sending the full steps array. Offers attach in three places: an offer step (pass stepGuid only), a survey choice (pass stepGuid + choiceGuid), or a structured follow-up option (pass stepGuid + choiceGuid + optionGuid). The offer must already exist at that location. If you pass a published blueprint ID, the API resolves it to the working copy.',
+        '',
+        "Change offerType and/or its config: DISCOUNT (couponId, or customAmount in cents + customDuration, or autoOptimize), PAUSE (maxPauseLength + pauseInterval, datePicker), TRIAL_EXTENSION (trialExtensionDays), REDIRECT (redirectUrl, redirectLabel), PLAN_CHANGE (options), CONTACT (no config). You may also set header/description. Config is validated against the offer's offerType; switching type seeds default config.",
+        '',
+        'Config changes do not affect translations; header/description changes clear stale offer translations (refreshed on publish).',
+        '',
+        WRITE_NOTE,
+      ].join('\n'),
+      inputSchema: updateOfferInput,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+      handler: async (args) => {
+        if (args.optionGuid && !args.choiceGuid) {
+          throw new Error('optionGuid requires choiceGuid.')
+        }
+        const { blueprintId, ...body } = args
+        return client.post(`/data/blueprints/${blueprintId}/offer`, { body })
+      },
+    },
+    {
+      name: 'edit_survey_structure',
+      title: 'Edit a draft cancel flow survey structure',
+      description: [
+        "Add, remove, or reorder survey response choices, or configure a choice's follow-up, on a draft survey step. This changes the survey STRUCTURE (which options customers can pick) — for editing existing choice copy use update_blueprint_step. If you pass a published blueprint ID, the API resolves it to the working copy.",
+        '',
+        'Set `op`: add_choice (the server assigns the new choice guid), remove_choice (by choiceGuid/choiceIndex), reorder_choices (pass choiceGuids = the full set in the new order), or set_followup (mode freeform | structured | freeform-structured | none; the server assigns guids to structured options).',
+        '',
+        'Structural edits clear stale translations for the affected step/choices; auto translation refreshes on publish.',
+        '',
+        WRITE_NOTE,
+      ].join('\n'),
+      inputSchema: editSurveyInput,
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+      handler: async (args) => {
+        const { blueprintId, ...body } = args
+        return client.post(`/data/blueprints/${blueprintId}/survey`, { body })
+      },
+    },
+    {
+      name: 'add_blueprint_step',
+      title: 'Add a step to a draft cancel flow',
+      description: [
+        'Add a step to a draft blueprint at a canonical slot (place). The server builds a sensible base step for that place, so you do not send a full step object — configure it afterward with update_blueprint_step / update_blueprint_offer / edit_survey_structure. If you pass a published blueprint ID, the API resolves it to the working copy.',
+        '',
+        'Places: INITIAL_OFFER, SURVEY, FREEFORM, FINAL_OFFER, CONFIRM — each can hold one step, inserted in canonical order. FINAL_OFFER requires an existing INITIAL_OFFER. Offer steps are seeded with a base DISCOUNT offer.',
+        '',
+        WRITE_NOTE,
+      ].join('\n'),
+      inputSchema: addStepInput,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+      handler: async (args) =>
+        client.post(`/data/blueprints/${args.blueprintId}/step/add`, { body: { place: args.place } }),
+    },
+    {
+      name: 'remove_blueprint_step',
+      title: 'Remove a step from a draft cancel flow',
+      description: [
+        'Remove a step from a draft blueprint by stepGuid (from get_blueprint). If you pass a published blueprint ID, the API resolves it to the working copy. The step and its content are removed from the draft (not published until publish_blueprint).',
+        '',
+        WRITE_NOTE,
+      ].join('\n'),
+      inputSchema: removeStepInput,
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+      handler: async (args) =>
+        client.post(`/data/blueprints/${args.blueprintId}/step/remove`, { body: { stepGuid: args.stepGuid } }),
     },
     {
       name: 'publish_blueprint',
