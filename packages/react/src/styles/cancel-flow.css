@@ -457,6 +457,39 @@
   color: var(--ck-color-text);
 }
 
+/* Rebate: an itemized amount card — what you paid, the refund, the net. */
+.ck-cancel-flow .ck-offer-rebate {
+  background: var(--ck-color-surface-muted);
+  border-radius: var(--ck-radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.ck-cancel-flow .ck-offer-rebate-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--ck-color-text-muted);
+  margin-bottom: 8px;
+}
+
+.ck-cancel-flow .ck-offer-rebate-refund {
+  color: var(--ck-color-primary);
+  font-weight: 600;
+}
+
+.ck-cancel-flow .ck-offer-rebate-total {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ck-color-border);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ck-color-text);
+  margin-bottom: 0;
+}
+
 /* Pause: resume date is the typographic anchor, month chips below. */
 .ck-cancel-flow .ck-pause-card {
   padding: 32px 24px 22px;

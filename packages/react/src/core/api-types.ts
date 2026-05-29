@@ -65,6 +65,7 @@ export type SdkOffer =
   | SdkTrialExtensionOffer
   | SdkRedirectOffer
   | SdkContactOffer
+  | SdkRebateOffer
 
 interface SdkOfferBase {
   /** Per-offer guid — used for analytics joins between presented and accepted offers. */
@@ -109,6 +110,19 @@ export interface SdkContactOffer extends SdkOfferBase {
   type: 'contact'
   url?: string
   label?: string
+}
+
+export interface SdkRebateOffer extends SdkOfferBase {
+  type: 'rebate'
+  /** Cash refunded to the card, smallest currency unit. */
+  amountMinor: number
+  currency: string
+  /** Gross amount paid on the target invoice — the "you paid" row. */
+  amountPaidMinor: number
+  /** amountPaidMinor − amountMinor — the "your net" row. */
+  netAfterRebateMinor: number
+  paymentMethodBrand?: string
+  paymentMethodLast4?: string
 }
 
 export interface SdkOfferCopy {

@@ -7,7 +7,15 @@ const DEFAULT_BASE_URL = 'https://api.churnkey.co/v1'
 // Wire enums accepted by the API. Literal unions so payload builders fail
 // at compile time if they emit a value outside the accepted set.
 export type ApiStepType = 'OFFER' | 'SURVEY' | 'CONFIRM' | 'FREEFORM' | 'CUSTOM'
-export type ApiOfferType = 'DISCOUNT' | 'PAUSE' | 'PLAN_CHANGE' | 'TRIAL_EXTENSION' | 'CONTACT' | 'REDIRECT' | 'CUSTOM'
+export type ApiOfferType =
+  | 'DISCOUNT'
+  | 'PAUSE'
+  | 'PLAN_CHANGE'
+  | 'TRIAL_EXTENSION'
+  | 'CONTACT'
+  | 'REDIRECT'
+  | 'REBATE'
+  | 'CUSTOM'
 export type ApiPauseInterval = 'MONTH' | 'WEEK'
 export type ApiCouponType = 'PERCENT' | 'AMOUNT'
 export type ApiBillingInterval = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR'
@@ -54,6 +62,7 @@ export interface AcceptedOfferPayload {
   newPlanPrice?: number
   trialExtensionDays?: number
   redirectUrl?: string
+  rebateAmount?: number
 }
 
 export interface SessionCustomer {
@@ -172,6 +181,10 @@ export class ChurnkeyApi {
 
   async extendTrial(days: number, blueprintId?: string): Promise<void> {
     await this.request(this.orgUrl('cancel-flow/actions/extend-trial'), { days, blueprintId })
+  }
+
+  async applyRebate(blueprintId?: string, offerGuid?: string): Promise<void> {
+    await this.request(this.orgUrl('cancel-flow/actions/rebate'), { blueprintId, offerGuid })
   }
 
   async createSession(payload: SessionPayload): Promise<void> {

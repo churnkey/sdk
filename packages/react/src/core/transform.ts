@@ -117,6 +117,16 @@ function transformOfferConfig(o: SdkOffer): OfferConfig {
         url: o.url,
         label: o.label,
       }
+    case 'rebate':
+      return {
+        type: 'rebate',
+        amountMinor: o.amountMinor,
+        currency: o.currency,
+        amountPaidMinor: o.amountPaidMinor,
+        netAfterRebateMinor: o.netAfterRebateMinor,
+        paymentMethodBrand: o.paymentMethodBrand,
+        paymentMethodLast4: o.paymentMethodLast4,
+      }
   }
 }
 
@@ -168,6 +178,13 @@ export function defaultOfferCopy(offer: OfferConfig): OfferCopy {
         headline: 'Before you go...',
         body: 'Check this out — it might change your mind.',
         cta: o.label,
+        declineCta: 'No thanks',
+      }
+    case 'rebate':
+      return {
+        headline: 'Get money back',
+        body: "Stay subscribed and we'll refund part of your most recent payment.",
+        cta: 'Accept refund',
         declineCta: 'No thanks',
       }
     default:

@@ -354,6 +354,60 @@ describe('CancelFlowMachine', () => {
     })
   })
 
+  describe('rebate offer', () => {
+    const rebateSteps = {
+      steps: [
+        {
+          type: 'survey' as const,
+          reasons: [
+            {
+              id: 'price',
+              label: 'Too expensive',
+              offer: { type: 'rebate' as const, amountMinor: 1000, currency: 'usd' },
+            },
+          ],
+        },
+        { type: 'confirm' as const },
+      ],
+    }
+
+    it('routes the accepted offer to handleRebate in local mode', async () => {
+      const handleRebate = vi.fn()
+      const machine = new CancelFlowMachine({ ...rebateSteps, handleRebate })
+      machine.selectReason('price')
+      machine.next()
+      await machine.accept()
+
+      expect(handleRebate).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'rebate', amountMinor: 1000, currency: 'usd', reasonId: 'price' }),
+        null,
+      )
+      expect(machine.getSnapshot().step).toBe('success')
+    })
+
+    it('token mode calls applyRebate with the blueprint id', async () => {
+      const mockApi = {
+        applyRebate: vi.fn(async (_blueprintId?: string, _offerGuid?: string) => {}),
+        cancelSubscription: vi.fn(async () => {}),
+        createSession: vi.fn(async () => {}),
+      }
+      const machine = new CancelFlowMachine({ ...rebateSteps, session: 'ck_placeholder' })
+      machine.initializeFromConfig(sdkConfig({ blueprintId: 'bp_1' }), mockApi as any, {
+        appId: 'a',
+        customerId: 'c',
+        authHash: 'h',
+        mode: 'live' as const,
+        issuedAt: 0,
+      })
+      machine.selectReason('price')
+      machine.next()
+      await machine.accept()
+
+      expect(mockApi.applyRebate).toHaveBeenCalledOnce()
+      expect(mockApi.applyRebate.mock.calls[0][0]).toBe('bp_1')
+    })
+  })
+
   describe('decline', () => {
     it('moves to the declared next step after the offer', () => {
       const machine = new CancelFlowMachine(baseConfig)

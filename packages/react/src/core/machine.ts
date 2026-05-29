@@ -40,6 +40,8 @@ function handlerFor(offerType: string, cb: FlowCallbacks): OfferCallback | undef
       return cb.handlePlanChange
     case 'trial_extension':
       return cb.handleTrialExtension
+    case 'rebate':
+      return cb.handleRebate
     default:
       return undefined
   }
@@ -55,6 +57,8 @@ function listenerFor(offerType: string, cb: FlowCallbacks): OfferCallback | unde
       return cb.onPlanChange
     case 'trial_extension':
       return cb.onTrialExtension
+    case 'rebate':
+      return cb.onRebate
     default:
       return undefined
   }
@@ -93,6 +97,7 @@ const OFFER_TYPE_API_MAP: Record<BuiltInOfferConfig['type'], Exclude<ApiOfferTyp
   trial_extension: 'TRIAL_EXTENSION',
   contact: 'CONTACT',
   redirect: 'REDIRECT',
+  rebate: 'REBATE',
 }
 
 // 'success' isn't a stepsViewed entry — the session's outcome/canceled/
@@ -186,6 +191,8 @@ function toAcceptedOfferPayload(rec: OfferDecision, result?: Record<string, unkn
       return { ...base, trialExtensionDays: o.days }
     case 'redirect':
       return { ...base, redirectUrl: o.url }
+    case 'rebate':
+      return { ...base, rebateAmount: o.amountMinor }
     default:
       return base
   }
@@ -361,7 +368,7 @@ export class CancelFlowMachine {
       if (handler) {
         await handler(acceptedOffer, customer)
       } else if (this.isTokenMode()) {
-        await this.executeTokenAction(acceptedOffer)
+        await this.executeTokenAction(acceptedOffer, offer.decisionId)
       }
 
       // Listeners fire after the action succeeded, regardless of who ran it.
@@ -548,7 +555,7 @@ export class CancelFlowMachine {
     }
   }
 
-  private async executeTokenAction(offer: AcceptedOffer): Promise<void> {
+  private async executeTokenAction(offer: AcceptedOffer, decisionId?: string): Promise<void> {
     if (!this.apiClient) return
 
     // Only built-in offer types have a server action; custom types route
@@ -568,6 +575,9 @@ export class CancelFlowMachine {
         break
       case 'trial_extension':
         await this.apiClient.extendTrial(o.days, this.blueprintId ?? undefined)
+        break
+      case 'rebate':
+        await this.apiClient.applyRebate(this.blueprintId ?? undefined, decisionId)
         break
     }
   }

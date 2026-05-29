@@ -87,6 +87,42 @@ describe('transformSdkConfig', () => {
     expect(offerStep.offer.copy).toEqual({ headline: 'h', body: 'b', cta: 'cta', declineCta: 'no' })
   })
 
+  it('preserves resolved rebate fields on the step-attached offer', () => {
+    const config: SdkConfig = {
+      blueprintId: 'bp_1',
+      steps: [
+        {
+          type: 'offer',
+          guid: 'o1',
+          offer: {
+            type: 'rebate',
+            amountMinor: 1000,
+            currency: 'usd',
+            amountPaidMinor: 9900,
+            netAfterRebateMinor: 8900,
+            paymentMethodBrand: 'Visa',
+            paymentMethodLast4: '4242',
+            copy: { headline: 'h', body: 'b', cta: 'cta', declineCta: 'no' },
+          },
+        },
+      ],
+      customer: { id: 'cus_1' },
+      subscriptions: [],
+      settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false },
+    }
+
+    const { steps } = transformSdkConfig(config)
+    const offer = (
+      steps[0] as {
+        offer: { type: string; amountMinor: number; netAfterRebateMinor?: number; paymentMethodLast4?: string }
+      }
+    ).offer
+    expect(offer.type).toBe('rebate')
+    expect(offer.amountMinor).toBe(1000)
+    expect(offer.netAfterRebateMinor).toBe(8900)
+    expect(offer.paymentMethodLast4).toBe('4242')
+  })
+
   it('inlines plan_change plans as DirectPrice[]', () => {
     const config: SdkConfig = {
       blueprintId: 'bp_1',
