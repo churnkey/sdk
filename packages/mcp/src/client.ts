@@ -64,8 +64,7 @@ function parseJson(text: string): unknown {
 }
 
 function mapErrorMessage(status: number, body: unknown): string {
-  const apiMessage =
-    body && typeof body === 'object' && 'message' in body ? String((body as { message: unknown }).message) : null
+  const apiMessage = extractApiMessage(body)
 
   if (status === 401) {
     return 'Churnkey API rejected the credentials. Check CHURNKEY_APP_ID and CHURNKEY_API_KEY in your MCP server config.'
@@ -73,5 +72,30 @@ function mapErrorMessage(status: number, body: unknown): string {
   if (status >= 500) {
     return apiMessage ?? `Churnkey API returned ${status}. Try again or check status.churnkey.co.`
   }
-  return apiMessage ?? `Churnkey API error ${status}`
+  // The Data API sends error bodies as plain text (res.send(error.message)), not JSON, so the
+  // actionable validation/authorization message lives in the raw string body — surface it verbatim.
+  if (apiMessage) {
+    return apiMessage
+  }
+  if (status === 403) {
+    return 'Churnkey API forbidden (403). Your account may not have this capability enabled — check the API key and account permissions.'
+  }
+  if (status === 404) {
+    return 'Churnkey API resource not found (404). Check the ID you passed (e.g. blueprint or segment ID).'
+  }
+  return `Churnkey API error ${status}`
+}
+
+// The success path returns JSON, but errors come back as a plain-text body. Accept either: an
+// object with a `message` field, or a non-empty string body.
+function extractApiMessage(body: unknown): string | null {
+  if (body && typeof body === 'object' && 'message' in body) {
+    const message = (body as { message: unknown }).message
+    const text = message == null ? '' : String(message).trim()
+    return text ? text : null
+  }
+  if (typeof body === 'string' && body.trim()) {
+    return body.trim()
+  }
+  return null
 }

@@ -6,10 +6,37 @@ const blueprintIdInput = z.object({
   blueprintId: z.string().describe('Churnkey blueprint ID. Use list_blueprints first if you do not know it.'),
 })
 
+// Mirrors the server's validateImageUrl (churnkey-api src/helpers/aws.js): images hosted on
+// images.churnkey.co are always trusted; otherwise the URL path must end in an allowed raster
+// extension. SVG (and anything else) is rejected. The server does not require https, so we don't either.
+const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp']
+const brandImage = z
+  .string()
+  .refine(
+    (value) => {
+      if (value.startsWith('https://images.churnkey.co/')) return true
+      let pathname: string
+      try {
+        pathname = new URL(value).pathname
+      } catch {
+        return false
+      }
+      const ext = pathname.split('.').pop()?.toLowerCase()
+      return Boolean(ext && IMAGE_EXTENSIONS.includes(ext))
+    },
+    {
+      message:
+        'brandImage must be a URL whose path ends in .png/.jpg/.jpeg/.gif/.webp (SVG and other formats are rejected); churnkey.co-hosted images are always accepted.',
+    },
+  )
+  .describe(
+    'Brand image URL. Must point to a PNG/JPG/JPEG/GIF/WebP image (SVG and other formats are rejected by the API); images on images.churnkey.co are always accepted.',
+  )
+
 const draftUpdates = z
   .object({
     name: z.string().optional().describe('Blueprint display name.'),
-    brandImage: z.string().url().optional().describe('Brand image URL. SVG URLs are rejected by the API.'),
+    brandImage: brandImage.optional(),
     primaryColor: z.string().optional().describe('Primary hex color for the flow, e.g. "#F7B200".'),
     translatedLanguages: z
       .array(z.string())
@@ -27,7 +54,7 @@ const updateDraftInput = blueprintIdInput.extend({
 
 const surveyChoicePatch = z
   .object({
-    choiceGuid: z.string().optional().describe('Preferred stable survey choice identifier.'),
+    choiceGuid: z.string().min(1).optional().describe('Preferred stable survey choice identifier.'),
     choiceIndex: z
       .number()
       .int()
@@ -69,7 +96,7 @@ const stepUpdates = z
   .refine((value) => Object.keys(value).length > 0, { message: 'Pass at least one step update field.' })
 
 const updateStepInput = blueprintIdInput.extend({
-  stepGuid: z.string().optional().describe('Preferred stable step identifier.'),
+  stepGuid: z.string().min(1).optional().describe('Preferred stable step identifier.'),
   stepIndex: z
     .number()
     .int()
@@ -99,8 +126,13 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
     {
       name: 'list_blueprints',
       title: 'List cancel flow blueprints',
-      description:
-        'List the current cancel flow inventory for the authenticated org: the default org flow plus segment flows, each with status, a published boolean, compact draft metadata, and compact publishedBlueprint metadata. Status mirrors the dashboard badges: Active, Setup Pending, or Inactive. Use editableBlueprintId for draft updates, or fetch a full blueprint before changing steps.',
+      description: [
+        'List the current cancel flow inventory for the authenticated org: the default org flow plus every non-deleted segment flow (including segments that are not yet set up or disabled). Each flow has a `status` (`active`, `setup_pending`, or `inactive`), a `published` boolean, a `hasUnpublishedChanges` boolean (true when the draft has edits not yet published), compact `draft` metadata, and compact `publishedBlueprint` metadata.',
+        '',
+        'Status is a coarse subset of the dashboard badges: `active` = a published flow, `setup_pending` = configured but never published (the dashboard\'s "Setup Pending" / "Needs to be Published"), `inactive` = a disabled segment. The dashboard\'s "Unpublished Changes" badge corresponds to `status: "active"` with `hasUnpublishedChanges: true`.',
+        '',
+        'Use `editableBlueprintId` for draft updates and `publishedBlueprintId` to reference the live version. Blueprint configuration is shared across live and test mode, so this is not affected by the API key prefix.',
+      ].join('\n'),
       inputSchema: z.object({}),
       annotations: { readOnlyHint: true, openWorldHint: true },
       handler: async () => client.get('/data/blueprints'),
@@ -108,8 +140,11 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
     {
       name: 'get_blueprint',
       title: 'Get a cancel flow blueprint',
-      description:
-        'Fetch one cancel flow blueprint by ID. Use this before updating; draft updates should preserve unchanged steps and only edit the intended fields.',
+      description: [
+        'Fetch one full cancel flow blueprint by ID. Returns the blueprint metadata (name, guid, version, brandImage, primaryColor, translatedLanguages, locked, publishedAt) and the full `steps` array.',
+        '',
+        'Each step includes its `guid`, `enabled`, copy, an optional `offer` (with `offerType`), and an optional `survey` whose `choices` each carry a `guid` and `value`. Use these `guid`s with update_blueprint_step to patch a specific step or survey choice without resending the whole steps array. Note the response can be large for translated blueprints (every step/offer/choice carries its translations).',
+      ].join('\n'),
       inputSchema: blueprintIdInput,
       annotations: { readOnlyHint: true, openWorldHint: true },
       handler: async (args) => client.get(`/data/blueprints/${args.blueprintId}`),
