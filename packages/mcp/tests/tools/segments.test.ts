@@ -37,4 +37,47 @@ describe('segmentTools', () => {
     expect(() => tool.inputSchema.parse({ segmentIds: ['seg_1'] })).toThrow()
     expect(() => tool.inputSchema.parse({ segmentIds: ['seg_1'], confirm: 'yes' })).toThrow()
   })
+
+  it('routes set_segment_enabled with the confirmed body', async () => {
+    const { tool, post } = findTool('set_segment_enabled')
+
+    await tool.handler({ segmentId: 'seg_1', enabled: false, confirm: 'set_segment_enabled' })
+    expect(post).toHaveBeenCalledWith('/data/segments/seg_1/enabled', {
+      body: { enabled: false, confirm: 'set_segment_enabled' },
+    })
+
+    expect(() => tool.inputSchema.parse({ segmentId: 'seg_1', enabled: false })).toThrow()
+    expect(() => tool.inputSchema.parse({ segmentId: 'seg_1', enabled: false, confirm: 'yes' })).toThrow()
+  })
+
+  it('routes update_segment_filter and enforces BETWEEN value length', async () => {
+    const { tool, post } = findTool('update_segment_filter')
+    const filter = [{ attribute: 'PLAN_ID', operand: 'INCLUDES' as const, value: ['price_1'] }]
+
+    await tool.handler({ segmentId: 'seg_1', filter, confirm: 'update_segment_filter' })
+    expect(post).toHaveBeenCalledWith('/data/segments/seg_1/filter', {
+      body: { filter, confirm: 'update_segment_filter' },
+    })
+
+    // BETWEEN needs exactly 2 values
+    expect(() =>
+      tool.inputSchema.parse({
+        segmentId: 'seg_1',
+        filter: [{ attribute: 'AGE', operand: 'BETWEEN', value: [1] }],
+        confirm: 'update_segment_filter',
+      }),
+    ).toThrow()
+    // unsupported operand rejected
+    expect(() =>
+      tool.inputSchema.parse({
+        segmentId: 'seg_1',
+        filter: [{ attribute: 'PLAN_ID', operand: 'EQUAL', value: ['x'] }],
+        confirm: 'update_segment_filter',
+      }),
+    ).toThrow()
+    // empty filter (clear all) is allowed
+    expect(() =>
+      tool.inputSchema.parse({ segmentId: 'seg_1', filter: [], confirm: 'update_segment_filter' }),
+    ).not.toThrow()
+  })
 })

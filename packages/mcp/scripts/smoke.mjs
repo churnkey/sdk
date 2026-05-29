@@ -54,7 +54,19 @@ try {
   await client.connect(transport)
 
   const tools = await client.listTools()
+  const toolNames = new Set(tools.tools.map((t) => t.name))
   check('server lists tools', tools.tools.length >= 10, `${tools.tools.length} tools`)
+  // New granular mutation tools must register (this exercises zod -> JSON-schema serialization).
+  const NEW_TOOLS = [
+    'update_blueprint_offer',
+    'edit_survey_structure',
+    'add_blueprint_step',
+    'remove_blueprint_step',
+    'set_segment_enabled',
+    'update_segment_filter',
+  ]
+  const missing = NEW_TOOLS.filter((n) => !toolNames.has(n))
+  check('new mutation tools registered', missing.length === 0, missing.length ? `missing: ${missing.join(', ')}` : NEW_TOOLS.join(', '))
 
   // --- list_blueprints (D1 + D2) ---
   const bp = await call(client, 'list_blueprints')
@@ -109,6 +121,66 @@ try {
     bad.isError && /not found/i.test(bad.text) && !/^Churnkey API error \d+$/.test(bad.text.trim()),
     bad.text,
   )
+
+  // --- opt-in, fully reversible end-to-end WRITE round-trip (--mutate) ---
+  // Picks a side-effect-free reversible field on the org draft (a behavioral flag, or a numeric
+  // pause/trial config field), writes a changed value, RE-READS to observe it persisted, then restores
+  // the original value and re-reads again. Deliberately avoids translation-clearing copy edits, the
+  // discount customAmount->couponId derivation, and live segment toggles.
+  if (process.argv.includes('--mutate')) {
+    const orgFlow = (bp.json?.flows || []).find((f) => f.scope === 'org')
+    const draftId = orgFlow?.editableBlueprintId
+    const readSteps = async () => (await call(client, 'get_blueprint', { blueprintId: draftId })).json?.steps || []
+
+    if (!draftId) {
+      check('mutate: org draft available', false, 'no editable org blueprint to test against')
+    } else {
+      const steps = await readSteps()
+      let target = null
+
+      const surveyStep = steps.find((s) => s.survey && typeof s.survey.randomize === 'boolean')
+      const pauseStep = steps.find((s) => s.offer?.offerType === 'PAUSE' && typeof s.offer?.pauseConfig?.maxPauseLength === 'number')
+      const trialStep = steps.find((s) => s.offer?.offerType === 'TRIAL_EXTENSION' && typeof s.offer?.trialExtensionConfig?.trialExtensionDays === 'number')
+
+      if (surveyStep) {
+        const original = surveyStep.survey.randomize
+        target = {
+          label: 'survey.randomize',
+          changedKey: 'survey.randomize',
+          original,
+          next: !original,
+          write: (value) =>
+            call(client, 'update_blueprint_step', { blueprintId: draftId, stepGuid: surveyStep.guid, updates: { survey: { randomize: value } } }),
+          read: (s) => s.find((x) => x.guid === surveyStep.guid)?.survey?.randomize,
+        }
+      } else if (pauseStep || trialStep) {
+        const pick = pauseStep
+          ? { step: pauseStep, cfg: 'pauseConfig', field: 'maxPauseLength' }
+          : { step: trialStep, cfg: 'trialExtensionConfig', field: 'trialExtensionDays' }
+        const original = pick.step.offer[pick.cfg][pick.field]
+        target = {
+          label: `offer.${pick.cfg}.${pick.field}`,
+          changedKey: `config.${pick.field}`,
+          original,
+          next: original + 1,
+          write: (value) => call(client, 'update_blueprint_offer', { blueprintId: draftId, stepGuid: pick.step.guid, config: { [pick.field]: value } }),
+          read: (s) => s.find((x) => x.guid === pick.step.guid)?.offer?.[pick.cfg]?.[pick.field],
+        }
+      }
+
+      if (!target) {
+        check('mutate: found a safe reversible field', false, 'no side-effect-free reversible field on the org draft')
+      } else {
+        const w1 = await target.write(target.next)
+        check(`mutate: write ${target.label}`, !w1.isError && (w1.json?.changedFields || []).includes(target.changedKey), w1.text)
+        const afterWrite = target.read(await readSteps())
+        check('mutate: write PERSISTED (observed via re-read)', afterWrite === target.next, `${target.label}: ${target.original} -> ${afterWrite}`)
+        const w2 = await target.write(target.original)
+        const afterRestore = target.read(await readSteps())
+        check('mutate: value restored to original', !w2.isError && afterRestore === target.original, `restored to ${afterRestore}`)
+      }
+    }
+  }
 
   await client.close()
 } catch (err) {
