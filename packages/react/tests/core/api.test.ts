@@ -4,8 +4,6 @@ import type { SessionCredentials } from '../../src/core/token'
 
 // Pins the action path and body shape for every cancel-flow action so a
 // server/SDK drift produces a test failure rather than a runtime 404.
-// Backend alias routes live in churnkey-api/src/api/org/index.js alongside
-// the legacy /stripe/* paths the hosted embed still uses.
 
 const creds: SessionCredentials = {
   appId: 'app_test',
