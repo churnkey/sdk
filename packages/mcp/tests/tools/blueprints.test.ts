@@ -80,6 +80,22 @@ describe('blueprintTools', () => {
     ).toThrow()
   })
 
+  it('validates brandImage against the server image rules', () => {
+    const { tool } = findTool('update_blueprint_draft')
+    const parseBrandImage = (brandImage: string) =>
+      tool.inputSchema.parse({ blueprintId: 'bp_123', updates: { brandImage } })
+
+    // Allowed raster extensions and churnkey.co-hosted images pass.
+    expect(() => parseBrandImage('https://example.com/brand.png')).not.toThrow()
+    expect(() => parseBrandImage('https://cdn.example.com/a/b/logo.webp')).not.toThrow()
+    expect(() => parseBrandImage('https://images.churnkey.co/abc123')).not.toThrow()
+
+    // SVG, other extensions, extension-less URLs, and non-URLs are rejected (matching the server).
+    expect(() => parseBrandImage('https://example.com/logo.svg')).toThrow()
+    expect(() => parseBrandImage('https://example.com/logo')).toThrow()
+    expect(() => parseBrandImage('not-a-url')).toThrow()
+  })
+
   it('routes update_blueprint_step with a compact step patch body', async () => {
     const { tool, post } = findTool('update_blueprint_step')
     const updates = {
@@ -126,6 +142,15 @@ describe('blueprintTools', () => {
         blueprintId: 'bp_123',
         stepGuid: 'step_123',
         updates: { surveyChoices: [{ choiceGuid: 'choice_123', label: 'Nope' }] },
+      }),
+    ).toThrow()
+
+    // Empty-string guids are rejected rather than silently treated as "absent".
+    expect(() =>
+      tool.inputSchema.parse({
+        blueprintId: 'bp_123',
+        stepGuid: '',
+        updates: { header: 'New header' },
       }),
     ).toThrow()
   })
