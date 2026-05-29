@@ -182,4 +182,64 @@ describe('blueprintTools', () => {
     expect(() => tool.inputSchema.parse({ blueprintId: 'bp_123' })).toThrow()
     expect(() => tool.inputSchema.parse({ blueprintId: 'bp_123', confirm: 'yes' })).toThrow()
   })
+
+  it('accepts survey/freeform/confirm behavioral config on update_blueprint_step', () => {
+    const { tool } = findTool('update_blueprint_step')
+
+    expect(() =>
+      tool.inputSchema.parse({
+        blueprintId: 'bp_123',
+        stepGuid: 'step_123',
+        updates: { survey: { randomize: true, minLength: 20 }, confirmConfig: { discountNotice: true } },
+      }),
+    ).not.toThrow()
+    // unknown nested key rejected
+    expect(() =>
+      tool.inputSchema.parse({
+        blueprintId: 'bp_123',
+        stepGuid: 'step_123',
+        updates: { survey: { shuffle: true } },
+      }),
+    ).toThrow()
+  })
+
+  it('routes update_blueprint_offer and requires choiceGuid for optionGuid', async () => {
+    const { tool, post } = findTool('update_blueprint_offer')
+
+    await tool.handler({
+      blueprintId: 'bp_123',
+      stepGuid: 'step_1',
+      offerType: 'DISCOUNT',
+      config: { customAmount: 1500, customDuration: 'ONCE' },
+    })
+    expect(post).toHaveBeenCalledWith('/data/blueprints/bp_123/offer', {
+      body: { stepGuid: 'step_1', offerType: 'DISCOUNT', config: { customAmount: 1500, customDuration: 'ONCE' } },
+    })
+
+    await expect(
+      tool.handler({ blueprintId: 'bp_123', stepGuid: 'step_1', optionGuid: 'opt_1', config: {} }),
+    ).rejects.toThrow('optionGuid requires choiceGuid.')
+  })
+
+  it('routes edit_survey_structure with the op body', async () => {
+    const { tool, post } = findTool('edit_survey_structure')
+
+    await tool.handler({ blueprintId: 'bp_123', op: 'add_choice', stepGuid: 'step_1', value: 'Too pricey' })
+    expect(post).toHaveBeenCalledWith('/data/blueprints/bp_123/survey', {
+      body: { op: 'add_choice', stepGuid: 'step_1', value: 'Too pricey' },
+    })
+  })
+
+  it('routes add_blueprint_step and remove_blueprint_step', async () => {
+    const add = findTool('add_blueprint_step')
+    await add.tool.handler({ blueprintId: 'bp_123', place: 'FINAL_OFFER' })
+    expect(add.post).toHaveBeenCalledWith('/data/blueprints/bp_123/step/add', { body: { place: 'FINAL_OFFER' } })
+
+    const remove = findTool('remove_blueprint_step')
+    await remove.tool.handler({ blueprintId: 'bp_123', stepGuid: 'step_9' })
+    expect(remove.post).toHaveBeenCalledWith('/data/blueprints/bp_123/step/remove', { body: { stepGuid: 'step_9' } })
+
+    // place must be a known slot
+    expect(() => add.tool.inputSchema.parse({ blueprintId: 'bp_123', place: 'MIDDLE' })).toThrow()
+  })
 })
