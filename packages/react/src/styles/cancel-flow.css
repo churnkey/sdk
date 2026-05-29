@@ -431,10 +431,17 @@
   margin-bottom: 20px;
 }
 
-/* Discount: centered phrase in a soft tinted panel. */
-.ck-cancel-flow .ck-offer-discount {
-  background: var(--ck-color-primary-soft);
+/* Offer panels are soft callouts (colorSurfaceMuted), not selected-state
+   highlights (colorPrimarySoft). Shared so the offer types stay consistent. */
+.ck-cancel-flow .ck-offer-discount,
+.ck-cancel-flow .ck-pause-card,
+.ck-cancel-flow .ck-trial-block {
+  background: var(--ck-color-surface-muted);
   border-radius: var(--ck-radius-lg);
+}
+
+/* Discount: centered phrase. */
+.ck-cancel-flow .ck-offer-discount {
   padding: 24px 20px;
   text-align: center;
 }
@@ -457,12 +464,12 @@
   color: var(--ck-color-text);
 }
 
-/* Rebate: an itemized amount card — what you paid, the refund, the net. */
+/* Rebate: an itemized invoice for the period — the charge, the rebate we
+   credit (accented), and what's still due. Lines sit on the surface rather
+   than in a filled panel. */
 .ck-cancel-flow .ck-offer-rebate {
-  background: var(--ck-color-surface-muted);
-  border-radius: var(--ck-radius-lg);
-  padding: 20px;
-  margin-bottom: 16px;
+  margin: 4px 0 26px;
+  font-variant-numeric: tabular-nums;
 }
 
 .ck-cancel-flow .ck-offer-rebate-row {
@@ -470,31 +477,30 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
-  font-size: 14px;
+  padding: 7px 0;
+  font-size: 13px;
   color: var(--ck-color-text-muted);
-  margin-bottom: 8px;
 }
 
-.ck-cancel-flow .ck-offer-rebate-refund {
-  color: var(--ck-color-primary);
+/* The rebate line — the figure we want the eye to land on. */
+.ck-cancel-flow .ck-offer-rebate-credit {
+  font-size: 14px;
   font-weight: 600;
+  color: var(--ck-color-primary);
 }
 
 .ck-cancel-flow .ck-offer-rebate-total {
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 6px;
+  padding-top: 14px;
   border-top: 1px solid var(--ck-color-border);
   font-size: 15px;
   font-weight: 600;
   color: var(--ck-color-text);
-  margin-bottom: 0;
 }
 
 /* Pause: resume date is the typographic anchor, month chips below. */
 .ck-cancel-flow .ck-pause-card {
   padding: 32px 24px 22px;
-  background: var(--ck-color-surface-muted);
-  border-radius: var(--ck-radius-lg);
   text-align: center;
   margin: 8px 0 20px;
 }
@@ -548,14 +554,12 @@
   border-color: var(--ck-color-primary);
 }
 
-/* Trial extension: day count badge + new end date in accent-soft container. */
+/* Trial extension: day count badge + new end date. */
 .ck-cancel-flow .ck-trial-block {
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 20px;
-  background: var(--ck-color-primary-soft);
-  border-radius: var(--ck-radius-lg);
 }
 
 .ck-cancel-flow .ck-trial-badge {

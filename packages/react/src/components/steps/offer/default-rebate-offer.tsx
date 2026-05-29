@@ -8,8 +8,6 @@ type RebateDecision = OfferDecision & {
   currency?: string
   amountPaidMinor?: number
   netAfterRebateMinor?: number
-  paymentMethodBrand?: string
-  paymentMethodLast4?: string
 }
 
 export function DefaultRebateOffer({
@@ -26,7 +24,6 @@ export function DefaultRebateOffer({
   const body = description ?? offer.copy.body
   const currency = o.currency ?? 'usd'
   const amount = o.amountMinor ?? 0
-  const card = [o.paymentMethodBrand, o.paymentMethodLast4].filter(Boolean).join(' •••• ')
 
   return (
     <div className={cn('ck-step ck-step-offer', classNames?.root)}>
@@ -34,20 +31,23 @@ export function DefaultRebateOffer({
       {body && <RichText html={body} className={cn('ck-step-description', classNames?.description)} />}
 
       <div className={cn('ck-offer-card', classNames?.card)}>
+        {/* Itemized like an invoice: the period charge, the rebate we credit
+            (the accented line), and what's still due. Paid and net are
+            server-resolved in token mode, so each renders only when present. */}
         <div className="ck-offer-rebate">
           {o.amountPaidMinor != null && (
             <div className="ck-offer-rebate-row">
-              <span>You paid this period</span>
+              <span>Subscription · this period</span>
               <span>{formatPriceFromMinor(o.amountPaidMinor, currency)}</span>
             </div>
           )}
-          <div className="ck-offer-rebate-row">
-            <span>{card ? `Refund to your ${card}` : 'Refund to your card'}</span>
-            <span className="ck-offer-rebate-refund">−{formatPriceFromMinor(amount, currency)}</span>
+          <div className="ck-offer-rebate-row ck-offer-rebate-credit">
+            <span>Cancellation rebate</span>
+            <span>−{formatPriceFromMinor(amount, currency)}</span>
           </div>
           {o.netAfterRebateMinor != null && (
             <div className="ck-offer-rebate-row ck-offer-rebate-total">
-              <span>Your net for the period</span>
+              <span>Due for this period</span>
               <span>{formatPriceFromMinor(o.netAfterRebateMinor, currency)}</span>
             </div>
           )}
