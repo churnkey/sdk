@@ -4,6 +4,7 @@ import { DefaultContactOffer } from './offer/default-contact-offer'
 import { DefaultDiscountOffer } from './offer/default-discount-offer'
 import { DefaultPauseOffer } from './offer/default-pause-offer'
 import { DefaultPlanChangeOffer } from './offer/default-plan-change-offer'
+import { DefaultRebateOffer } from './offer/default-rebate-offer'
 import { DefaultRedirectOffer } from './offer/default-redirect-offer'
 import { DefaultTrialExtensionOffer } from './offer/default-trial-extension-offer'
 
@@ -43,6 +44,8 @@ function pickOfferComponent(
       return components?.ContactOffer ?? DefaultContactOffer
     case 'redirect':
       return components?.RedirectOffer ?? DefaultRedirectOffer
+    case 'rebate':
+      return components?.RebateOffer ?? DefaultRebateOffer
     default:
       return null
   }

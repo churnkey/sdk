@@ -9,6 +9,7 @@ export const BUILT_IN_OFFER_TYPES: readonly string[] = [
   'plan_change',
   'contact',
   'redirect',
+  'rebate',
 ]
 
 export function cn(...classes: (string | undefined | null | false)[]): string {

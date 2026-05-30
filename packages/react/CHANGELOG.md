@@ -2,6 +2,20 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.4.0 — 2026-05-29
+
+### Added
+
+- **Rebate offer type.** A `rebate` is a partial refund of the customer's most recent paid invoice while their subscription stays active — aimed at money-back-guarantee windows, where a customer who would cancel to get their money back can take a partial refund and stay instead.
+  - The `'rebate'` offer type joins the config union — the local shape plus the fields resolved in token mode (`amountMinor`, `currency`, `amountPaidMinor`, `netAfterRebateMinor`) — wired through the state machine, the config transform, and the offer-type map.
+  - `DefaultRebateOffer` renders the offer as an itemized invoice: the period charge, the rebate being credited, and what's still due, with the rebate line accented. Overridable via `components.RebateOffer`.
+  - `handleRebate` / `onRebate` callbacks, matching the other offer types. In connected mode the SDK runs the rebate server-side; defining `handleRebate` overrides that to run the refund through your own billing.
+  - The accepted rebate amount is recorded on the session.
+
+### Changed
+
+- Offer panels now share one surface. The discount and trial-extension panels use `colorSurfaceMuted` (the neutral callout surface) instead of `colorPrimarySoft` (the indigo tint), so every offer panel reads consistently and `colorPrimarySoft` is reserved for selected-state highlights as documented. Override the relevant `--ck-*` properties to restore the previous tint.
+
 ## 0.3.0 — 2026-05-19
 
 ### Added

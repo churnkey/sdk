@@ -61,6 +61,7 @@ export type {
   PlanOption,
   ReasonButtonProps,
   ReasonConfig,
+  RebateOffer,
   RedirectOffer,
   Step,
   StructuralClassNames,

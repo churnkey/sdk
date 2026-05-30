@@ -59,7 +59,7 @@ const SCENARIOS: { id: Scenario; label: string; description: string }[] = [
   {
     id: 'all-offers',
     label: 'All Built-in Offer Types',
-    description: 'discount, pause, plan_change, trial_extension, contact, redirect — one reason each.',
+    description: 'discount, pause, plan_change, trial_extension, contact, redirect, rebate — one reason each.',
   },
   {
     id: 'standalone-offer',
@@ -193,6 +193,19 @@ const allOffersSteps: Step[] = [
         id: 'redirect',
         label: 'Learn more (→ redirect)',
         offer: { type: 'redirect', url: 'https://example.com/docs', label: 'See docs' },
+      },
+      {
+        id: 'rebate',
+        label: 'Within the guarantee window (→ rebate)',
+        offer: {
+          type: 'rebate',
+          amountMinor: 500,
+          currency: 'USD',
+          amountPaidMinor: 10890,
+          netAfterRebateMinor: 10390,
+          paymentMethodBrand: 'visa',
+          paymentMethodLast4: '4242',
+        },
       },
       { id: 'none', label: 'No reason (no offer)' },
     ],

@@ -161,6 +161,19 @@ export interface RedirectOffer {
   label: string
 }
 
+export interface RebateOffer {
+  type: 'rebate'
+  /** Cash refunded to the card, smallest currency unit. */
+  amountMinor: number
+  currency: string
+  /** Gross paid on the target invoice. Server-resolved in token mode. */
+  amountPaidMinor?: number
+  /** amountPaidMinor − amountMinor. Server-resolved in token mode. */
+  netAfterRebateMinor?: number
+  paymentMethodBrand?: string
+  paymentMethodLast4?: string
+}
+
 export interface CustomOfferConfig {
   type: string
   data?: Record<string, unknown>
@@ -173,6 +186,7 @@ export type BuiltInOfferConfig =
   | TrialExtensionOffer
   | ContactOffer
   | RedirectOffer
+  | RebateOffer
 export type OfferConfig = BuiltInOfferConfig | CustomOfferConfig
 
 export type OfferDecision = OfferConfig & { copy: OfferCopy; decisionId?: string }
@@ -480,6 +494,7 @@ export interface ComponentOverrides {
   TrialExtensionOffer?: (props: OfferStepProps) => ReactElement
   ContactOffer?: (props: OfferStepProps) => ReactElement
   RedirectOffer?: (props: OfferStepProps) => ReactElement
+  RebateOffer?: (props: OfferStepProps) => ReactElement
 }
 
 export type CustomComponents = Record<string, ComponentType<CustomStepProps> | ComponentType<CustomOfferProps>>
@@ -648,6 +663,7 @@ export interface FlowCallbacks {
   handlePause?: OfferCallback
   handlePlanChange?: OfferCallback
   handleTrialExtension?: OfferCallback
+  handleRebate?: OfferCallback
   handleCancel?: CancelCallback
 
   onAccept?: OfferCallback
@@ -655,6 +671,7 @@ export interface FlowCallbacks {
   onPause?: OfferCallback
   onPlanChange?: OfferCallback
   onTrialExtension?: OfferCallback
+  onRebate?: OfferCallback
   onCancel?: CancelCallback
   onClose?: () => void
   onStepChange?: (step: string, prevStep: string) => void

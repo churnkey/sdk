@@ -10,6 +10,7 @@ export { DefaultContactOffer } from './steps/offer/default-contact-offer'
 export { DefaultDiscountOffer } from './steps/offer/default-discount-offer'
 export { DefaultPauseOffer } from './steps/offer/default-pause-offer'
 export { DefaultPlanChangeOffer } from './steps/offer/default-plan-change-offer'
+export { DefaultRebateOffer } from './steps/offer/default-rebate-offer'
 export { DefaultRedirectOffer } from './steps/offer/default-redirect-offer'
 export { DefaultTrialExtensionOffer } from './steps/offer/default-trial-extension-offer'
 // Structural
