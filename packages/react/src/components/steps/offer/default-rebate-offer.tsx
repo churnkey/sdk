@@ -31,13 +31,14 @@ export function DefaultRebateOffer({
       {body && <RichText html={body} className={cn('ck-step-description', classNames?.description)} />}
 
       <div className={cn('ck-offer-card', classNames?.card)}>
-        {/* Itemized like an invoice: the period charge, the rebate we credit
-            (the accented line), and what's still due. Paid and net are
-            server-resolved in token mode, so each renders only when present. */}
+        {/* Itemized like an invoice: what they already paid this period, the
+            rebate we credit (the accented line), and the net after the refund.
+            Paid and net are server-resolved in token mode, so each renders
+            only when present. */}
         <div className="ck-offer-rebate">
           {o.amountPaidMinor != null && (
             <div className="ck-offer-rebate-row">
-              <span>Subscription · this period</span>
+              <span>You paid this period</span>
               <span>{formatPriceFromMinor(o.amountPaidMinor, currency)}</span>
             </div>
           )}
@@ -47,7 +48,7 @@ export function DefaultRebateOffer({
           </div>
           {o.netAfterRebateMinor != null && (
             <div className="ck-offer-rebate-row ck-offer-rebate-total">
-              <span>Due for this period</span>
+              <span>Your net for this period</span>
               <span>{formatPriceFromMinor(o.netAfterRebateMinor, currency)}</span>
             </div>
           )}

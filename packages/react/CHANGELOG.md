@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.4.1 — 2026-05-30
+
+### Changed
+
+- Clearer rebate invoice copy in `DefaultRebateOffer`. The lines now read "You paid this period" / "Cancellation rebate" / "Your net for this period" — the period charge is already paid, so the previous "Due for this period" wording was misleading.
+
 ## 0.4.0 — 2026-05-29
 
 ### Added
