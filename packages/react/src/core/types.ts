@@ -163,12 +163,12 @@ export interface RedirectOffer {
 
 export interface RebateOffer {
   type: 'rebate'
-  /** Cash refunded to the card, smallest currency unit. */
+  /** The rebate amount (pre-tax), smallest currency unit. The card is refunded this plus any tax charged on it. */
   amountMinor: number
   currency: string
   /** Gross paid on the target invoice. Server-resolved in token mode. */
   amountPaidMinor?: number
-  /** amountPaidMinor − amountMinor. Server-resolved in token mode. */
+  /** amountPaidMinor minus the full refund (the rebate plus its tax). Server-resolved in token mode. */
   netAfterRebateMinor?: number
   paymentMethodBrand?: string
   paymentMethodLast4?: string
