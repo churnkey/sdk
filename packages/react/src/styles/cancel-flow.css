@@ -482,14 +482,14 @@
   color: var(--ck-color-text-muted);
 }
 
-/* The money-back line — the figure we want the eye to land on. */
+/* The money-back amount — the accented line. */
 .ck-cancel-flow .ck-offer-rebate-credit {
   font-size: 14px;
   font-weight: 600;
   color: var(--ck-color-primary);
 }
 
-/* The "(incl. tax)" note on the money-back line — quieter than the figure. */
+/* The "(incl. tax)" note, kept quieter than the amount. */
 .ck-cancel-flow .ck-offer-rebate-tax {
   font-size: 13px;
   font-weight: 400;

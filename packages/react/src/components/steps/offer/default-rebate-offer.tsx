@@ -24,10 +24,8 @@ export function DefaultRebateOffer({
   const body = description ?? offer.copy.body
   const currency = o.currency ?? 'usd'
   const amount = o.amountMinor ?? 0
-  // The card is refunded the rebate plus the tax on it. The server resolves the
-  // net after that full refund, so derive the refund — and the tax on the rebate
-  // — from it. With no tax on top the refund equals the rebate and the tax note
-  // is hidden.
+  // refund = paid - net; tax = refund - rebate. The server's net already
+  // accounts for tax refunded on the rebate, so no tax means refund == rebate.
   const refund =
     o.amountPaidMinor != null && o.netAfterRebateMinor != null ? o.amountPaidMinor - o.netAfterRebateMinor : amount
   const taxRefunded = refund - amount
@@ -38,10 +36,7 @@ export function DefaultRebateOffer({
       {body && <RichText html={body} className={cn('ck-step-description', classNames?.description)} />}
 
       <div className={cn('ck-offer-card', classNames?.card)}>
-        {/* Itemized like an invoice: what they already paid this period, the
-            money back (the accented line — the rebate plus any tax refunded on
-            it), and the net after that. Paid and net are server-resolved in
-            token mode, so each renders only when present. */}
+        {/* paid / money back / net, like an invoice. Paid and net only exist in token mode. */}
         <div className="ck-offer-rebate">
           {o.amountPaidMinor != null && (
             <div className="ck-offer-rebate-row">
