@@ -482,11 +482,18 @@
   color: var(--ck-color-text-muted);
 }
 
-/* The rebate line — the figure we want the eye to land on. */
+/* The money-back line — the figure we want the eye to land on. */
 .ck-cancel-flow .ck-offer-rebate-credit {
   font-size: 14px;
   font-weight: 600;
   color: var(--ck-color-primary);
+}
+
+/* The "(incl. tax)" note on the money-back line — quieter than the figure. */
+.ck-cancel-flow .ck-offer-rebate-tax {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ck-color-text-muted);
 }
 
 .ck-cancel-flow .ck-offer-rebate-total {

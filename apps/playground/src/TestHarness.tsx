@@ -202,7 +202,9 @@ const allOffersSteps: Step[] = [
           amountMinor: 500,
           currency: 'USD',
           amountPaidMinor: 10890,
-          netAfterRebateMinor: 10390,
+          // Net reflects the full refund (rebate + tax): $5.00 rebate + $0.50
+          // tax → $5.50 back, so the "(incl. $0.50 tax)" note shows.
+          netAfterRebateMinor: 10340,
           paymentMethodBrand: 'visa',
           paymentMethodLast4: '4242',
         },
