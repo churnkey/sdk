@@ -114,12 +114,12 @@ export interface SdkContactOffer extends SdkOfferBase {
 
 export interface SdkRebateOffer extends SdkOfferBase {
   type: 'rebate'
-  /** Cash refunded to the card, smallest currency unit. */
+  /** The rebate amount (pre-tax). The card is refunded this plus any tax charged on it. */
   amountMinor: number
   currency: string
   /** Gross amount paid on the target invoice — the "you paid" row. */
   amountPaidMinor: number
-  /** amountPaidMinor − amountMinor — the "your net" row. */
+  /** amountPaidMinor minus the full refund (rebate plus its tax) — the "your net" row. */
   netAfterRebateMinor: number
   paymentMethodBrand?: string
   paymentMethodLast4?: string

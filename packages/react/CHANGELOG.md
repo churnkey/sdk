@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.4.2 — 2026-06-01
+
+### Changed
+
+- `DefaultRebateOffer` shows the actual cash refunded. On a taxed invoice the rebate comes back with the tax paid on it, so the middle line reads "Money back" with the full refund and an "(incl. $X tax)" note, and the net reflects it. No-tax invoices are unchanged — the note is hidden and the refund equals the rebate.
+
 ## 0.4.1 — 2026-05-30
 
 ### Changed

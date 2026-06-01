@@ -24,6 +24,11 @@ export function DefaultRebateOffer({
   const body = description ?? offer.copy.body
   const currency = o.currency ?? 'usd'
   const amount = o.amountMinor ?? 0
+  // refund = paid - net; tax = refund - rebate. The server's net already
+  // accounts for tax refunded on the rebate, so no tax means refund == rebate.
+  const refund =
+    o.amountPaidMinor != null && o.netAfterRebateMinor != null ? o.amountPaidMinor - o.netAfterRebateMinor : amount
+  const taxRefunded = refund - amount
 
   return (
     <div className={cn('ck-step ck-step-offer', classNames?.root)}>
@@ -31,10 +36,7 @@ export function DefaultRebateOffer({
       {body && <RichText html={body} className={cn('ck-step-description', classNames?.description)} />}
 
       <div className={cn('ck-offer-card', classNames?.card)}>
-        {/* Itemized like an invoice: what they already paid this period, the
-            rebate we credit (the accented line), and the net after the refund.
-            Paid and net are server-resolved in token mode, so each renders
-            only when present. */}
+        {/* paid / money back / net, like an invoice. Paid and net only exist in token mode. */}
         <div className="ck-offer-rebate">
           {o.amountPaidMinor != null && (
             <div className="ck-offer-rebate-row">
@@ -43,8 +45,13 @@ export function DefaultRebateOffer({
             </div>
           )}
           <div className="ck-offer-rebate-row ck-offer-rebate-credit">
-            <span>Cancellation rebate</span>
-            <span>−{formatPriceFromMinor(amount, currency)}</span>
+            <span>
+              Money back
+              {taxRefunded > 0 && (
+                <span className="ck-offer-rebate-tax"> (incl. {formatPriceFromMinor(taxRefunded, currency)} tax)</span>
+              )}
+            </span>
+            <span>−{formatPriceFromMinor(refund, currency)}</span>
           </div>
           {o.netAfterRebateMinor != null && (
             <div className="ck-offer-rebate-row ck-offer-rebate-total">
