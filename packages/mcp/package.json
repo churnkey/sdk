@@ -42,7 +42,8 @@
     "local-run": "pnpm build >/dev/null && node scripts/local-run.mjs",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "start": "node dist/bin.js"
+    "start": "node dist/bin.js",
+    "start:http": "node dist/bin.js --http"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
