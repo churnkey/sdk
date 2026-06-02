@@ -35,6 +35,20 @@ Each tool's input schema is fully described to the MCP client — enums for `sav
 
 Mode (live vs test) is set by the API key prefix — pass a `test_`-prefixed key to query test data. Mode applies to **session analytics** and DSR. **Blueprint/segment configuration is shared across modes** (not key-dependent), and **payment-recovery analytics are not partitioned by mode** (dunning campaigns come from real provider failed-payment events and carry no test/live distinction).
 
+## Transports
+
+The package supports two transports:
+
+- **stdio** (default): local MCP clients run `npx -y @churnkey/mcp` and pass credentials through environment variables.
+- **Streamable HTTP** (opt-in): run the same server behind a single HTTP endpoint, usually `/mcp`.
+
+For a public Churnkey-hosted endpoint, the recommended shape is:
+
+- `https://mcp.churnkey.co` — public docs / onboarding site.
+- `https://mcp.churnkey.co/mcp` — Streamable HTTP MCP endpoint.
+
+That keeps the human site and protocol endpoint on one memorable domain without making the root URL a machine-only route.
+
 ## Setup
 
 1. Get your **App ID** and **Data API Key** from [Churnkey → Settings → Organization](https://app.churnkey.co/settings/organization). Don't have an account? [Create one](https://app.churnkey.co/register?intent=sdk).
@@ -134,6 +148,50 @@ For MCP client configs, point the client directly at the built server and provid
   }
 }
 ```
+
+### HTTP transport variables
+
+| Var | Required | Default |
+|-----|----------|---------|
+| `CHURNKEY_MCP_TRANSPORT` | no | `stdio` |
+| `CHURNKEY_MCP_HOST` | no | `127.0.0.1` |
+| `CHURNKEY_MCP_PORT` | no | `3333` |
+| `CHURNKEY_MCP_PATH` | no | `/mcp` |
+| `CHURNKEY_MCP_ALLOWED_HOSTS` | no | — |
+| `CHURNKEY_MCP_CORS_ORIGIN` | no | — |
+
+`CHURNKEY_MCP_ALLOWED_HOSTS` is a comma-separated list of accepted `Host` headers, including ports when present (for example, `mcp.churnkey.co,localhost:3333`). `CHURNKEY_MCP_CORS_ORIGIN` is intentionally opt-in; set it to one exact browser origin, or `*`, only when a browser-based MCP client needs CORS.
+
+## Streamable HTTP
+
+Start the HTTP server after building:
+
+```bash
+pnpm --filter @churnkey/mcp build
+CHURNKEY_APP_ID=your_app_id \
+CHURNKEY_API_KEY=test_data_your_key \
+pnpm --filter @churnkey/mcp start:http
+```
+
+By default this listens on `http://127.0.0.1:3333/mcp`. You can also run the built binary directly:
+
+```bash
+CHURNKEY_MCP_TRANSPORT=http node packages/mcp/dist/bin.js
+node packages/mcp/dist/bin.js --http
+node packages/mcp/dist/bin.js --transport=http
+```
+
+For a shared or hosted HTTP endpoint, credentials may be sent on the initialization request instead of read from environment variables:
+
+```bash
+curl http://127.0.0.1:3333/mcp \
+  -H 'content-type: application/json' \
+  -H 'x-ck-app: your_app_id' \
+  -H 'x-ck-api-key: test_data_your_key' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl","version":"0.1.0"}}}'
+```
+
+The server also accepts `Authorization: Bearer <api_key>` for the API key. `x-ck-api-key` takes precedence if both are provided.
 
 ## Programmatic use
 
