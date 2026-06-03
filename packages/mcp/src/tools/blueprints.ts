@@ -173,7 +173,12 @@ const offerConfig = z
       .string()
       .optional()
       .describe('DISCOUNT: Stripe/provider coupon ID. Omit to derive a custom coupon from customAmount.'),
-    customAmount: z.number().int().min(0).optional().describe('DISCOUNT: custom discount amount in CENTS.'),
+    customAmount: z
+      .number()
+      .int()
+      .min(0)
+      .optional()
+      .describe('DISCOUNT/REBATE: custom amount in the smallest currency unit, e.g. cents.'),
     customDuration: z.enum(['ONCE', 'FOREVER']).optional().describe('DISCOUNT: how long the custom discount applies.'),
     autoOptimize: z.boolean().optional().describe('DISCOUNT: let Churnkey pick the discount.'),
     maxPauseLength: z.number().int().min(1).optional().describe('PAUSE: maximum pause length.'),
@@ -186,6 +191,24 @@ const offerConfig = z
     redirectUrl: z.string().optional().describe('REDIRECT: URL to send the customer to.'),
     redirectLabel: z.string().optional().describe('REDIRECT: button label.'),
     options: z.array(z.string()).optional().describe('PLAN_CHANGE: plan/price IDs the customer can switch to.'),
+    amountType: z.enum(['FIXED', 'PERCENT']).optional().describe('REBATE: fixed amount or percent-based rebate.'),
+    percentAmount: z
+      .number()
+      .int()
+      .min(0)
+      .max(100)
+      .optional()
+      .describe('REBATE: percentage of the eligible invoice to rebate.'),
+    mbgWindowDays: z
+      .number()
+      .int()
+      .min(0)
+      .optional()
+      .describe('REBATE: money-back guarantee eligibility window in days.'),
+    invoiceScope: z
+      .enum(['FIRST_PAID', 'LATEST_PAID'])
+      .optional()
+      .describe('REBATE: eligible invoice scope. FIRST_PAID is usually for post-purchase flows.'),
   })
   .strict()
   .describe("Offer-type-specific config. The server validates which fields are allowed against the offer's offerType.")
@@ -203,7 +226,7 @@ const updateOfferInput = blueprintIdInput.extend({
     .optional()
     .describe('Edit the offer attached to this structured follow-up option. Requires choiceGuid.'),
   offerType: z
-    .enum(['PAUSE', 'DISCOUNT', 'CONTACT', 'PLAN_CHANGE', 'REDIRECT', 'TRIAL_EXTENSION'])
+    .enum(['PAUSE', 'DISCOUNT', 'CONTACT', 'PLAN_CHANGE', 'REDIRECT', 'TRIAL_EXTENSION', 'REBATE'])
     .optional()
     .describe('Change the offer type. Switching type seeds default config for the new type.'),
   header: z.string().optional().describe('Offer headline. Clears stale offer translations.'),

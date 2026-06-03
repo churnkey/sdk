@@ -190,6 +190,24 @@ try {
         check('mutate: update_blueprint_offer pause config', !w2.isError && (w2.json?.changedFields || []).includes('config.maxPauseLength'), w2.text)
         const afterOffer = (await readSteps()).find((s) => s.guid === pauseStep.guid)?.offer?.pauseConfig?.maxPauseLength
         check('mutate: pause config observed via re-read', afterOffer === original + 1, `${original} -> ${afterOffer}`)
+
+        const w3 = await call(client, 'update_blueprint_offer', {
+          blueprintId: draftId,
+          stepGuid: pauseStep.guid,
+          offerType: 'REBATE',
+          config: { amountType: 'PERCENT', percentAmount: 25, mbgWindowDays: 30, invoiceScope: 'LATEST_PAID' },
+        })
+        check(
+          'mutate: update_blueprint_offer rebate config',
+          !w3.isError && (w3.json?.changedFields || []).includes('offerType') && (w3.json?.changedFields || []).includes('config.percentAmount'),
+          w3.text,
+        )
+        const rebateOffer = (await readSteps()).find((s) => s.guid === pauseStep.guid)?.offer
+        check(
+          'mutate: rebate config observed via re-read',
+          rebateOffer?.offerType === 'REBATE' && rebateOffer?.rebateConfig?.percentAmount === 25,
+          JSON.stringify(rebateOffer),
+        )
       } else {
         check('mutate: BASIC template includes a pause offer step', false, 'missing pause offer step')
       }

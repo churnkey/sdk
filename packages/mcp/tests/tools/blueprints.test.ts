@@ -238,6 +238,33 @@ describe('blueprintTools', () => {
     ).rejects.toThrow('optionGuid requires choiceGuid.')
   })
 
+  it('accepts rebate offer type and config fields', () => {
+    const { tool } = findTool('update_blueprint_offer')
+
+    expect(() =>
+      tool.inputSchema.parse({
+        blueprintId: 'bp_123',
+        stepGuid: 'step_1',
+        offerType: 'REBATE',
+        config: {
+          amountType: 'PERCENT',
+          percentAmount: 25,
+          mbgWindowDays: 30,
+          invoiceScope: 'LATEST_PAID',
+        },
+      }),
+    ).not.toThrow()
+
+    expect(() =>
+      tool.inputSchema.parse({
+        blueprintId: 'bp_123',
+        stepGuid: 'step_1',
+        offerType: 'REBATE',
+        config: { percentAmount: 101 },
+      }),
+    ).toThrow()
+  })
+
   it('routes edit_survey_structure with the op body', async () => {
     const { tool, post } = findTool('edit_survey_structure')
 
