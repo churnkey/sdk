@@ -68,6 +68,59 @@ const updateFilterInput = z.object({
     ),
 })
 
+const createSegmentFlowInput = z.object({
+  segment: z
+    .object({
+      name: z.string().optional().describe('Segment display name. Defaults to "New Segment".'),
+      enabled: z.boolean().optional().describe('Whether the segment starts enabled. Defaults to true.'),
+      filter: z
+        .array(filterRule)
+        .optional()
+        .describe(
+          'Initial complete audience filter rules. Defaults to [] so the segment matches no specific audience rules until configured.',
+        ),
+    })
+    .strict()
+    .optional()
+    .describe('Segment metadata and audience rules.'),
+  blueprint: z
+    .object({
+      template: z
+        .enum(['empty', 'BASIC', 'B2B', 'MERGEFIELDS'])
+        .optional()
+        .describe(
+          'Initial draft template. Defaults to "empty"; BASIC/B2B/MERGEFIELDS prepopulate cancel-flow steps and survey choices.',
+        ),
+      name: z.string().optional().describe('Blueprint display name.'),
+      brandImage: z
+        .string()
+        .optional()
+        .describe('Brand image URL. The API accepts raster URLs and images.churnkey.co assets.'),
+      primaryColor: z.string().optional().describe('Primary hex color for the flow, e.g. "#F7B200".'),
+      translatedLanguages: z
+        .array(z.string())
+        .optional()
+        .describe('Locale keys already translated for this blueprint. Usually omit.'),
+    })
+    .strict()
+    .optional()
+    .describe('Draft blueprint metadata and optional template.'),
+  confirm: z
+    .literal('create_segment_flow')
+    .describe(
+      'Required confirmation. Creating a segment flow changes cancel-flow configuration; pass exactly "create_segment_flow".',
+    ),
+})
+
+const archiveSegmentInput = z.object({
+  segmentId: z.string().describe('Churnkey segment ID. Use list_segments first if you do not know it.'),
+  confirm: z
+    .literal('archive_segment')
+    .describe(
+      'Required confirmation. Archiving hides the segment flow from live inventory; pass exactly "archive_segment".',
+    ),
+})
+
 export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
   return [
     {
@@ -83,6 +136,18 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       handler: async () => client.get('/data/segments'),
     },
     {
+      name: 'create_segment_flow',
+      title: 'Create a cancel flow segment draft',
+      description: [
+        'Create a new cancel-flow segment and its editable draft blueprint in one call. Use this for isolated setup/testing flows: pass `blueprint.template` as "empty", "BASIC", "B2B", or "MERGEFIELDS". The new flow is setup-pending until publish_blueprint is called.',
+        '',
+        'The segment is created enabled by default, but with an empty filter unless you provide one. Use update_segment_filter/set_segment_enabled afterward for live targeting changes, or archive_segment to clean up a disposable test segment.',
+      ].join('\n'),
+      inputSchema: createSegmentFlowInput,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+      handler: async (args) => client.post('/data/segments', { body: args }),
+    },
+    {
       name: 'reorder_segments',
       title: 'Reorder cancel flow segments',
       description:
@@ -90,6 +155,18 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       inputSchema: reorderInput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
       handler: async (args) => client.post('/data/segments/reorder', { body: args }),
+    },
+    {
+      name: 'archive_segment',
+      title: 'Archive a cancel flow segment',
+      description:
+        'Soft-delete/archive a cancel-flow segment so it disappears from the non-deleted segment inventory. Use this to clean up disposable segment flows created for testing. Requires explicit confirmation and records an audit log.',
+      inputSchema: archiveSegmentInput,
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+      handler: async (args) =>
+        client.post(`/data/segments/${args.segmentId}/archive`, {
+          body: { confirm: args.confirm },
+        }),
     },
     {
       name: 'set_segment_enabled',

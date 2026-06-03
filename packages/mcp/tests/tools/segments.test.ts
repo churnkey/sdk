@@ -20,6 +20,25 @@ describe('segmentTools', () => {
     expect(get).toHaveBeenCalledWith('/data/segments')
   })
 
+  it('routes create_segment_flow with nested segment and blueprint payload', async () => {
+    const { tool, post } = findTool('create_segment_flow')
+    const args = {
+      segment: {
+        name: 'MCP test segment',
+        filter: [{ attribute: 'PLAN_ID', operand: 'INCLUDES' as const, value: ['price_1'] }],
+      },
+      blueprint: { template: 'BASIC' as const, name: 'MCP test flow' },
+      confirm: 'create_segment_flow' as const,
+    }
+
+    await tool.handler(args)
+
+    expect(post).toHaveBeenCalledWith('/data/segments', { body: args })
+    expect(() => tool.inputSchema.parse(args)).not.toThrow()
+    expect(() => tool.inputSchema.parse({ ...args, blueprint: { template: 'UNKNOWN' } })).toThrow()
+    expect(() => tool.inputSchema.parse({ ...args, confirm: 'yes' })).toThrow()
+  })
+
   it('routes reorder_segments with the full confirmed body', async () => {
     const { tool, post } = findTool('reorder_segments')
     const args = { segmentIds: ['seg_1', 'seg_2'], confirm: 'reorder_segments' as const }
@@ -36,6 +55,16 @@ describe('segmentTools', () => {
     expect(() => tool.inputSchema.parse({ segmentIds: [], confirm: 'reorder_segments' })).toThrow()
     expect(() => tool.inputSchema.parse({ segmentIds: ['seg_1'] })).toThrow()
     expect(() => tool.inputSchema.parse({ segmentIds: ['seg_1'], confirm: 'yes' })).toThrow()
+  })
+
+  it('routes archive_segment with explicit confirmation', async () => {
+    const { tool, post } = findTool('archive_segment')
+
+    await tool.handler({ segmentId: 'seg_1', confirm: 'archive_segment' })
+
+    expect(post).toHaveBeenCalledWith('/data/segments/seg_1/archive', { body: { confirm: 'archive_segment' } })
+    expect(() => tool.inputSchema.parse({ segmentId: 'seg_1', confirm: 'archive_segment' })).not.toThrow()
+    expect(() => tool.inputSchema.parse({ segmentId: 'seg_1', confirm: 'yes' })).toThrow()
   })
 
   it('routes set_segment_enabled with the confirmed body', async () => {

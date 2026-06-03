@@ -5,6 +5,12 @@ import type { ToolDefinition } from './types'
 const blueprintIdInput = z.object({
   blueprintId: z.string().describe('Churnkey blueprint ID. Use list_blueprints first if you do not know it.'),
 })
+const blueprintTemplate = z
+  .enum(['empty', 'BASIC', 'B2B', 'MERGEFIELDS'])
+  .optional()
+  .describe(
+    'Initial draft template. "empty" creates the same blank draft the dashboard creates before a template is picked; BASIC/B2B/MERGEFIELDS prepopulate steps and survey choices.',
+  )
 
 // Mirrors the server's validateImageUrl (churnkey-api src/helpers/aws.js): images hosted on
 // images.churnkey.co are always trusted; otherwise the URL path must end in an allowed raster
@@ -50,6 +56,15 @@ const draftUpdates = z
 
 const updateDraftInput = blueprintIdInput.extend({
   updates: draftUpdates,
+})
+
+const createBlueprintInput = draftUpdates.extend({
+  template: blueprintTemplate,
+  confirm: z
+    .literal('create_blueprint')
+    .describe(
+      'Required confirmation. Creating the default org flow changes org configuration; pass exactly "create_blueprint".',
+    ),
 })
 
 const surveyChoicePatch = z
@@ -280,6 +295,20 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       inputSchema: blueprintIdInput,
       annotations: { readOnlyHint: true, openWorldHint: true },
       handler: async (args) => client.get(`/data/blueprints/${args.blueprintId}`),
+    },
+    {
+      name: 'create_blueprint',
+      title: 'Create the default org cancel flow',
+      description: [
+        'Create the default org-level cancel flow draft when the org does not already have one. This mirrors the dashboard setup flow: `template: "empty"` creates a blank draft, while BASIC/B2B/MERGEFIELDS prepopulate draft steps and survey choices.',
+        '',
+        'Use create_segment_flow instead when you need an isolated test flow on an archived/disposable segment. If the default org flow already exists, this tool rejects rather than creating an extra org blueprint that the dashboard/Data API inventory would not surface.',
+        '',
+        WRITE_NOTE,
+      ].join('\n'),
+      inputSchema: createBlueprintInput,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+      handler: async (args) => client.post('/data/blueprints', { body: args }),
     },
     {
       name: 'update_blueprint_draft',

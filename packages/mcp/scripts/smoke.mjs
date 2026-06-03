@@ -58,10 +58,13 @@ try {
   check('server lists tools', tools.tools.length >= 10, `${tools.tools.length} tools`)
   // New granular mutation tools must register (this exercises zod -> JSON-schema serialization).
   const NEW_TOOLS = [
+    'create_blueprint',
+    'create_segment_flow',
     'update_blueprint_offer',
     'edit_survey_structure',
     'add_blueprint_step',
     'remove_blueprint_step',
+    'archive_segment',
     'set_segment_enabled',
     'update_segment_filter',
   ]
@@ -122,63 +125,77 @@ try {
     bad.text,
   )
 
-  // --- opt-in, fully reversible end-to-end WRITE round-trip (--mutate) ---
-  // Picks a side-effect-free reversible field on the org draft (a behavioral flag, or a numeric
-  // pause/trial config field), writes a changed value, RE-READS to observe it persisted, then restores
-  // the original value and re-reads again. Deliberately avoids translation-clearing copy edits, the
-  // discount customAmount->couponId derivation, and live segment toggles.
+  // --- opt-in end-to-end WRITE round-trip (--mutate) ---
+  // Creates a disposable segment flow, mutates the draft blueprint, verifies persistence by re-read,
+  // exercises survey structure edits, and archives the segment for cleanup. This avoids touching the
+  // org's primary draft and keeps publish as a separate manual test.
   if (process.argv.includes('--mutate')) {
-    const orgFlow = (bp.json?.flows || []).find((f) => f.scope === 'org')
-    const draftId = orgFlow?.editableBlueprintId
-    const readSteps = async () => (await call(client, 'get_blueprint', { blueprintId: draftId })).json?.steps || []
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const created = await call(client, 'create_segment_flow', {
+      segment: { name: `MCP smoke ${stamp}`, enabled: false, filter: [] },
+      blueprint: { template: 'BASIC', name: `MCP smoke ${stamp}` },
+      confirm: 'create_segment_flow',
+    })
+    check('mutate: create disposable segment flow', !created.isError && created.json?.editableBlueprintId && created.json?.segment?.id, created.text)
 
-    if (!draftId) {
-      check('mutate: org draft available', false, 'no editable org blueprint to test against')
-    } else {
-      const steps = await readSteps()
-      let target = null
-
-      const surveyStep = steps.find((s) => s.survey && typeof s.survey.randomize === 'boolean')
-      const pauseStep = steps.find((s) => s.offer?.offerType === 'PAUSE' && typeof s.offer?.pauseConfig?.maxPauseLength === 'number')
-      const trialStep = steps.find((s) => s.offer?.offerType === 'TRIAL_EXTENSION' && typeof s.offer?.trialExtensionConfig?.trialExtensionDays === 'number')
+    const draftId = created.json?.editableBlueprintId
+    const segmentId = created.json?.segment?.id
+    if (draftId && segmentId) {
+      const readSteps = async () => (await call(client, 'get_blueprint', { blueprintId: draftId })).json?.steps || []
+      const initialSteps = await readSteps()
+      const surveyStep = initialSteps.find((s) => s.survey && typeof s.survey.randomize === 'boolean')
+      const pauseStep = initialSteps.find((s) => s.offer?.offerType === 'PAUSE' && typeof s.offer?.pauseConfig?.maxPauseLength === 'number')
 
       if (surveyStep) {
         const original = surveyStep.survey.randomize
-        target = {
-          label: 'survey.randomize',
-          changedKey: 'survey.randomize',
-          original,
-          next: !original,
-          write: (value) =>
-            call(client, 'update_blueprint_step', { blueprintId: draftId, stepGuid: surveyStep.guid, updates: { survey: { randomize: value } } }),
-          read: (s) => s.find((x) => x.guid === surveyStep.guid)?.survey?.randomize,
-        }
-      } else if (pauseStep || trialStep) {
-        const pick = pauseStep
-          ? { step: pauseStep, cfg: 'pauseConfig', field: 'maxPauseLength' }
-          : { step: trialStep, cfg: 'trialExtensionConfig', field: 'trialExtensionDays' }
-        const original = pick.step.offer[pick.cfg][pick.field]
-        target = {
-          label: `offer.${pick.cfg}.${pick.field}`,
-          changedKey: `config.${pick.field}`,
-          original,
-          next: original + 1,
-          write: (value) => call(client, 'update_blueprint_offer', { blueprintId: draftId, stepGuid: pick.step.guid, config: { [pick.field]: value } }),
-          read: (s) => s.find((x) => x.guid === pick.step.guid)?.offer?.[pick.cfg]?.[pick.field],
-        }
+        const w1 = await call(client, 'update_blueprint_step', {
+          blueprintId: draftId,
+          stepGuid: surveyStep.guid,
+          updates: { survey: { randomize: !original } },
+        })
+        check('mutate: update_blueprint_step persisted survey.randomize', !w1.isError && (w1.json?.changedFields || []).includes('survey.randomize'), w1.text)
+        const afterWrite = (await readSteps()).find((s) => s.guid === surveyStep.guid)?.survey?.randomize
+        check('mutate: survey.randomize observed via re-read', afterWrite === !original, `${original} -> ${afterWrite}`)
+
+        const add = await call(client, 'edit_survey_structure', {
+          blueprintId: draftId,
+          op: 'add_choice',
+          stepGuid: surveyStep.guid,
+          value: 'MCP smoke reason',
+        })
+        check('mutate: edit_survey_structure add_choice', !add.isError && (add.json?.changedFields || []).includes('survey.choices.add'), add.text)
+        const addedChoice = (await readSteps())
+          .find((s) => s.guid === surveyStep.guid)
+          ?.survey?.choices?.find((choice) => choice.value === 'MCP smoke reason')
+        const remove = addedChoice
+          ? await call(client, 'edit_survey_structure', {
+              blueprintId: draftId,
+              op: 'remove_choice',
+              stepGuid: surveyStep.guid,
+              choiceGuid: addedChoice.guid,
+            })
+          : { isError: true, text: 'added choice not found' }
+        check('mutate: edit_survey_structure remove_choice', !remove.isError, remove.text)
+      } else {
+        check('mutate: BASIC template includes a survey step', false, 'missing survey step')
       }
 
-      if (!target) {
-        check('mutate: found a safe reversible field', false, 'no side-effect-free reversible field on the org draft')
+      if (pauseStep) {
+        const original = pauseStep.offer.pauseConfig.maxPauseLength
+        const w2 = await call(client, 'update_blueprint_offer', {
+          blueprintId: draftId,
+          stepGuid: pauseStep.guid,
+          config: { maxPauseLength: original + 1 },
+        })
+        check('mutate: update_blueprint_offer pause config', !w2.isError && (w2.json?.changedFields || []).includes('config.maxPauseLength'), w2.text)
+        const afterOffer = (await readSteps()).find((s) => s.guid === pauseStep.guid)?.offer?.pauseConfig?.maxPauseLength
+        check('mutate: pause config observed via re-read', afterOffer === original + 1, `${original} -> ${afterOffer}`)
       } else {
-        const w1 = await target.write(target.next)
-        check(`mutate: write ${target.label}`, !w1.isError && (w1.json?.changedFields || []).includes(target.changedKey), w1.text)
-        const afterWrite = target.read(await readSteps())
-        check('mutate: write PERSISTED (observed via re-read)', afterWrite === target.next, `${target.label}: ${target.original} -> ${afterWrite}`)
-        const w2 = await target.write(target.original)
-        const afterRestore = target.read(await readSteps())
-        check('mutate: value restored to original', !w2.isError && afterRestore === target.original, `restored to ${afterRestore}`)
+        check('mutate: BASIC template includes a pause offer step', false, 'missing pause offer step')
       }
+
+      const archived = await call(client, 'archive_segment', { segmentId, confirm: 'archive_segment' })
+      check('mutate: archive disposable segment', !archived.isError && archived.json?.id === segmentId, archived.text)
     }
   }
 
