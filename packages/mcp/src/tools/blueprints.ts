@@ -381,7 +381,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'update_blueprint_offer',
       title: 'Update a draft cancel flow offer',
       description: [
-        'Patch the type and functional config of a single offer on a draft blueprint, without sending the full steps array. Offers attach in three places: an offer step (pass stepGuid only), a survey choice (pass stepGuid + choiceGuid), or a structured follow-up option (pass stepGuid + choiceGuid + optionGuid). The offer must already exist at that location. If you pass a published blueprint ID, the API resolves it to the working copy.',
+        'Patch the type and functional config of a single offer on a draft blueprint, without sending the full steps array. Offers attach in three places: an offer step (pass stepGuid only), a survey choice (pass stepGuid + choiceGuid), or a structured follow-up option (pass stepGuid + choiceGuid + optionGuid). If the target has no offer yet, pass offerType to add one (the offer is seeded with that type and its default config, mirroring the dashboard’s add-offer); editing an offer-less target without offerType is rejected. If you pass a published blueprint ID, the API resolves it to the working copy.',
         '',
         "Change offerType and/or its config: DISCOUNT (couponId for most providers, Paddle Classic-only customAmount in cents + customDuration, or autoOptimize), PAUSE (maxPauseLength + pauseInterval, datePicker), TRIAL_EXTENSION (trialExtensionDays), REDIRECT (redirectUrl, redirectLabel), PLAN_CHANGE (options), REBATE (Stripe only), CONTACT (no config). You may also set header/description. The API rejects offer types unsupported by the org's payment provider; switching type seeds default config.",
         '',
