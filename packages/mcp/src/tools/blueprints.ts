@@ -348,7 +348,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Update top-level fields on an unlocked draft blueprint. If you pass a published blueprint ID, the API resolves it to the corresponding unlocked working copy. This does not publish changes.',
         '',
-        'Allowed fields: name, brandImage, primaryColor, translatedLanguages. `name` is only valid for segment-scoped blueprints: it renames both the draft blueprint and its parent segment. The primary org-scoped blueprint cannot be renamed. For step copy/content edits, use update_blueprint_step so the agent does not need to send the full steps array.',
+        'Allowed fields: name, brandImage, primaryColor, translatedLanguages. `name` is only valid for segment-scoped blueprints and renames the parent segment, matching the dashboard; it does not change the blueprint document name. The primary org-scoped blueprint cannot be renamed. For step copy/content edits, use update_blueprint_step so the agent does not need to send the full steps array.',
         '',
         WRITE_NOTE,
       ].join('\n'),
