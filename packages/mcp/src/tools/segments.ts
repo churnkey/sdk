@@ -30,12 +30,20 @@ const setEnabledInput = z.object({
 
 const SEGMENT_OPERANDS = ['INCLUDES', 'GT', 'LT', 'GTE', 'LTE', 'BETWEEN', 'NOT_INCLUDES', 'NOT_BETWEEN'] as const
 
+// Catalog of the dashboard's built-in audience attributes, grouped by value type and the operands
+// that apply to each. `attribute` is not enum-validated server-side, so org-defined custom customer
+// attributes are also accepted — but these are the standard targeting fields the dashboard exposes.
+const SEGMENT_ATTRIBUTE_CATALOG = [
+  'Targeting attribute. Built-in attributes are listed below; you may also pass any custom customer attribute your org has defined.',
+  '• Text/ID (operand INCLUDES or NOT_INCLUDES, value is a list): PLAN_ID, PRODUCT_ID, CURRENCY, INVOICE_CURRENCY, CUSTOMER_COUNTRY (ISO-3166 alpha-2), CUSTOMER_EMAIL, BILLING_INTERVAL, SUBSCRIPTION_STATUS, SUBSCRIPTION_STATUS_ON_CANCEL, SUBSCRIPTION_DISCOUNT (ONCE/REPEATING/FOREVER), SURVEY_CHOICE, CANCEL_TYPE, PAYMENT_DECLINE_REASON, PAYMENT_DECLINE_TYPE, PAYMENT_METHOD_CATEGORY.',
+  '• Number (operand GT/LT/GTE/LTE/BETWEEN/NOT_BETWEEN): PRICE and INVOICE_AMOUNT_DUE (smallest currency unit, e.g. cents), SUBSCRIPTION_AGE_MONTHS, BILLING_INTERVAL_COUNT.',
+  '• Date as an ISO-8601 string (operand GT/LT/GTE/LTE/BETWEEN/NOT_BETWEEN): SUBSCRIPTION_START_DATE, CANCEL_DATE.',
+  '• Boolean (operand INCLUDES with value [true] or [false]): CUSTOMER_HAS_EMAIL, CUSTOMER_HAS_PHONE, CANCEL_FLOW_WILL_SHOW_CLICK_TO_CANCEL.',
+].join('\n')
+
 const filterRule = z
   .object({
-    attribute: z
-      .string()
-      .min(1)
-      .describe('Targeting attribute, e.g. PLAN_ID, PRICE, SUBSCRIPTION_AGE_MONTHS. See list_segments for examples.'),
+    attribute: z.string().min(1).describe(SEGMENT_ATTRIBUTE_CATALOG),
     operand: z
       .enum(SEGMENT_OPERANDS)
       .describe('Comparison operand. EQUAL/NOT_EQUAL are NOT supported — use INCLUDES/NOT_INCLUDES.'),
@@ -186,7 +194,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Replace the audience filter rules for a cancel flow segment. This sends the COMPLETE new filter array and fully replaces the existing rules (it is not an add/remove patch) — include every rule you want to keep. Enabled published segments cannot be edited here because that would immediately change live targeting; disable the segment first or create a new segment flow. Segments in unfinished A/B tests cannot have their audience edited.',
         '',
-        'Each rule is { attribute, operand, value, type? }. operand is one of INCLUDES, GT, LT, GTE, LTE, BETWEEN, NOT_INCLUDES, NOT_BETWEEN. For BETWEEN/NOT_BETWEEN, value has exactly two entries [low, high]; for GT/LT/GTE/LTE, one entry; for INCLUDES/NOT_INCLUDES, the list of matching values. Call list_segments first to read the current rules.',
+        'Each rule is { attribute, operand, value, type? }. operand is one of INCLUDES, GT, LT, GTE, LTE, BETWEEN, NOT_INCLUDES, NOT_BETWEEN. For BETWEEN/NOT_BETWEEN, value has exactly two entries [low, high]; for GT/LT/GTE/LTE, one entry; for INCLUDES/NOT_INCLUDES, the list of matching values. See the `attribute` field for the catalog of built-in targeting attributes and which operands apply to each (custom customer attributes are also accepted). Call list_segments first to read the current rules.',
       ].join('\n'),
       inputSchema: updateFilterInput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
