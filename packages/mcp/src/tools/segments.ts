@@ -36,11 +36,12 @@ const SEGMENT_OPERANDS = ['INCLUDES', 'GT', 'LT', 'GTE', 'LTE', 'BETWEEN', 'NOT_
 // reactivation) and the cancel-flow builder can't render them, so the API rejects out-of-palette
 // built-ins. Org-defined custom attributes are still accepted.
 const SEGMENT_ATTRIBUTE_CATALOG = [
-  'Targeting attribute. Call list_segment_attributes for the supported list plus your org-specific custom attributes. The built-in attributes available for cancel flow segments are:',
-  '• Text/ID (operand INCLUDES or NOT_INCLUDES, value is a list): CUSTOMER_EMAIL, PLAN_ID, PRODUCT_ID, CURRENCY, BILLING_INTERVAL, SUBSCRIPTION_STATUS, SUBSCRIPTION_DISCOUNT (once/repeating/forever).',
+  'Targeting attribute. Call list_segment_attributes for the supported list (with the exact allowed `values` for enum attributes) plus your org-specific custom attributes. The built-in attributes available for cancel flow segments are:',
+  '• Text/ID (operand INCLUDES or NOT_INCLUDES, value is a list): CUSTOMER_EMAIL, PLAN_ID, PRODUCT_ID, CURRENCY, BILLING_INTERVAL (DAY/WEEK/MONTH/YEAR), SUBSCRIPTION_STATUS (ACTIVE/TRIALING/PAST_DUE), SUBSCRIPTION_DISCOUNT (ONCE/REPEATING/FOREVER).',
   '• Number (operand GT/LT/GTE/LTE/BETWEEN/NOT_BETWEEN): PRICE (major currency units, e.g. dollars, not cents), BILLING_INTERVAL_COUNT, SUBSCRIPTION_AGE_MONTHS.',
   '• Date as an ISO-8601 string (operand GT/LT/GTE/LTE/BETWEEN/NOT_BETWEEN): SUBSCRIPTION_START_DATE.',
   '• Boolean (operand INCLUDES with value [true] or [false]): CANCEL_FLOW_WILL_SHOW_CLICK_TO_CANCEL.',
+  'Fixed-enum attributes (BILLING_INTERVAL, SUBSCRIPTION_STATUS, SUBSCRIPTION_DISCOUNT) require their exact dashboard value (e.g. "MONTH", not "month") and the set can be provider-specific — call list_segment_attributes for the exact `values` allowed for this org.',
   'Built-in attributes scoped to other products (e.g. CUSTOMER_HAS_PHONE, INVOICE_AMOUNT_DUE, SURVEY_CHOICE) are rejected for cancel flow segments. You may also pass any custom customer attribute your org has defined (see list_segment_attributes).',
 ].join('\n')
 
@@ -157,7 +158,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       title: 'List segment audience filter attributes',
       description: [
         'List the audience-filter attributes you can target with update_segment_filter (and the segment.filter field of create_segment_flow). Returns two groups:',
-        '- `builtIn`: the attributes available for cancel flow segments (the cancel-flow palette, mirroring the dashboard), each with its `valueType` (STRING/NUMBER/DATE/BOOLEAN) and the `operands` that apply. Built-in attributes scoped to other products (e.g. CUSTOMER_HAS_PHONE, INVOICE_AMOUNT_DUE) are not included and are rejected by update_segment_filter.',
+        '- `builtIn`: the attributes available for cancel flow segments (the cancel-flow palette, mirroring the dashboard), each with its `valueType` (STRING/NUMBER/DATE/BOOLEAN) and the `operands` that apply. Fixed-enum attributes (e.g. BILLING_INTERVAL, SUBSCRIPTION_STATUS, SUBSCRIPTION_DISCOUNT) also include a `values` array of `{ value, label }` — use the exact `value` (provider-specific). Built-in attributes scoped to other products (e.g. CUSTOMER_HAS_PHONE, INVOICE_AMOUNT_DUE) are not included and are rejected by update_segment_filter.',
         "- `custom`: your organization's own custom customer attributes (by `attribute` name, with `label`, `valueType`, and `operands`).",
         '',
         'Use this before update_segment_filter so you target real attributes with valid operands. STRING/BOOLEAN use INCLUDES/NOT_INCLUDES; NUMBER/DATE use GT/LT/GTE/LTE/BETWEEN/NOT_BETWEEN. Numeric money attributes (PRICE, INVOICE_AMOUNT_DUE) are compared in major currency units (e.g. dollars, not cents); dates are ISO-8601 strings.',
