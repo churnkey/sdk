@@ -141,7 +141,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Create a new cancel-flow segment and its editable draft blueprint in one call. Use this for isolated setup/testing flows: pass `blueprint.template` as "empty", "BASIC", "B2B", or "MERGEFIELDS". The new flow is setup-pending until publish_blueprint is called.',
         '',
-        'The segment is created enabled by default, but with an empty filter unless you provide one. Use update_segment_filter/set_segment_enabled afterward for live targeting changes, or archive_segment to clean up a disposable test segment.',
+        'The segment can be created with an empty filter for setup, but publish_blueprint and enabling both require at least one audience filter rule. On the first successful publish of a segment flow, the API enables the segment automatically. Use update_segment_filter before publishing if the filter is empty, or archive_segment to clean up a disposable test segment.',
       ].join('\n'),
       inputSchema: createSegmentFlowInput,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
@@ -172,7 +172,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'set_segment_enabled',
       title: 'Enable or disable a cancel flow segment',
       description:
-        'Enable or disable a cancel flow segment. Disabling stops its flow from being served to matching customers (the segment becomes inactive); enabling resumes it. This is a live-impacting configuration change, so it requires explicit confirmation and records an audit log. Use list_segments first to get the segment ID and its current enabled state.',
+        'Enable or disable a cancel flow segment. Disabling stops its flow from being served to matching customers (the segment becomes inactive); enabling resumes it and requires at least one audience filter rule. This is a live-impacting configuration change, so it requires explicit confirmation and records an audit log. Use list_segments first to get the segment ID, current enabled state, and filter.',
       inputSchema: setEnabledInput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
       handler: async (args) =>

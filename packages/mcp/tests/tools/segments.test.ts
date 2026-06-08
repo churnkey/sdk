@@ -39,6 +39,17 @@ describe('segmentTools', () => {
     expect(() => tool.inputSchema.parse({ ...args, confirm: 'yes' })).toThrow()
   })
 
+  it('documents segment audience requirements for publish and enable', () => {
+    const { tool: createTool } = findTool('create_segment_flow')
+    const { tool: enableTool } = findTool('set_segment_enabled')
+
+    expect(createTool.description).toContain(
+      'publish_blueprint and enabling both require at least one audience filter rule',
+    )
+    expect(createTool.description).toContain('first successful publish of a segment flow')
+    expect(enableTool.description).toContain('requires at least one audience filter rule')
+  })
+
   it('routes reorder_segments with the full confirmed body', async () => {
     const { tool, post } = findTool('reorder_segments')
     const args = { segmentIds: ['seg_1', 'seg_2'], confirm: 'reorder_segments' as const }

@@ -207,6 +207,13 @@ describe('blueprintTools', () => {
     expect(() => tool.inputSchema.parse({ blueprintId: 'bp_123', confirm: 'yes' })).toThrow()
   })
 
+  it('documents segment publish audience and auto-enable behavior', () => {
+    const { tool } = findTool('publish_blueprint')
+
+    expect(tool.description).toContain('requires the parent segment to have at least one audience filter rule')
+    expect(tool.description).toContain('enables the segment automatically')
+  })
+
   it('accepts survey/freeform/confirm behavioral config on update_blueprint_step', () => {
     const { tool } = findTool('update_blueprint_step')
 
