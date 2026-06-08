@@ -57,7 +57,9 @@ describe('segmentTools', () => {
     expect(createTool.description).toContain(
       'publish_blueprint and enabling both require at least one audience filter rule',
     )
-    expect(createTool.description).toContain('first successful publish of a segment flow')
+    // Publishing must NOT promise to auto-enable the segment (mirrors the dashboard).
+    expect(createTool.description).not.toContain('enables the segment automatically')
+    expect(createTool.description).toContain('does not change the segment’s enabled state')
     expect(enableTool.description).toContain('requires at least one audience filter rule')
   })
 

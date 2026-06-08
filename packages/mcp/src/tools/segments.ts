@@ -164,7 +164,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Create a new cancel-flow segment and its editable draft blueprint in one call. Use this for isolated setup/testing flows: pass `blueprint.template` as "empty", "BASIC", "B2B", or "MERGEFIELDS". The new flow is setup-pending until publish_blueprint is called.',
         '',
-        'The segment can be created with an empty filter for setup, but publish_blueprint and enabling both require at least one audience filter rule. On the first successful publish of a segment flow, the API enables the segment automatically. Use update_segment_filter before publishing if the filter is empty, or archive_segment to clean up a disposable test segment.',
+        'The segment can be created with an empty filter for setup, but publish_blueprint and enabling both require at least one audience filter rule. A new segment flow is enabled by default (pass segment.enabled: false to create it paused); publishing makes the blueprint live but does not change the segment’s enabled state, mirroring the dashboard — use set_segment_enabled to toggle targeting. Use update_segment_filter before publishing if the filter is empty, or archive_segment to clean up a disposable test segment.',
       ].join('\n'),
       inputSchema: createSegmentFlowInput,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },

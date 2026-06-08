@@ -207,11 +207,13 @@ describe('blueprintTools', () => {
     expect(() => tool.inputSchema.parse({ blueprintId: 'bp_123', confirm: 'yes' })).toThrow()
   })
 
-  it('documents segment publish audience and auto-enable behavior', () => {
+  it('documents segment publish audience and enabled-state behavior', () => {
     const { tool } = findTool('publish_blueprint')
 
     expect(tool.description).toContain('requires the parent segment to have at least one audience filter rule')
-    expect(tool.description).toContain('enables the segment automatically')
+    // Publishing must NOT promise to auto-enable the segment (mirrors the dashboard).
+    expect(tool.description).not.toContain('enables the segment automatically')
+    expect(tool.description).toContain('does not change the segment’s enabled state')
     expect(tool.description).toContain('validates enabled offers against the org payment provider')
     expect(tool.description).toContain('Braintree pause offers require the CHURNKEY_PAUSE discount')
   })

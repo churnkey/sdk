@@ -452,7 +452,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Publish an unlocked draft blueprint as the live version for its org or segment. If you pass a published blueprint ID, the API resolves it to the corresponding unlocked working copy. This is separate from draft updates and requires explicit confirmation.',
         '',
-        'For segment-scoped blueprints, publishing requires the parent segment to have at least one audience filter rule. The first successful publish of a segment flow also enables the segment automatically.',
+        'For segment-scoped blueprints, publishing requires the parent segment to have at least one audience filter rule. Publishing does not change the segment’s enabled state (matching the dashboard) — use set_segment_enabled to toggle whether the flow is served.',
         '',
         'Publishing validates enabled offers against the org payment provider. Unsupported offer types are rejected, and Braintree pause offers require the CHURNKEY_PAUSE discount to exist first.',
         '',
