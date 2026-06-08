@@ -97,6 +97,13 @@ describe('blueprintTools', () => {
     ).toThrow()
   })
 
+  it('documents segment-only blueprint rename behavior', () => {
+    const { tool } = findTool('update_blueprint_draft')
+
+    expect(tool.description).toContain('only valid for segment-scoped blueprints')
+    expect(tool.description).toContain('primary org-scoped blueprint cannot be renamed')
+  })
+
   it('validates brandImage against the server image rules', () => {
     const { tool } = findTool('update_blueprint_draft')
     const parseBrandImage = (brandImage: string) =>
@@ -227,15 +234,28 @@ describe('blueprintTools', () => {
       blueprintId: 'bp_123',
       stepGuid: 'step_1',
       offerType: 'DISCOUNT',
-      config: { customAmount: 1500, customDuration: 'ONCE' },
+      config: { couponId: 'SAVE15' },
     })
     expect(post).toHaveBeenCalledWith('/data/blueprints/bp_123/offer', {
-      body: { stepGuid: 'step_1', offerType: 'DISCOUNT', config: { customAmount: 1500, customDuration: 'ONCE' } },
+      body: { stepGuid: 'step_1', offerType: 'DISCOUNT', config: { couponId: 'SAVE15' } },
     })
 
     await expect(
       tool.handler({ blueprintId: 'bp_123', stepGuid: 'step_1', optionGuid: 'opt_1', config: {} }),
     ).rejects.toThrow('optionGuid requires choiceGuid.')
+  })
+
+  it('accepts Paddle Classic custom discount amount fields', () => {
+    const { tool } = findTool('update_blueprint_offer')
+
+    expect(() =>
+      tool.inputSchema.parse({
+        blueprintId: 'bp_123',
+        stepGuid: 'step_1',
+        offerType: 'DISCOUNT',
+        config: { customAmount: 1500, customDuration: 'ONCE' },
+      }),
+    ).not.toThrow()
   })
 
   it('accepts rebate offer type and config fields', () => {

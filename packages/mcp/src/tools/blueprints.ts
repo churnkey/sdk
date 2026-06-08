@@ -172,14 +172,23 @@ const offerConfig = z
     couponId: z
       .string()
       .optional()
-      .describe('DISCOUNT: Stripe/provider coupon ID. Omit to derive a custom coupon from customAmount.'),
+      .describe(
+        'DISCOUNT: existing provider coupon ID. Use this for Stripe, Chargebee, Paddle Billing, Braintree, Maxio, and most providers.',
+      ),
     customAmount: z
       .number()
       .int()
       .min(0)
       .optional()
-      .describe('DISCOUNT/REBATE: custom amount in the smallest currency unit, e.g. cents.'),
-    customDuration: z.enum(['ONCE', 'FOREVER']).optional().describe('DISCOUNT: how long the custom discount applies.'),
+      .describe(
+        'DISCOUNT: Paddle Classic custom discount amount only; REBATE: fixed rebate amount. Smallest currency unit, e.g. cents.',
+      ),
+    customDuration: z
+      .enum(['ONCE', 'FOREVER'])
+      .optional()
+      .describe(
+        'DISCOUNT: Paddle Classic custom discount duration only. Other providers must use couponId or autoOptimize.',
+      ),
     autoOptimize: z.boolean().optional().describe('DISCOUNT: let Churnkey pick the discount.'),
     maxPauseLength: z.number().int().min(1).optional().describe('PAUSE: maximum pause length.'),
     pauseInterval: z.enum(['MONTH', 'WEEK']).optional().describe('PAUSE: unit for maxPauseLength.'),
@@ -339,7 +348,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Update top-level fields on an unlocked draft blueprint. If you pass a published blueprint ID, the API resolves it to the corresponding unlocked working copy. This does not publish changes.',
         '',
-        'Allowed fields: name, brandImage, primaryColor, translatedLanguages. For step copy/content edits, use update_blueprint_step so the agent does not need to send the full steps array.',
+        'Allowed fields: name, brandImage, primaryColor, translatedLanguages. `name` is only valid for segment-scoped blueprints: it renames both the draft blueprint and its parent segment. The primary org-scoped blueprint cannot be renamed. For step copy/content edits, use update_blueprint_step so the agent does not need to send the full steps array.',
         '',
         WRITE_NOTE,
       ].join('\n'),
@@ -374,7 +383,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Patch the type and functional config of a single offer on a draft blueprint, without sending the full steps array. Offers attach in three places: an offer step (pass stepGuid only), a survey choice (pass stepGuid + choiceGuid), or a structured follow-up option (pass stepGuid + choiceGuid + optionGuid). The offer must already exist at that location. If you pass a published blueprint ID, the API resolves it to the working copy.',
         '',
-        "Change offerType and/or its config: DISCOUNT (couponId, or customAmount in cents + customDuration, or autoOptimize), PAUSE (maxPauseLength + pauseInterval, datePicker), TRIAL_EXTENSION (trialExtensionDays), REDIRECT (redirectUrl, redirectLabel), PLAN_CHANGE (options), CONTACT (no config). You may also set header/description. Config is validated against the offer's offerType; switching type seeds default config.",
+        "Change offerType and/or its config: DISCOUNT (couponId for most providers, Paddle Classic-only customAmount in cents + customDuration, or autoOptimize), PAUSE (maxPauseLength + pauseInterval, datePicker), TRIAL_EXTENSION (trialExtensionDays), REDIRECT (redirectUrl, redirectLabel), PLAN_CHANGE (options), CONTACT (no config). You may also set header/description. Config is validated against the offer's offerType and org provider; switching type seeds default config.",
         '',
         'Config changes do not affect translations; header/description changes clear stale offer translations (refreshed on publish).',
         '',

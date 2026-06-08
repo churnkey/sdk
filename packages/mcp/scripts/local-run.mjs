@@ -57,6 +57,7 @@ const env = { ...process.env }
 if (args.appId) env.CHURNKEY_APP_ID = args.appId
 if (args.apiKey) env.CHURNKEY_API_KEY = args.apiKey
 env.CHURNKEY_API_URL = args.apiUrl || env.CHURNKEY_API_URL || DEFAULT_API_URL
+env.CHURNKEY_USE_LOCAL_SERVER = env.CHURNKEY_USE_LOCAL_SERVER || 'true'
 
 if (!env.CHURNKEY_APP_ID) {
   process.stderr.write('Missing --app-id or CHURNKEY_APP_ID.\n\n')

@@ -13,7 +13,7 @@ Model Context Protocol server for [Churnkey](https://churnkey.co). Lets AI agent
 | `list_blueprints` | Current cancel flow inventory for the org: the default flow plus every non-deleted segment flow. Each flow has `status` (`active` / `setup_pending` / `inactive`), `published` and `hasUnpublishedChanges` booleans, `editableBlueprintId`, `publishedBlueprintId`, and compact `draft` / `publishedBlueprint` metadata. Status is a coarse subset of the dashboard badges; the "Unpublished Changes" badge is `status: "active"` + `hasUnpublishedChanges: true`. |
 | `get_blueprint` | Full cancel flow blueprint by ID, including the `steps` array (each step/offer/survey-choice carries its `guid` for use with `update_blueprint_step`). Large for translated blueprints. |
 | `create_blueprint` | Create the default org-level cancel flow draft when the org does not already have one. Requires `confirm: "create_blueprint"`. `template: "empty"` mirrors the dashboard's blank draft; `BASIC` / `B2B` / `MERGEFIELDS` prepopulate steps and survey choices. |
-| `update_blueprint_draft` | Draft-only updates for top-level blueprint fields (`name`, `brandImage`, `primaryColor`, `translatedLanguages`). Passing a published blueprint ID edits the corresponding working copy. Writes an audit log. |
+| `update_blueprint_draft` | Draft-only updates for top-level blueprint fields (`name`, `brandImage`, `primaryColor`, `translatedLanguages`). Passing a published blueprint ID edits the corresponding working copy. `name` is only valid for segment-scoped blueprints and also renames the parent segment; primary org-scoped blueprints reject name updates. Writes an audit log. |
 | `update_blueprint_step` | Sparse draft step edits by `stepGuid` or `stepIndex`, without sending the full `steps` array — step/offer copy, `enabled`, and behavioral config (survey `randomize`/`followupRequired`/`minLength`, freeform/confirm config). Copy edits clear stale translations; publish refreshes translations. Writes an audit log. |
 | `update_blueprint_offer` | Edit one offer's type and functional config (discount/pause/trial/redirect/plan-change/rebate) on a draft, by `stepGuid` (+ optional `choiceGuid`/`optionGuid`). Writes an audit log. |
 | `edit_survey_structure` | Add/remove/reorder survey choices and configure follow-ups (`add_choice`/`remove_choice`/`reorder_choices`/`set_followup`) on a draft survey step. Writes an audit log. |
@@ -30,7 +30,7 @@ Model Context Protocol server for [Churnkey](https://churnkey.co). Lets AI agent
 
 Session and recovery tools read from the Churnkey analytics warehouse — sessions refresh every ~3 hours, recoveries every ~20 minutes. DSR tools read/write the operational store directly (no lag).
 
-Blueprint creation/editing is **draft-first**. `create_blueprint` creates the default org draft only when one does not already exist; for repeatable tests or setup work, prefer `create_segment_flow` and later `archive_segment`. `template: "empty"` matches the dashboard's initial blank draft, while `BASIC` / `B2B` / `MERGEFIELDS` prepopulate steps and survey choices server-side. Granular edit tools mutate the unlocked working copy and send only targeted fields (never the full `steps` array with translations). `update_blueprint_step` handles copy + behavioral flags, `update_blueprint_offer` handles offer config including rebate `amountType`, `customAmount`, `percentAmount`, `mbgWindowDays`, and `invoiceScope`, `edit_survey_structure` handles survey choices/follow-ups, and `add_blueprint_step`/`remove_blueprint_step` handle step structure. Copy edits clear stale translations for the affected content; `publish_blueprint` refreshes translations before making the draft live.
+Blueprint creation/editing is **draft-first**. `create_blueprint` creates the default org draft only when one does not already exist; for repeatable tests or setup work, prefer `create_segment_flow` and later `archive_segment`. `template: "empty"` matches the dashboard's initial blank draft, while `BASIC` / `B2B` / `MERGEFIELDS` prepopulate steps and survey choices server-side. Granular edit tools mutate the unlocked working copy and send only targeted fields (never the full `steps` array with translations). `update_blueprint_step` handles copy + behavioral flags, `update_blueprint_offer` handles offer config including existing-provider coupon IDs for discount offers, Paddle Classic-only custom discount amounts, and rebate `amountType`, `customAmount`, `percentAmount`, `mbgWindowDays`, and `invoiceScope`; `edit_survey_structure` handles survey choices/follow-ups, and `add_blueprint_step`/`remove_blueprint_step` handle step structure. Copy edits clear stale translations for the affected content; `publish_blueprint` refreshes translations before making the draft live.
 
 Segment tools (`create_segment_flow`, `archive_segment`, `reorder_segments`, `set_segment_enabled`, `update_segment_filter`) act on **live** segment config directly (segments have no draft cycle), so each requires an explicit `confirm` literal and writes an audit log. Creating a segment flow does not publish its blueprint; publishing remains gated by `publish_blueprint`.
 
@@ -106,9 +106,12 @@ Restart the client after editing config.
 |-----|----------|---------|
 | `CHURNKEY_APP_ID` | yes | — |
 | `CHURNKEY_API_KEY` | yes | — |
-| `CHURNKEY_API_URL` | no | `https://api.churnkey.co/v1` |
+| `CHURNKEY_USE_LOCAL_SERVER` | no | `false` |
+| `CHURNKEY_API_URL` | no | `https://api.churnkey.co/v1` (`http://localhost:3000/v1` when `CHURNKEY_USE_LOCAL_SERVER=true`) |
 
 Use a `test_`-prefixed API key for staging data.
+
+`CHURNKEY_API_URL` takes precedence over `CHURNKEY_USE_LOCAL_SERVER` when both are set.
 
 ## Local API testing
 
@@ -131,7 +134,7 @@ For MCP client configs, point the client directly at the built server and provid
       "env": {
         "CHURNKEY_APP_ID": "your_app_id",
         "CHURNKEY_API_KEY": "test_data_your_key",
-        "CHURNKEY_API_URL": "http://localhost:3000/v1"
+        "CHURNKEY_USE_LOCAL_SERVER": "true"
       }
     }
   }
