@@ -59,7 +59,9 @@ const filterRule = z
     type: z
       .enum(['STRING', 'NUMBER', 'BOOLEAN', 'DATE'])
       .optional()
-      .describe('Value type. Usually preserve what list_segments returned for this attribute.'),
+      .describe(
+        'Value type for CUSTOM attributes only. Omit for built-in attributes — they derive their type automatically, and the API ignores/strips type on them (sending it makes the dashboard render a duplicate value input).',
+      ),
   })
   .strict()
   .refine((rule) => !['BETWEEN', 'NOT_BETWEEN'].includes(rule.operand) || rule.value.length === 2, {
