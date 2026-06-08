@@ -13,6 +13,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect 
 - `CHURNKEY_USE_LOCAL_SERVER=true` switches the MCP server from production API to `http://localhost:3000/v1` when `CHURNKEY_API_URL` is not explicitly set.
 - `update_blueprint_offer` supports cancel-flow rebate offers (`REBATE`) and `rebateConfig` fields: `amountType`, `customAmount`, `percentAmount`, `mbgWindowDays`, and `invoiceScope`.
 - Segment mutation tools: `set_segment_enabled` (toggle a segment's live targeting) and `update_segment_filter` (replace audience rules). Both act on live config, so each requires a `confirm` literal and writes an audit log.
+- `list_segment_attributes` returns the targetable audience-filter attributes — `builtIn` (the standard attributes the segmentation engine actually evaluates, each with its `valueType` and applicable `operands`) and `custom` (the org's own custom customer attributes). The built-in set is derived server-side from the evaluator's own attribute map, so it never drifts from what `update_segment_filter` can target.
 - Cancel-flow creation tools: `create_blueprint` creates the default org draft when none exists, while `create_segment_flow` creates an isolated segment plus editable draft blueprint. Both support `empty`, `BASIC`, `B2B`, and `MERGEFIELDS` templates and require explicit confirmation. `archive_segment` soft-deletes disposable segment flows for cleanup.
 
 ### Changed

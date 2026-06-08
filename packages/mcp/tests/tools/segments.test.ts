@@ -20,6 +20,17 @@ describe('segmentTools', () => {
     expect(get).toHaveBeenCalledWith('/data/segments')
   })
 
+  it('routes list_segment_attributes through the Data API attribute catalog endpoint', async () => {
+    const { tool, get } = findTool('list_segment_attributes')
+
+    await tool.handler({})
+
+    expect(get).toHaveBeenCalledWith('/data/segments/attributes')
+    expect(tool.annotations?.readOnlyHint).toBe(true)
+    expect(tool.description).toContain('builtIn')
+    expect(tool.description).toContain('custom')
+  })
+
   it('routes create_segment_flow with nested segment and blueprint payload', async () => {
     const { tool, post } = findTool('create_segment_flow')
     const args = {
