@@ -74,8 +74,27 @@ describe('segmentTools', () => {
     expect(reorderTool.description).toContain('keep the control immediately followed by its variant')
     expect(archiveTool.description).toContain('Segments in unfinished A/B tests cannot be archived')
     expect(enableTool.description).toContain('unfinished A/B tests cannot be enabled or disabled')
-    expect(filterTool.description).toContain('Enabled published segments cannot be edited')
-    expect(filterTool.description).toContain('immediately change live targeting')
+    expect(filterTool.description).toContain('changes targeting immediately')
+    expect(filterTool.description).toContain('confirmLiveChange: true')
+  })
+
+  it('passes confirmLiveChange through for live segment audience edits', async () => {
+    const { tool, post } = findTool('update_segment_filter')
+    const args = {
+      segmentId: 'seg_1',
+      filter: [{ attribute: 'SUBSCRIPTION_AGE_MONTHS', operand: 'GTE' as const, value: [3] }],
+      confirm: 'update_segment_filter' as const,
+      confirmLiveChange: true,
+    }
+
+    await tool.handler(args)
+
+    expect(post).toHaveBeenCalledWith('/data/segments/seg_1/filter', {
+      body: { filter: args.filter, confirm: 'update_segment_filter', confirmLiveChange: true },
+    })
+    expect(() => tool.inputSchema.parse(args)).not.toThrow()
+    // confirmLiveChange is optional
+    expect(() => tool.inputSchema.parse({ ...args, confirmLiveChange: undefined })).not.toThrow()
   })
 
   it('routes reorder_segments with the full confirmed body', async () => {

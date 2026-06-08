@@ -75,6 +75,12 @@ const updateFilterInput = z.object({
     .describe(
       'Required confirmation. Editing the filter changes which customers the flow targets; pass exactly "update_segment_filter".',
     ),
+  confirmLiveChange: z
+    .boolean()
+    .optional()
+    .describe(
+      'Extra acknowledgment required only when the target segment is currently live (enabled AND published): editing its audience changes which customers see the flow immediately. The API rejects the edit with an instruction to re-send with confirmLiveChange: true. Omit (or false) for disabled/unpublished segments.',
+    ),
 })
 
 const createSegmentFlowInput = z.object({
@@ -207,7 +213,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'update_segment_filter',
       title: 'Update a cancel flow segment audience filter',
       description: [
-        'Replace the audience filter rules for a cancel flow segment. This sends the COMPLETE new filter array and fully replaces the existing rules (it is not an add/remove patch) — include every rule you want to keep. Enabled published segments cannot be edited here because that would immediately change live targeting; disable the segment first or create a new segment flow. Segments in unfinished A/B tests cannot have their audience edited.',
+        'Replace the audience filter rules for a cancel flow segment. This sends the COMPLETE new filter array and fully replaces the existing rules (it is not an add/remove patch) — include every rule you want to keep. If the segment is live (enabled AND published), editing its audience changes targeting immediately, so the API requires an extra acknowledgment: re-send with confirmLiveChange: true. Segments in unfinished A/B tests cannot have their audience edited.',
         '',
         'Each rule is { attribute, operand, value, type? }. operand is one of INCLUDES, GT, LT, GTE, LTE, BETWEEN, NOT_INCLUDES, NOT_BETWEEN. For BETWEEN/NOT_BETWEEN, value has exactly two entries [low, high]; for GT/LT/GTE/LTE, one entry; for INCLUDES/NOT_INCLUDES, the list of matching values. See the `attribute` field for the catalog of built-in targeting attributes and which operands apply to each (custom customer attributes are also accepted). Call list_segments first to read the current rules.',
       ].join('\n'),
@@ -215,7 +221,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
       handler: async (args) =>
         client.post(`/data/segments/${args.segmentId}/filter`, {
-          body: { filter: args.filter, confirm: args.confirm },
+          body: { filter: args.filter, confirm: args.confirm, confirmLiveChange: args.confirmLiveChange },
         }),
     },
   ]
