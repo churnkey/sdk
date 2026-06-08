@@ -189,7 +189,12 @@ const offerConfig = z
       .describe(
         'DISCOUNT: Paddle Classic custom discount duration only. Other providers must use couponId or autoOptimize.',
       ),
-    autoOptimize: z.boolean().optional().describe('DISCOUNT: let Churnkey pick the discount.'),
+    autoOptimize: z
+      .boolean()
+      .optional()
+      .describe(
+        'DISCOUNT: let Churnkey adaptively pick the discount. Requires Churnkey Intelligence access — the API rejects this (403) for orgs without it; upgrade to an Intelligence plan (dashboard → Settings → Billing) to enable adaptive offers, otherwise set a fixed couponId.',
+      ),
     maxPauseLength: z.number().int().min(1).optional().describe('PAUSE: maximum pause length.'),
     pauseInterval: z.enum(['MONTH', 'WEEK']).optional().describe('PAUSE: unit for maxPauseLength.'),
     datePicker: z
@@ -383,7 +388,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Patch the type and functional config of a single offer on a draft blueprint, without sending the full steps array. Offers attach in three places: an offer step (pass stepGuid only), a survey choice (pass stepGuid + choiceGuid), or a structured follow-up option (pass stepGuid + choiceGuid + optionGuid). If the target has no offer yet, pass offerType to add one (the offer is seeded with that type and its default config, mirroring the dashboard’s add-offer); editing an offer-less target without offerType is rejected. If you pass a published blueprint ID, the API resolves it to the working copy.',
         '',
-        "Change offerType and/or its config: DISCOUNT (couponId for most providers, Paddle Classic-only customAmount in cents + customDuration, or autoOptimize), PAUSE (maxPauseLength + pauseInterval, datePicker), TRIAL_EXTENSION (trialExtensionDays), REDIRECT (redirectUrl, redirectLabel), PLAN_CHANGE (options), REBATE (Stripe only), CONTACT (no config). You may also set header/description. The API rejects offer types unsupported by the org's payment provider; switching type seeds default config.",
+        "Change offerType and/or its config: DISCOUNT (couponId for most providers, Paddle Classic-only customAmount in cents + customDuration, or autoOptimize), PAUSE (maxPauseLength + pauseInterval, datePicker), TRIAL_EXTENSION (trialExtensionDays), REDIRECT (redirectUrl, redirectLabel), PLAN_CHANGE (options), REBATE (Stripe only), CONTACT (no config). You may also set header/description. The API rejects offer types unsupported by the org's payment provider; switching type seeds default config. autoOptimize (adaptive discounts) additionally requires Churnkey Intelligence access — the API rejects it (403) for orgs without it; upgrade to an Intelligence plan to enable it.",
         '',
         'Config changes do not affect translations; header/description changes clear stale offer translations (refreshed on publish).',
         '',
