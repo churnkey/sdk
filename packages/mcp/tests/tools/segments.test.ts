@@ -50,6 +50,21 @@ describe('segmentTools', () => {
     expect(enableTool.description).toContain('requires at least one audience filter rule')
   })
 
+  it('documents A/B test and live audience guardrails', () => {
+    const { tool: listTool } = findTool('list_segments')
+    const { tool: reorderTool } = findTool('reorder_segments')
+    const { tool: archiveTool } = findTool('archive_segment')
+    const { tool: enableTool } = findTool('set_segment_enabled')
+    const { tool: filterTool } = findTool('update_segment_filter')
+
+    expect(listTool.description).toContain('Unfinished A/B test segments cannot be archived')
+    expect(reorderTool.description).toContain('keep the control immediately followed by its variant')
+    expect(archiveTool.description).toContain('Segments in unfinished A/B tests cannot be archived')
+    expect(enableTool.description).toContain('unfinished A/B tests cannot be enabled or disabled')
+    expect(filterTool.description).toContain('Enabled published segments cannot be edited')
+    expect(filterTool.description).toContain('immediately change live targeting')
+  })
+
   it('routes reorder_segments with the full confirmed body', async () => {
     const { tool, post } = findTool('reorder_segments')
     const args = { segmentIds: ['seg_1', 'seg_2'], confirm: 'reorder_segments' as const }

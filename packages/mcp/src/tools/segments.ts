@@ -129,7 +129,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'List cancel flow segment metadata for the authenticated org in priority order (the response order IS the priority — first = highest priority; the 0-based `priority` field mirrors it). Includes disabled segments (each has an `enabled` boolean). Each segment also returns its audience `filter` rules ([{ attribute, operand, value }]) so you can reason about which customers a flow targets.',
         '',
-        'A/B test variant segments appear as separate top-level entries here (the dashboard folds them under their parent test), so treat segments cautiously when reordering. Use this before reorder_segments.',
+        'A/B test variant segments appear as separate top-level entries here (the dashboard folds them under their parent test). Unfinished A/B test segments cannot be archived, enabled/disabled, or have their audience edited, and reorder_segments must keep test pairs together.',
       ].join('\n'),
       inputSchema: z.object({}),
       annotations: { readOnlyHint: true, openWorldHint: true },
@@ -151,7 +151,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'reorder_segments',
       title: 'Reorder cancel flow segments',
       description:
-        'Reorder cancel flow segment priority. This is a live-impacting configuration change, so it requires explicit confirmation and records an audit log.',
+        'Reorder cancel flow segment priority. This is a live-impacting configuration change, so it requires explicit confirmation and records an audit log. If an unfinished A/B test is involved, include both test segments together and keep the control immediately followed by its variant, matching the dashboard grouping.',
       inputSchema: reorderInput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
       handler: async (args) => client.post('/data/segments/reorder', { body: args }),
@@ -160,7 +160,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'archive_segment',
       title: 'Archive a cancel flow segment',
       description:
-        'Soft-delete/archive a cancel-flow segment so it disappears from the non-deleted segment inventory. Use this to clean up disposable segment flows created for testing. Requires explicit confirmation and records an audit log.',
+        'Soft-delete/archive a cancel-flow segment so it disappears from the non-deleted segment inventory. Use this to clean up disposable segment flows created for testing. Segments in unfinished A/B tests cannot be archived. Requires explicit confirmation and records an audit log.',
       inputSchema: archiveSegmentInput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
       handler: async (args) =>
@@ -172,7 +172,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'set_segment_enabled',
       title: 'Enable or disable a cancel flow segment',
       description:
-        'Enable or disable a cancel flow segment. Disabling stops its flow from being served to matching customers (the segment becomes inactive); enabling resumes it and requires at least one audience filter rule. This is a live-impacting configuration change, so it requires explicit confirmation and records an audit log. Use list_segments first to get the segment ID, current enabled state, and filter.',
+        'Enable or disable a cancel flow segment. Disabling stops its flow from being served to matching customers (the segment becomes inactive); enabling resumes it and requires at least one audience filter rule. Segments in unfinished A/B tests cannot be enabled or disabled through this tool. This is a live-impacting configuration change, so it requires explicit confirmation and records an audit log. Use list_segments first to get the segment ID, current enabled state, and filter.',
       inputSchema: setEnabledInput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
       handler: async (args) =>
@@ -184,7 +184,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'update_segment_filter',
       title: 'Update a cancel flow segment audience filter',
       description: [
-        'Replace the audience filter rules for a cancel flow segment. This sends the COMPLETE new filter array and fully replaces the existing rules (it is not an add/remove patch) — include every rule you want to keep. This changes which customers the segment targets, so it is live-impacting, requires explicit confirmation, and records an audit log.',
+        'Replace the audience filter rules for a cancel flow segment. This sends the COMPLETE new filter array and fully replaces the existing rules (it is not an add/remove patch) — include every rule you want to keep. Enabled published segments cannot be edited here because that would immediately change live targeting; disable the segment first or create a new segment flow. Segments in unfinished A/B tests cannot have their audience edited.',
         '',
         'Each rule is { attribute, operand, value, type? }. operand is one of INCLUDES, GT, LT, GTE, LTE, BETWEEN, NOT_INCLUDES, NOT_BETWEEN. For BETWEEN/NOT_BETWEEN, value has exactly two entries [low, high]; for GT/LT/GTE/LTE, one entry; for INCLUDES/NOT_INCLUDES, the list of matching values. Call list_segments first to read the current rules.',
       ].join('\n'),

@@ -292,7 +292,7 @@ const addStepInput = blueprintIdInput.extend({
   place: z
     .enum(['INITIAL_OFFER', 'SURVEY', 'FREEFORM', 'FINAL_OFFER', 'CONFIRM'])
     .describe(
-      'Canonical step slot. Each slot can hold one step. FINAL_OFFER requires an existing INITIAL_OFFER (a single offer is the initial offer). Offer steps are created with a base DISCOUNT offer — configure it with update_blueprint_offer.',
+      'Canonical step slot. Each slot can hold one step. FINAL_OFFER requires an existing INITIAL_OFFER (a single offer is the initial offer). Offer steps are created with a provider-supported base offer, usually PAUSE when the provider supports it and DISCOUNT otherwise — configure it with update_blueprint_offer.',
     ),
 })
 
@@ -383,7 +383,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Patch the type and functional config of a single offer on a draft blueprint, without sending the full steps array. Offers attach in three places: an offer step (pass stepGuid only), a survey choice (pass stepGuid + choiceGuid), or a structured follow-up option (pass stepGuid + choiceGuid + optionGuid). The offer must already exist at that location. If you pass a published blueprint ID, the API resolves it to the working copy.',
         '',
-        "Change offerType and/or its config: DISCOUNT (couponId for most providers, Paddle Classic-only customAmount in cents + customDuration, or autoOptimize), PAUSE (maxPauseLength + pauseInterval, datePicker), TRIAL_EXTENSION (trialExtensionDays), REDIRECT (redirectUrl, redirectLabel), PLAN_CHANGE (options), CONTACT (no config). You may also set header/description. Config is validated against the offer's offerType and org provider; switching type seeds default config.",
+        "Change offerType and/or its config: DISCOUNT (couponId for most providers, Paddle Classic-only customAmount in cents + customDuration, or autoOptimize), PAUSE (maxPauseLength + pauseInterval, datePicker), TRIAL_EXTENSION (trialExtensionDays), REDIRECT (redirectUrl, redirectLabel), PLAN_CHANGE (options), REBATE (Stripe only), CONTACT (no config). You may also set header/description. The API rejects offer types unsupported by the org's payment provider; switching type seeds default config.",
         '',
         'Config changes do not affect translations; header/description changes clear stale offer translations (refreshed on publish).',
         '',
@@ -424,7 +424,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Add a step to a draft blueprint at a canonical slot (place). The server builds a sensible base step for that place, so you do not send a full step object — configure it afterward with update_blueprint_step / update_blueprint_offer / edit_survey_structure. If you pass a published blueprint ID, the API resolves it to the working copy.',
         '',
-        'Places: INITIAL_OFFER, SURVEY, FREEFORM, FINAL_OFFER, CONFIRM — each can hold one step, inserted in canonical order. FINAL_OFFER requires an existing INITIAL_OFFER. Offer steps are seeded with a base DISCOUNT offer.',
+        'Places: INITIAL_OFFER, SURVEY, FREEFORM, FINAL_OFFER, CONFIRM — each can hold one step, inserted in canonical order. FINAL_OFFER requires an existing INITIAL_OFFER. Offer steps are seeded with a provider-supported base offer.',
         '',
         WRITE_NOTE,
       ].join('\n'),
@@ -453,6 +453,8 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         'Publish an unlocked draft blueprint as the live version for its org or segment. If you pass a published blueprint ID, the API resolves it to the corresponding unlocked working copy. This is separate from draft updates and requires explicit confirmation.',
         '',
         'For segment-scoped blueprints, publishing requires the parent segment to have at least one audience filter rule. The first successful publish of a segment flow also enables the segment automatically.',
+        '',
+        'Publishing validates enabled offers against the org payment provider. Unsupported offer types are rejected, and Braintree pause offers require the CHURNKEY_PAUSE discount to exist first.',
         '',
         WRITE_NOTE,
       ].join('\n'),

@@ -22,6 +22,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect 
 - `list_segments` now returns each segment's audience `filter` rules and a 0-based `priority` (replacing the vestigial, never-written `order` field), includes disabled segments, and drops the duplicate `_id` (use `id`).
 - `update_blueprint_draft` no longer accepts a full `steps` array on the Data API. Step content is mutated only via `update_blueprint_step`, which validates and clears stale translations. (Top-level draft fields: `name`, `brandImage`, `primaryColor`, `translatedLanguages`.)
 - `brandImage` validation now mirrors the server (URL path must end in `.png`/`.jpg`/`.jpeg`/`.gif`/`.webp`, or be hosted on `images.churnkey.co`) instead of accepting any URL.
+- Blueprint offer mutations and publish now enforce dashboard-like provider guardrails. Unsupported offer types are rejected for the org payment provider, and Braintree pause offers require the `CHURNKEY_PAUSE` discount before publish.
+- Segment mutations now enforce dashboard-like lifecycle guardrails. Enabled published segments cannot have audience filters edited directly, unfinished A/B test segments cannot be archived/toggled/filter-edited, and segment reorder keeps unfinished A/B test pairs together.
 - `list_sessions` and `aggregate_sessions` now point at the new warehouse-backed routes (`/v1/data/warehouse/sessions` and `/v1/data/warehouse/session-aggregation`). The legacy `/v1/data/sessions` and `/v1/data/session-aggregation` routes are unchanged on the API side and continue to serve real-time Mongo data; the MCP just chooses the warehouse path because lag is acceptable for agent use cases and warehouse queries scale better. Tool descriptions surface the ~3-hour lag.
 
 ### Removed (BREAKING)

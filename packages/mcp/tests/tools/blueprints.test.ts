@@ -212,6 +212,8 @@ describe('blueprintTools', () => {
 
     expect(tool.description).toContain('requires the parent segment to have at least one audience filter rule')
     expect(tool.description).toContain('enables the segment automatically')
+    expect(tool.description).toContain('validates enabled offers against the org payment provider')
+    expect(tool.description).toContain('Braintree pause offers require the CHURNKEY_PAUSE discount')
   })
 
   it('accepts survey/freeform/confirm behavioral config on update_blueprint_step', () => {
@@ -292,6 +294,13 @@ describe('blueprintTools', () => {
     ).toThrow()
   })
 
+  it('documents provider-gated offer types', () => {
+    const { tool } = findTool('update_blueprint_offer')
+
+    expect(tool.description).toContain('REBATE (Stripe only)')
+    expect(tool.description).toContain('rejects offer types unsupported by the org')
+  })
+
   it('routes edit_survey_structure with the op body', async () => {
     const { tool, post } = findTool('edit_survey_structure')
 
@@ -312,5 +321,6 @@ describe('blueprintTools', () => {
 
     // place must be a known slot
     expect(() => add.tool.inputSchema.parse({ blueprintId: 'bp_123', place: 'MIDDLE' })).toThrow()
+    expect(add.tool.description).toContain('provider-supported base offer')
   })
 })
