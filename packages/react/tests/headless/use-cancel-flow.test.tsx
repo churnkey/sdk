@@ -95,4 +95,29 @@ describe('useCancelFlow', () => {
     expect(String(url)).toContain('/cancel-flow/config')
     expect(JSON.parse(init.body)).toEqual({ customAttributes: { videosCreated: 28 } })
   })
+
+  // Every callback must route through the ref so the latest render's closure
+  // runs. handleRebate/onRebate were missing from the dispatch table, so the
+  // machine held the first render's closure forever — or nothing at all if
+  // the consumer attached the callback after mount.
+  it('routes rebate callbacks through the ref so the latest closure runs', async () => {
+    const first = vi.fn()
+    const second = vi.fn()
+    const steps = [
+      { type: 'offer' as const, offer: { type: 'rebate' as const, amountMinor: 500, currency: 'usd' } },
+      { type: 'confirm' as const },
+    ]
+    const { result, rerender } = renderHook((props: { onRebate: typeof first }) => useCancelFlow({ steps, ...props }), {
+      initialProps: { onRebate: first },
+    })
+    rerender({ onRebate: second })
+
+    await act(async () => {
+      await result.current.accept()
+    })
+
+    expect(first).not.toHaveBeenCalled()
+    expect(second).toHaveBeenCalledTimes(1)
+    expect(second).toHaveBeenCalledWith(expect.objectContaining({ type: 'rebate', amountMinor: 500 }), null)
+  })
 })
