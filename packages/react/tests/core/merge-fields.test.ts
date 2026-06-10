@@ -73,6 +73,21 @@ describe('buildMergeAttrs', () => {
     expect(attrs.PLAN).toBe('pro')
     expect(attrs.TEAM_SIZE).toBe('12')
   })
+
+  it('layers customerAttributes over metadata, winning key conflicts', () => {
+    const attrs = buildMergeAttrs(
+      { id: 'cus_1', metadata: { PLAN: 'pro', TEAM_SIZE: 12 } },
+      { PLAN: 'enterprise', videosCreated: 28 },
+    )
+    expect(attrs.PLAN).toBe('enterprise')
+    expect(attrs.TEAM_SIZE).toBe('12')
+    expect(attrs.videosCreated).toBe('28')
+  })
+
+  it('resolves customerAttributes without a customer', () => {
+    const attrs = buildMergeAttrs(null, { PLAN: 'pro' })
+    expect(attrs.PLAN).toBe('pro')
+  })
 })
 
 describe('applyMergeFieldsToSteps', () => {

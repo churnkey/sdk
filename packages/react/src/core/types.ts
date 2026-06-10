@@ -631,6 +631,15 @@ export interface FlowConfig extends FlowCallbacks {
   appId?: string
   customer?: DirectCustomer
   subscriptions?: DirectSubscription[]
+  /**
+   * Client-side attribute layer on top of provider data, e.g. usage counts
+   * or entitlements only the host app knows (`{ videosCreated: 28 }`). In token mode
+   * they're sent with the config request so segments can match on them when
+   * picking the blueprint. In every mode they resolve as merge fields and
+   * are recorded on the session, taking precedence over `customer.metadata`
+   * keys. Same role as the embed's `customerAttributes`.
+   */
+  customerAttributes?: Record<string, unknown>
   session?: string
   apiBaseUrl?: string
   steps?: Step[]
@@ -683,6 +692,8 @@ export interface CancelFlowProps extends FlowCallbacks {
   appId?: string
   customer?: DirectCustomer
   subscriptions?: DirectSubscription[]
+  /** See FlowConfig.customerAttributes. */
+  customerAttributes?: Record<string, unknown>
   session?: string
   steps?: Step[]
   apiBaseUrl?: string

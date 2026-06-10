@@ -23,24 +23,34 @@ const MERGE_FIELD_PATTERN = /{{([a-zA-Z0-9_.]+)\|([^}]*)}}/g
 /**
  * Build the attribute map merge fields are resolved against. Sourced from
  * Direct.Customer fields: name (with `.FIRST`/`.LAST` variants), email, and
- * metadata. Values that aren't strings are coerced — dashboards emit merge
- * fields into HTML, and HTML only speaks strings.
+ * metadata, then the consumer's `customerAttributes` layer, which wins key
+ * conflicts (same precedence as the embed). Values that aren't strings are
+ * coerced — dashboards emit merge fields into HTML, and HTML only speaks
+ * strings.
  */
-export function buildMergeAttrs(customer: DirectCustomer | null | undefined): MergeAttrs {
-  if (!customer) return {}
+export function buildMergeAttrs(
+  customer: DirectCustomer | null | undefined,
+  customerAttributes?: Record<string, unknown> | null,
+): MergeAttrs {
   const attrs: MergeAttrs = {}
 
-  // Build full name from Direct.Customer's separate first/last name fields.
-  const first = customer.name
-  const last = customer.lastName
-  const fullName = [first, last].filter(Boolean).join(' ') || undefined
-  if (fullName) attrs.CUSTOMER_NAME = fullName
-  if (first) attrs['CUSTOMER_NAME.FIRST'] = first
-  if (last) attrs['CUSTOMER_NAME.LAST'] = last
+  if (customer) {
+    // Build full name from Direct.Customer's separate first/last name fields.
+    const first = customer.name
+    const last = customer.lastName
+    const fullName = [first, last].filter(Boolean).join(' ') || undefined
+    if (fullName) attrs.CUSTOMER_NAME = fullName
+    if (first) attrs['CUSTOMER_NAME.FIRST'] = first
+    if (last) attrs['CUSTOMER_NAME.LAST'] = last
 
-  if (customer.email) attrs.CUSTOMER_EMAIL = customer.email
+    if (customer.email) attrs.CUSTOMER_EMAIL = customer.email
 
-  for (const [key, value] of Object.entries(customer.metadata ?? {})) {
+    for (const [key, value] of Object.entries(customer.metadata ?? {})) {
+      if (value != null) attrs[key] = String(value)
+    }
+  }
+
+  for (const [key, value] of Object.entries(customerAttributes ?? {})) {
     if (value != null) attrs[key] = String(value)
   }
 
@@ -63,8 +73,12 @@ export function applyMergeFields(text: string, attrs: MergeAttrs): string {
  * so the runtime carries already-resolved copy — components stay unaware of
  * merge fields entirely.
  */
-export function applyMergeFieldsToSteps(steps: Step[], customer: DirectCustomer | null | undefined): Step[] {
-  const attrs = buildMergeAttrs(customer)
+export function applyMergeFieldsToSteps(
+  steps: Step[],
+  customer: DirectCustomer | null | undefined,
+  customerAttributes?: Record<string, unknown> | null,
+): Step[] {
+  const attrs = buildMergeAttrs(customer, customerAttributes)
   return steps.map((step) => mergeStep(step, attrs))
 }
 

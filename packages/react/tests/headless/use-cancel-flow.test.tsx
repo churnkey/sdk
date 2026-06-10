@@ -80,4 +80,19 @@ describe('useCancelFlow', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
+
+  it('sends customerAttributes in the config request body', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => goodResponse } as Response)
+
+    await act(async () => {
+      renderHook(() => useCancelFlow({ session: TOKEN, customerAttributes: { videosCreated: 28 } }))
+    })
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(String(url)).toContain('/cancel-flow/config')
+    expect(JSON.parse(init.body)).toEqual({ customAttributes: { videosCreated: 28 } })
+  })
 })
