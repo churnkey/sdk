@@ -2,6 +2,16 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.5.0 — 2026-06-10
+
+### Added
+
+- **`customerAttributes`** on `<CancelFlow>` and `useCancelFlow` — a client-side attribute layer for things only your app knows (usage counts, entitlements, lifecycle stage). In connected mode the attributes are sent with the config request, so segments can match on them when picking which flow to serve; the server still fetches the customer from your billing provider and layers the attributes on top. In every mode the keys resolve as merge fields in dashboard copy and are recorded on the session, winning key conflicts with `customer.metadata`. Same semantics as the embed widget's `customerAttributes`, so segments built for the embed work unchanged.
+
+### Fixed
+
+- `handleRebate` / `onRebate` now route through the hook's ref dispatch like every other callback. They were missing from the dispatch table, so the machine held the first render's closures — a rebate callback reading component state saw mount-time values, and one attached after mount never registered at all. In connected mode that second case meant the server-side refund ran instead of your `handleRebate`.
+
 ## 0.4.2 — 2026-06-01
 
 ### Changed
