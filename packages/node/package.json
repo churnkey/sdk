@@ -1,6 +1,6 @@
 {
   "name": "@churnkey/node",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Server-side SDK for Churnkey. Generate session tokens for use with @churnkey/react.",
   "license": "MIT",
   "repository": {

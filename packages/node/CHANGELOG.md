@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.2.0 — 2026-06-10
+
+### Added
+
+- `mode: 'sandbox'` on `createToken`, for orgs connected to a [Stripe Sandbox](https://docs.stripe.com/sandboxes) rather than classic test mode. Pair with `@churnkey/react` 0.6.0 or later — earlier versions of the react package treat unrecognized modes as `'live'`.
+
 ## 0.1.0 — 2026-05-01
 
 First public release.

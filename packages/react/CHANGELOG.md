@@ -2,6 +2,16 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.6.0 — 2026-06-10
+
+### Added
+
+- **Stripe Sandbox support.** `mode` accepts `'sandbox'` on `<CancelFlow>`, `useCancelFlow`, and session tokens. [Sandboxes](https://docs.stripe.com/sandboxes) supersede Stripe's classic test mode and live under a separate Stripe account ID with their own credentials — pass `'sandbox'` when your Churnkey org is connected to one, so server-side billing actions (discounts, pauses, cancels) run against the sandbox. Sessions record as `SANDBOX`.
+
+### Changed
+
+- `decodeSessionToken` throws on an unrecognized mode instead of treating it as `'live'`. A missing mode still defaults to `'live'`. The old coercion meant a token signed with a mode this package didn't know about would run the flow against live billing — it now fails loudly instead. If you mint tokens with `@churnkey/node`, upgrade both packages together.
+
 ## 0.5.0 — 2026-06-10
 
 ### Added
