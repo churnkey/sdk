@@ -1,4 +1,5 @@
-import type { ChurnkeyMcpConfig } from './config'
+import { NotAuthenticatedError, OAuthTokenProvider } from './auth/tokens'
+import type { ChurnkeyAuth, ChurnkeyMcpConfig } from './config'
 
 export interface RequestOptions {
   query?: Record<string, unknown>
@@ -6,7 +7,14 @@ export interface RequestOptions {
 }
 
 export class ChurnkeyClient {
-  constructor(private readonly config: ChurnkeyMcpConfig) {}
+  private readonly tokenProvider: OAuthTokenProvider | null
+
+  constructor(
+    private readonly config: ChurnkeyMcpConfig,
+    tokenProvider?: OAuthTokenProvider,
+  ) {
+    this.tokenProvider = config.auth.kind === 'oauth' ? (tokenProvider ?? new OAuthTokenProvider()) : null
+  }
 
   async get<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
     return this.request<T>('GET', path, options)
@@ -14,6 +22,26 @@ export class ChurnkeyClient {
 
   async post<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
     return this.request<T>('POST', path, options)
+  }
+
+  private async authHeaders(forceRefresh: boolean): Promise<Record<string, string>> {
+    const auth = this.config.auth
+    switch (auth.kind) {
+      case 'data-api-key':
+        return { 'x-ck-app': auth.appId, 'x-ck-api-key': auth.apiKey }
+      case 'bearer':
+        return this.withMode({ authorization: `Bearer ${auth.token}` })
+      case 'oauth': {
+        if (!this.tokenProvider) throw new NotAuthenticatedError()
+        const token = await this.tokenProvider.getAccessToken(forceRefresh)
+        return this.withMode({ authorization: `Bearer ${token}` })
+      }
+    }
+  }
+
+  private withMode(headers: Record<string, string>): Record<string, string> {
+    if (this.config.mode === 'test') headers['x-ck-mode'] = 'test'
+    return headers
   }
 
   private async request<T>(method: 'GET' | 'POST', path: string, options: RequestOptions): Promise<T> {
@@ -29,26 +57,33 @@ export class ChurnkeyClient {
       }
     }
 
-    const headers: Record<string, string> = {
-      'x-ck-app': this.config.appId,
-      'x-ck-api-key': this.config.apiKey,
-      accept: 'application/json',
-    }
-    if (options.body !== undefined) {
-      headers['content-type'] = 'application/json'
+    const performRequest = async (forceRefresh: boolean) => {
+      const headers: Record<string, string> = {
+        ...(await this.authHeaders(forceRefresh)),
+        accept: 'application/json',
+      }
+      if (options.body !== undefined) {
+        headers['content-type'] = 'application/json'
+      }
+      return fetch(url, {
+        method,
+        headers,
+        body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      })
     }
 
-    const res = await fetch(url, {
-      method,
-      headers,
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-    })
+    let res = await performRequest(false)
+    // An expired/revoked access token comes back 401 — for managed OAuth, force
+    // one refresh (rotating via the stored refresh token) and retry.
+    if (res.status === 401 && this.config.auth.kind === 'oauth') {
+      res = await performRequest(true)
+    }
 
     const text = await res.text()
     const parsed = parseJson(text)
 
     if (!res.ok) {
-      throw new Error(mapErrorMessage(res.status, parsed))
+      throw new Error(mapErrorMessage(res.status, parsed, this.config.auth.kind))
     }
     return parsed as T
   }
@@ -63,11 +98,22 @@ function parseJson(text: string): unknown {
   }
 }
 
-function mapErrorMessage(status: number, body: unknown): string {
+function unauthorizedHint(authKind: ChurnkeyAuth['kind']): string {
+  if (authKind === 'data-api-key') {
+    return 'Churnkey API rejected the credentials. Check CHURNKEY_APP_ID and CHURNKEY_API_KEY in your MCP server config — or switch to OAuth with `npx @churnkey/mcp auth login`.'
+  }
+  return 'Churnkey API rejected the OAuth session (expired or revoked). Run `npx @churnkey/mcp auth login` to sign in again.'
+}
+
+function mapErrorMessage(status: number, body: unknown, authKind: ChurnkeyAuth['kind']): string {
   const apiMessage = extractApiMessage(body)
 
   if (status === 401) {
-    return 'Churnkey API rejected the credentials. Check CHURNKEY_APP_ID and CHURNKEY_API_KEY in your MCP server config.'
+    // The API distinguishes "bad credentials" from actionable states like
+    // "this operation requires OAuth" — surface a descriptive server message,
+    // but replace bare "Unauthorized"-style bodies with a useful hint.
+    if (apiMessage && apiMessage.length >= 25) return apiMessage
+    return unauthorizedHint(authKind)
   }
   if (status >= 500) {
     return apiMessage ?? `Churnkey API returned ${status}. Try again or check status.churnkey.co.`
@@ -78,7 +124,7 @@ function mapErrorMessage(status: number, body: unknown): string {
     return apiMessage
   }
   if (status === 403) {
-    return 'Churnkey API forbidden (403). Your account may not have this capability enabled — check the API key and account permissions.'
+    return 'Churnkey API forbidden (403). Your user role or granted OAuth scopes may not allow this operation.'
   }
   if (status === 404) {
     return 'Churnkey API resource not found (404). Check the ID you passed (e.g. blueprint or segment ID).'

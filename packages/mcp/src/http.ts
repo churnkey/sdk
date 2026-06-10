@@ -109,7 +109,7 @@ function setCorsHeaders(headers: IncomingHttpHeaders, res: ServerResponse, env: 
   res.setHeader('access-control-allow-methods', 'GET, POST, DELETE, OPTIONS')
   res.setHeader(
     'access-control-allow-headers',
-    'authorization, content-type, mcp-session-id, mcp-protocol-version, x-ck-app, x-ck-api-key',
+    'authorization, content-type, mcp-session-id, mcp-protocol-version, x-ck-app, x-ck-api-key, x-ck-mode',
   )
   res.setHeader('access-control-expose-headers', 'mcp-session-id')
 }

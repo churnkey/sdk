@@ -1,9 +1,16 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { runAuthCommand } from './auth/commands'
 import { loadConfig } from './config'
 import { startHttpServer } from './http'
 import { createServer } from './server'
 
 async function main() {
+  const args = process.argv.slice(2)
+  if (args[0] === 'auth') {
+    await runAuthCommand(args.slice(1))
+    return
+  }
+
   if (useHttpTransport()) {
     const httpServer = await startHttpServer()
     await new Promise<void>((resolve) => {

@@ -2,6 +2,22 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 1.0.0 — Unreleased
+
+### Added
+
+- **Per-user OAuth 2.1 authentication** (authorization code + PKCE, S256). New CLI: `npx @churnkey/mcp auth login` opens the browser, walks the Churnkey consent screen (scopes pre-checked within your role ceiling, PII scopes flagged, uncheck anything), and stores tokens in `~/.churnkey/mcp-auth.json` (chmod 600, `CHURNKEY_CONFIG_DIR` to relocate). `auth status` and `auth logout` (logout revokes the server-side grant via RFC 7009) included. `--scopes a,b` narrows the requested scopes.
+- Access tokens (~1h) refresh automatically with refresh-token rotation; a 401 mid-session triggers one transparent refresh + retry. Revocation (dashboard "Active MCP sessions", admin disable, `auth logout`) takes effect immediately.
+- Every MCP action is now attributable: the API audit log records the acting user, client, and scope for configuration writes made over OAuth.
+- `CHURNKEY_MODE=test` (or `x-ck-mode: test` per HTTP request) selects test-mode data over OAuth — with key auth, mode stays encoded in the key prefix.
+- Streamable HTTP transport accepts `Authorization: Bearer <ck_oat_…>` OAuth access tokens per request — no app id required; user, org, and scopes resolve from the token.
+
+### Changed (BREAKING)
+
+- **The Data API key is no longer the MCP authentication mechanism.** `CHURNKEY_APP_ID`/`CHURNKEY_API_KEY` continue to work for read-only data tools (with a deprecation warning), but the API rejects configuration writes (blueprint/segment edits, publish, etc.) without an OAuth user session. Data API keys are unaffected for non-MCP server-to-server `/v1/data/*` use.
+- A user must have MCP access enabled by a workspace admin (Churnkey → Team) before `auth login` will issue tokens.
+- 401 handling distinguishes auth schemes: descriptive server messages (e.g. "this operation requires OAuth") surface verbatim; bare unauthorized bodies map to a sign-in hint for the active scheme.
+
 ## 0.3.0 — Unreleased
 
 ### Added

@@ -33,13 +33,31 @@ Segment tools (`reorder_segments`, `set_segment_enabled`, `update_segment_filter
 
 Each tool's input schema is fully described to the MCP client — enums for `saveType` / `offerType` / `billingInterval` / breakdown dimensions, `not` object for exclusions, structured types for booleans and numbers.
 
-Mode (live vs test) is set by the API key prefix — pass a `test_`-prefixed key to query test data. Mode applies to **session analytics** and DSR. **Blueprint/segment configuration is shared across modes** (not key-dependent), and **payment-recovery analytics are not partitioned by mode** (dunning campaigns come from real provider failed-payment events and carry no test/live distinction).
+Mode (live vs test): with OAuth, set `CHURNKEY_MODE=test` (sent as `x-ck-mode: test`); with a deprecated Data API key, mode comes from the key prefix (`test_…`). Mode applies to **session analytics** and DSR. **Blueprint/segment configuration is shared across modes** (not key-dependent), and **payment-recovery analytics are not partitioned by mode** (dunning campaigns come from real provider failed-payment events and carry no test/live distinction).
+
+## Authentication
+
+`@churnkey/mcp` 1.0 authenticates **per user via OAuth 2.1** (authorization code + PKCE). Each MCP action runs as your Churnkey user, inherits your workspace role, and is recorded in the audit log under your name. A workspace admin must enable MCP access for your user first (Churnkey → Team).
+
+```bash
+npx @churnkey/mcp auth login     # opens the browser, shows the consent screen, stores tokens locally
+npx @churnkey/mcp auth status    # who am I / which scopes were granted
+npx @churnkey/mcp auth logout    # revokes the session server-side and deletes local tokens
+```
+
+Tokens are stored in `~/.churnkey/mcp-auth.json` (override the directory with `CHURNKEY_CONFIG_DIR`), chmod 600. Access tokens last ~1 hour and refresh automatically; refresh tokens rotate on every use.
+
+The consent screen lets you narrow the granted scopes: every scope within your role's ceiling is pre-checked, PII scopes carry an explicit warning, and you can uncheck anything before approving. Request a custom subset up front with `npx @churnkey/mcp auth login --scopes cancel_flows.blueprints.read,cancel_flows.metrics.read`.
+
+### Data API keys (deprecated for MCP)
+
+`CHURNKEY_APP_ID` + `CHURNKEY_API_KEY` still work for **read-only** data access, but the API rejects configuration writes (blueprint/segment edits, publish) without OAuth, and the server prints a deprecation warning. Data API keys remain fully supported for non-MCP server-to-server use (`/v1/data/*` from your own backend).
 
 ## Transports
 
 The package supports two transports:
 
-- **stdio** (default): local MCP clients run `npx -y @churnkey/mcp` and pass credentials through environment variables.
+- **stdio** (default): local MCP clients run `npx -y @churnkey/mcp`; auth comes from the stored OAuth session (`npx @churnkey/mcp auth login`).
 - **Streamable HTTP** (opt-in): run the same server behind a single HTTP endpoint, usually `/mcp`.
 
 For a public Churnkey-hosted endpoint, the recommended shape is:
@@ -51,8 +69,9 @@ That keeps the human site and protocol endpoint on one memorable domain without 
 
 ## Setup
 
-1. Get your **App ID** and **Data API Key** from [Churnkey → Settings → Organization](https://app.churnkey.co/settings/organization). Don't have an account? [Create one](https://app.churnkey.co/register?intent=sdk).
-2. Add the server to your MCP client config.
+1. Ask a workspace admin to enable **MCP access** for your user (Churnkey → Team). Don't have an account? [Create one](https://app.churnkey.co/register?intent=sdk).
+2. Sign in once: `npx @churnkey/mcp auth login`
+3. Add the server to your MCP client config — no credentials needed in the config.
 
 ### Claude Desktop
 
@@ -63,11 +82,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
   "mcpServers": {
     "churnkey": {
       "command": "npx",
-      "args": ["-y", "@churnkey/mcp"],
-      "env": {
-        "CHURNKEY_APP_ID": "your_app_id",
-        "CHURNKEY_API_KEY": "your_api_key"
-      }
+      "args": ["-y", "@churnkey/mcp"]
     }
   }
 }
@@ -80,10 +95,8 @@ Fully quit and reopen the app for the server to load.
 Easiest — register from the CLI:
 
 ```bash
-claude mcp add churnkey \
-  -e CHURNKEY_APP_ID=your_app_id \
-  -e CHURNKEY_API_KEY=your_api_key \
-  -- npx -y @churnkey/mcp
+npx @churnkey/mcp auth login
+claude mcp add churnkey -- npx -y @churnkey/mcp
 ```
 
 Alternatively, add the server to `~/.claude.json` (global, all projects) or to `.mcp.json` in your project root (project-scoped, can be checked into git). The block has the same shape as the Claude Desktop config above.
@@ -99,11 +112,7 @@ Restart your Claude Code session to pick up the new server.
   "mcpServers": {
     "churnkey": {
       "command": "npx",
-      "args": ["-y", "@churnkey/mcp"],
-      "env": {
-        "CHURNKEY_APP_ID": "your_app_id",
-        "CHURNKEY_API_KEY": "your_api_key"
-      }
+      "args": ["-y", "@churnkey/mcp"]
     }
   }
 }
@@ -115,35 +124,33 @@ Restart the client after editing config.
 
 | Var | Required | Default |
 |-----|----------|---------|
-| `CHURNKEY_APP_ID` | yes | — |
-| `CHURNKEY_API_KEY` | yes | — |
 | `CHURNKEY_API_URL` | no | `https://api.churnkey.co/v1` |
+| `CHURNKEY_MODE` | no | `live` (`test` queries test-mode data over OAuth) |
+| `CHURNKEY_CONFIG_DIR` | no | `~/.churnkey` (token storage) |
+| `CHURNKEY_APP_ID` | deprecated | — (Data API key auth only) |
+| `CHURNKEY_API_KEY` | deprecated | — (read-only; use `auth login` instead) |
 
-Use a `test_`-prefixed API key for staging data.
+With deprecated key auth, use a `test_`-prefixed API key for staging data.
 
 ## Local API testing
 
-When testing against a local `churnkey-api` server, start the API on port 3000, then run:
+When testing against a local `churnkey-api` server, start the API on port 3000, sign in against it, then run the server:
 
 ```bash
-pnpm local-run --app-id your_app_id --api-key test_data_your_key
+CHURNKEY_API_URL=http://localhost:3000/v1 npx @churnkey/mcp auth login
+pnpm local-run
 ```
 
-The command builds `@churnkey/mcp`, starts the MCP server over stdio, and defaults `CHURNKEY_API_URL` to `http://localhost:3000/v1`. Pass `--api-url` only if your local API is running somewhere else.
+The command builds `@churnkey/mcp` and starts the MCP server over stdio using the stored OAuth session (the stored session pins the API base URL it was issued by). The legacy flags still work for deprecated read-only key auth: `pnpm local-run --app-id your_app_id --api-key test_data_your_key`.
 
-For MCP client configs, point the client directly at the built server and provide the same environment variables:
+For MCP client configs, point the client directly at the built server:
 
 ```json
 {
   "mcpServers": {
     "churnkey-local": {
       "command": "node",
-      "args": ["/Users/ig/Documents/Churnkey/sdk/packages/mcp/dist/bin.js"],
-      "env": {
-        "CHURNKEY_APP_ID": "your_app_id",
-        "CHURNKEY_API_KEY": "test_data_your_key",
-        "CHURNKEY_API_URL": "http://localhost:3000/v1"
-      }
+      "args": ["/Users/ig/Documents/Churnkey/sdk/packages/mcp/dist/bin.js"]
     }
   }
 }
@@ -168,8 +175,6 @@ Start the HTTP server after building:
 
 ```bash
 pnpm --filter @churnkey/mcp build
-CHURNKEY_APP_ID=your_app_id \
-CHURNKEY_API_KEY=test_data_your_key \
 pnpm --filter @churnkey/mcp start:http
 ```
 
@@ -181,17 +186,16 @@ node packages/mcp/dist/bin.js --http
 node packages/mcp/dist/bin.js --transport=http
 ```
 
-For a shared or hosted HTTP endpoint, credentials may be sent on the initialization request instead of read from environment variables:
+For a shared or hosted HTTP endpoint, credentials are sent on the initialization request instead of read from environment variables. The primary scheme is a Churnkey MCP **OAuth access token**:
 
 ```bash
 curl http://127.0.0.1:3333/mcp \
   -H 'content-type: application/json' \
-  -H 'x-ck-app: your_app_id' \
-  -H 'x-ck-api-key: test_data_your_key' \
+  -H 'authorization: Bearer ck_oat_…' \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl","version":"0.1.0"}}}'
 ```
 
-The server also accepts `Authorization: Bearer <api_key>` for the API key. `x-ck-api-key` takes precedence if both are provided.
+Add `x-ck-mode: test` to query test-mode data. Deprecated read-only Data API key auth is still accepted per request via `x-ck-app` + `x-ck-api-key` (or a non-`ck_oat_` bearer value as the key).
 
 ## Programmatic use
 
