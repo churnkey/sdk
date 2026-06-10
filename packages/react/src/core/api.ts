@@ -1,6 +1,6 @@
 import type { SdkConfig } from './api-types'
 import type { SessionCredentials } from './token'
-import type { DirectCustomer, DirectSubscription } from './types'
+import type { DirectCustomer, DirectSubscription, Mode } from './types'
 
 const DEFAULT_BASE_URL = 'https://api.churnkey.co/v1'
 
@@ -19,7 +19,19 @@ export type ApiOfferType =
 export type ApiPauseInterval = 'MONTH' | 'WEEK'
 export type ApiCouponType = 'PERCENT' | 'AMOUNT'
 export type ApiBillingInterval = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR'
-export type ApiMode = 'LIVE' | 'TEST'
+export type ApiMode = 'LIVE' | 'TEST' | 'SANDBOX'
+
+// Exhaustive switch so a new Mode member without a wire mapping fails to compile.
+export function toApiMode(mode: Mode): ApiMode {
+  switch (mode) {
+    case 'live':
+      return 'LIVE'
+    case 'test':
+      return 'TEST'
+    case 'sandbox':
+      return 'SANDBOX'
+  }
+}
 
 export interface StepViewed {
   stepType: ApiStepType

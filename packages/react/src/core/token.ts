@@ -1,10 +1,16 @@
+import { MODES, type Mode } from './types'
+
 export interface SessionCredentials {
   appId: string
   customerId: string
   subscriptionId?: string
   authHash: string
-  mode: 'live' | 'test'
+  mode: Mode
   issuedAt: number
+}
+
+function isMode(value: unknown): value is Mode {
+  return MODES.includes(value as Mode)
 }
 
 /** Decode a session token created by `@churnkey/node`. */
@@ -41,13 +47,20 @@ export function decodeSessionToken(token: string): SessionCredentials {
   if (typeof payload.h !== 'string' || !payload.h) {
     throw new Error('Invalid token: missing authHash')
   }
+  // `m` is optional and defaults to 'live'. An unrecognized value is rejected
+  // rather than coerced — coercing would point test or sandbox traffic at
+  // live billing data.
+  const mode = payload.m === undefined ? 'live' : payload.m
+  if (!isMode(mode)) {
+    throw new Error(`Invalid token: unknown mode "${String(payload.m)}"`)
+  }
 
   return {
     appId: payload.a,
     customerId: payload.c,
     subscriptionId: typeof payload.s === 'string' ? payload.s : undefined,
     authHash: payload.h,
-    mode: payload.m === 'test' ? 'test' : 'live',
+    mode,
     issuedAt: typeof payload.t === 'number' ? payload.t : 0,
   }
 }

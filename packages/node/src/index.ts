@@ -3,7 +3,7 @@ import type { ChurnkeyConfig, CreateTokenParams, Mode, TokenPayload } from './ty
 
 export type { ChurnkeyConfig, CreateTokenParams, Mode, TokenPayload }
 
-export const VERSION = '0.1.0'
+export const VERSION = '0.2.0'
 
 export class Churnkey {
   private appId: string

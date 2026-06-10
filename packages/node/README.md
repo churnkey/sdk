@@ -48,7 +48,7 @@ const token = ck.createToken({
 })
 ```
 
-## Test mode
+## Test and sandbox mode
 
 Pass `mode: 'test'` to segregate staging or QA sessions from live analytics. Defaults to `'live'`.
 
@@ -58,6 +58,8 @@ const token = ck.createToken({
   mode: process.env.NODE_ENV === 'production' ? 'live' : 'test',
 })
 ```
+
+If your org is connected to a [Stripe Sandbox](https://docs.stripe.com/sandboxes) rather than classic test mode, pass `mode: 'sandbox'` instead. Sandboxes live under a separate Stripe account ID with their own credentials, and Churnkey routes billing actions accordingly.
 
 ## Using the hosted embed instead
 

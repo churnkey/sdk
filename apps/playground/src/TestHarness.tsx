@@ -8,6 +8,7 @@ import type {
   CustomStepProps,
   DirectCustomer,
   DirectSubscription,
+  Mode,
   Step,
 } from '@churnkey/react/core'
 
@@ -529,7 +530,7 @@ export function TestHarness() {
   const [customerAttributesStr, setCustomerAttributesStr] = usePersistedField('customerAttributes')
   const [apiBase, setApiBase] = usePersistedField('apiBase', 'http://localhost:3000/v1')
   const [scenario, setScenario] = useState<Scenario>('open-source')
-  const [mode, setMode] = useState<'live' | 'test'>('test')
+  const [mode, setMode] = useState<Mode>('test')
   const [open, setOpen] = useState(false)
   const [colorScheme, setColorScheme] = useState<'light' | 'dark' | 'auto'>('light')
   const logRef = useRef<HTMLDivElement>(null)
@@ -783,7 +784,7 @@ export function TestHarness() {
         <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginBottom: 16 }}>
           <legend style={{ fontSize: 13, fontWeight: 600, color: '#374151', padding: '0 4px' }}>Session mode</legend>
           <div style={{ display: 'flex', gap: 6 }}>
-            {(['test', 'live'] as const).map((m) => (
+            {(['test', 'sandbox', 'live'] as const).map((m) => (
               <Pill key={m} label={m} selected={mode === m} onClick={() => setMode(m)} />
             ))}
           </div>

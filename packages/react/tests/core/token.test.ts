@@ -37,8 +37,8 @@ describe('decodeSessionToken', () => {
     expect(creds.subscriptionId).toBeUndefined()
   })
 
-  it('defaults mode to live when not "test"', () => {
-    const token = createToken({ ...validPayload, m: 'anything' })
+  it('defaults mode to live when m is absent', () => {
+    const token = createToken({ a: 'app_1', c: 'cus_1', h: 'hash1', t: 0 })
     const creds = decodeSessionToken(token)
 
     expect(creds.mode).toBe('live')
@@ -49,6 +49,18 @@ describe('decodeSessionToken', () => {
     const creds = decodeSessionToken(token)
 
     expect(creds.mode).toBe('test')
+  })
+
+  it('sets mode to sandbox when m is "sandbox"', () => {
+    const token = createToken({ ...validPayload, m: 'sandbox' })
+    const creds = decodeSessionToken(token)
+
+    expect(creds.mode).toBe('sandbox')
+  })
+
+  it('throws on an unrecognized mode instead of coercing to live', () => {
+    const token = createToken({ ...validPayload, m: 'anything' })
+    expect(() => decodeSessionToken(token)).toThrow('unknown mode "anything"')
   })
 
   it('throws on missing ck_ prefix', () => {

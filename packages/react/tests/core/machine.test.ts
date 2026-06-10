@@ -1526,6 +1526,44 @@ describe('CancelFlowMachine', () => {
       fetchSpy.mockRestore()
     })
 
+    it('honors mode="sandbox" on analytics-mode sessions', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }))
+      const machine = new CancelFlowMachine({
+        appId: 'app_test',
+        customer: { id: 'cus_123' },
+        mode: 'sandbox',
+        steps: [{ type: 'survey' as const, reasons: [{ id: 'a', label: 'A' }] }, { type: 'confirm' as const }],
+      })
+      machine.selectReason('a')
+      machine.next()
+      await machine.cancel()
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string)
+      expect(body.mode).toBe('SANDBOX')
+      fetchSpy.mockRestore()
+    })
+
+    it('records SANDBOX when the token is signed with sandbox mode', async () => {
+      const sessions: any[] = []
+      const mockApi = {
+        createSession: vi.fn(async (payload: any) => {
+          sessions.push(payload)
+        }),
+        cancelSubscription: vi.fn(async () => {}),
+      }
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder' })
+      machine.initializeFromConfig(sdkConfig({ steps: [{ type: 'confirm', guid: 'c1' }] }), mockApi as any, {
+        appId: 'a',
+        customerId: 'c',
+        authHash: 'h',
+        mode: 'sandbox' as const,
+        issuedAt: 0,
+      })
+      await machine.cancel()
+
+      expect(sessions[0].mode).toBe('SANDBOX')
+    })
+
     it('token mode overrides FlowConfig.mode (signed token is authoritative)', async () => {
       const sessions: any[] = []
       const mockApi = {

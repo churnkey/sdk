@@ -224,7 +224,7 @@ To keep staging traffic out of your production analytics, pass `mode="test"`:
 />
 ```
 
-Defaults to `'live'`. In token mode, the token's mode takes precedence — it's server-signed and can't be overridden client-side.
+Defaults to `'live'`. If your org is connected to a [Stripe Sandbox](https://docs.stripe.com/sandboxes) rather than classic test mode, pass `mode="sandbox"` instead so server-side billing actions use your sandbox credentials. In token mode, the token's mode takes precedence — it's server-signed and can't be overridden client-side.
 
 ## Let Churnkey handle billing
 
