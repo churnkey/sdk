@@ -85,7 +85,7 @@ describe('useCancelFlow', () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => goodResponse } as Response)
 
     await act(async () => {
-      renderHook(() => useCancelFlow({ session: TOKEN, customerAttributes: { isRebateEligible: true } }))
+      renderHook(() => useCancelFlow({ session: TOKEN, customerAttributes: { videosCreated: 28 } }))
     })
 
     await waitFor(() => {
@@ -93,6 +93,6 @@ describe('useCancelFlow', () => {
     })
     const [url, init] = fetchMock.mock.calls[0]
     expect(String(url)).toContain('/cancel-flow/config')
-    expect(JSON.parse(init.body)).toEqual({ customAttributes: { isRebateEligible: true } })
+    expect(JSON.parse(init.body)).toEqual({ customAttributes: { videosCreated: 28 } })
   })
 })

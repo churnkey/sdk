@@ -90,8 +90,8 @@ describe('ChurnkeyApi action paths', () => {
   it('fetchConfig sends customAttributes as the request body for segment matching', async () => {
     const spy = spyFetch()
     const api = new ChurnkeyApi(creds, 'https://api.test/v1')
-    await api.fetchConfig({ isRebateEligible: true })
-    expect(calledBody(spy)).toEqual({ customAttributes: { isRebateEligible: true } })
+    await api.fetchConfig({ videosCreated: 28 })
+    expect(calledBody(spy)).toEqual({ customAttributes: { videosCreated: 28 } })
   })
 
   it('createSession hits /api/sessions/sdk', async () => {

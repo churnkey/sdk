@@ -1682,7 +1682,7 @@ describe('CancelFlowMachine', () => {
         session: 'ck_placeholder',
         appId: 'app_test',
         customer: { id: 'cus_123', metadata: { plan: 'pro', seats: 4 } },
-        customerAttributes: { plan: 'enterprise', isRebateEligible: true },
+        customerAttributes: { plan: 'enterprise', videosCreated: 28 },
       })
       machine.initializeFromConfig(sdkConfig({ steps: [{ type: 'confirm', guid: 'c1' }] }), mockApi as any, {
         appId: 'app_test',
@@ -1697,7 +1697,7 @@ describe('CancelFlowMachine', () => {
       expect(sessions[0].customer.customAttributes).toEqual({
         plan: 'enterprise',
         seats: 4,
-        isRebateEligible: true,
+        videosCreated: 28,
       })
     })
 
@@ -1711,7 +1711,7 @@ describe('CancelFlowMachine', () => {
       }
       const machine = new CancelFlowMachine({
         session: 'ck_placeholder',
-        customerAttributes: { isRebateEligible: true },
+        customerAttributes: { videosCreated: 28 },
       })
       machine.initializeFromConfig(sdkConfig({ steps: [{ type: 'confirm', guid: 'c1' }] }), mockApi as any, {
         appId: 'app_test',
@@ -1724,7 +1724,7 @@ describe('CancelFlowMachine', () => {
 
       expect(sessions).toHaveLength(1)
       expect(sessions[0].customer.id).toBe('cus_123')
-      expect(sessions[0].customer.customAttributes).toEqual({ isRebateEligible: true })
+      expect(sessions[0].customer.customAttributes).toEqual({ videosCreated: 28 })
     })
   })
 

@@ -632,8 +632,8 @@ export interface FlowConfig extends FlowCallbacks {
   customer?: DirectCustomer
   subscriptions?: DirectSubscription[]
   /**
-   * Client-side attribute layer on top of provider data, e.g. entitlements
-   * only the host app knows (`{ isRebateEligible: true }`). In token mode
+   * Client-side attribute layer on top of provider data, e.g. usage counts
+   * or entitlements only the host app knows (`{ videosCreated: 28 }`). In token mode
    * they're sent with the config request so segments can match on them when
    * picking the blueprint. In every mode they resolve as merge fields and
    * are recorded on the session, taking precedence over `customer.metadata`

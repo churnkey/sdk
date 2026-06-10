@@ -77,11 +77,11 @@ describe('buildMergeAttrs', () => {
   it('layers customerAttributes over metadata, winning key conflicts', () => {
     const attrs = buildMergeAttrs(
       { id: 'cus_1', metadata: { PLAN: 'pro', TEAM_SIZE: 12 } },
-      { PLAN: 'enterprise', isRebateEligible: true },
+      { PLAN: 'enterprise', videosCreated: 28 },
     )
     expect(attrs.PLAN).toBe('enterprise')
     expect(attrs.TEAM_SIZE).toBe('12')
-    expect(attrs.isRebateEligible).toBe('true')
+    expect(attrs.videosCreated).toBe('28')
   })
 
   it('resolves customerAttributes without a customer', () => {

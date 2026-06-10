@@ -739,7 +739,7 @@ export function TestHarness() {
             label="Customer Attributes (JSON)"
             value={customerAttributesStr}
             onChange={setCustomerAttributesStr}
-            placeholder='{"isRebateEligible": true}'
+            placeholder='{"videosCreated": 28}'
             disabled={!needsCustomer}
           />
         </div>
