@@ -4,7 +4,7 @@ import type { ChurnkeyMcpConfig } from './config'
 import { allTools } from './tools'
 
 export const SERVER_NAME = 'churnkey-mcp'
-export const SERVER_VERSION = '0.3.0'
+export const SERVER_VERSION = '1.0.0'
 
 export function createServer(config: ChurnkeyMcpConfig): McpServer {
   const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION })
