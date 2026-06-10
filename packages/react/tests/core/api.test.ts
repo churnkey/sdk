@@ -78,6 +78,22 @@ describe('ChurnkeyApi action paths', () => {
     expect(calledPath(spy)).toBe('https://api.test/v1/api/orgs/app_test/cancel-flow/config')
   })
 
+  it('fetchConfig sends no body without customAttributes', async () => {
+    // Presence of a `customer` body makes the server skip the provider
+    // lookup, so the default request must stay body-less.
+    const spy = spyFetch()
+    const api = new ChurnkeyApi(creds, 'https://api.test/v1')
+    await api.fetchConfig()
+    expect(spy.mock.calls[0][1]?.body).toBeUndefined()
+  })
+
+  it('fetchConfig sends customAttributes as the request body for segment matching', async () => {
+    const spy = spyFetch()
+    const api = new ChurnkeyApi(creds, 'https://api.test/v1')
+    await api.fetchConfig({ isRebateEligible: true })
+    expect(calledBody(spy)).toEqual({ customAttributes: { isRebateEligible: true } })
+  })
+
   it('createSession hits /api/sessions/sdk', async () => {
     const spy = spyFetch()
     const api = new ChurnkeyApi(creds, 'https://api.test/v1')

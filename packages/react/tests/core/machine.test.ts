@@ -1667,6 +1667,65 @@ describe('CancelFlowMachine', () => {
       expect(customer.planPrice).toBe(4999)
       expect(customer.currency).toBe('usd')
     })
+
+    // The customerAttributes layer is recorded on the session like the
+    // embed's, winning key conflicts with customer.metadata.
+    it('records customerAttributes on the session customer in token mode', async () => {
+      const sessions: any[] = []
+      const mockApi = {
+        createSession: vi.fn(async (payload: any) => {
+          sessions.push(payload)
+        }),
+        cancelSubscription: vi.fn(async () => {}),
+      }
+      const machine = new CancelFlowMachine({
+        session: 'ck_placeholder',
+        appId: 'app_test',
+        customer: { id: 'cus_123', metadata: { plan: 'pro', seats: 4 } },
+        customerAttributes: { plan: 'enterprise', isRebateEligible: true },
+      })
+      machine.initializeFromConfig(sdkConfig({ steps: [{ type: 'confirm', guid: 'c1' }] }), mockApi as any, {
+        appId: 'app_test',
+        customerId: 'cus_123',
+        authHash: 'h',
+        mode: 'live' as const,
+        issuedAt: 0,
+      })
+      await machine.cancel()
+
+      expect(sessions).toHaveLength(1)
+      expect(sessions[0].customer.customAttributes).toEqual({
+        plan: 'enterprise',
+        seats: 4,
+        isRebateEligible: true,
+      })
+    })
+
+    it('records customerAttributes on the session customer without a customer prop', async () => {
+      const sessions: any[] = []
+      const mockApi = {
+        createSession: vi.fn(async (payload: any) => {
+          sessions.push(payload)
+        }),
+        cancelSubscription: vi.fn(async () => {}),
+      }
+      const machine = new CancelFlowMachine({
+        session: 'ck_placeholder',
+        customerAttributes: { isRebateEligible: true },
+      })
+      machine.initializeFromConfig(sdkConfig({ steps: [{ type: 'confirm', guid: 'c1' }] }), mockApi as any, {
+        appId: 'app_test',
+        customerId: 'cus_123',
+        authHash: 'h',
+        mode: 'live' as const,
+        issuedAt: 0,
+      })
+      await machine.cancel()
+
+      expect(sessions).toHaveLength(1)
+      expect(sessions[0].customer.id).toBe('cus_123')
+      expect(sessions[0].customer.customAttributes).toEqual({ isRebateEligible: true })
+    })
   })
 
   describe('customer exposure', () => {

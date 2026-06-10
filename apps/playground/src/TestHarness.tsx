@@ -526,6 +526,7 @@ export function TestHarness() {
   const [customerEmail, setCustomerEmail] = usePersistedField('customerEmail')
   const [subscriptionId, setSubscriptionId] = usePersistedField('subscriptionId')
   const [planPriceStr, setPlanPrice] = usePersistedField('planPrice', '2999')
+  const [customerAttributesStr, setCustomerAttributesStr] = usePersistedField('customerAttributes')
   const [apiBase, setApiBase] = usePersistedField('apiBase', 'http://localhost:3000/v1')
   const [scenario, setScenario] = useState<Scenario>('open-source')
   const [mode, setMode] = useState<'live' | 'test'>('test')
@@ -575,6 +576,19 @@ export function TestHarness() {
 
   const customer: DirectCustomer | undefined =
     scenario !== 'open-source' ? { id: customerId || 'cus_test', email: customerEmail || undefined } : undefined
+
+  // Half-typed JSON shouldn't take down the harness — invalid input just
+  // means no attributes are passed.
+  const customerAttributes = useMemo(() => {
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(customerAttributesStr)
+    } catch {
+      return undefined
+    }
+    const isObject = parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)
+    return isObject ? (parsed as Record<string, unknown>) : undefined
+  }, [customerAttributesStr])
 
   const subscriptions: DirectSubscription[] | undefined =
     scenario === 'analytics-full' || scenario === 'token-analytics' || scenario === 'custom-steps'
@@ -718,6 +732,17 @@ export function TestHarness() {
             disabled={!needsAppId}
           />
         </div>
+        <div style={{ marginTop: 8 }}>
+          {/* Drives segment matching in token mode; merge fields and the
+              session record in every mode. */}
+          <Field
+            label="Customer Attributes (JSON)"
+            value={customerAttributesStr}
+            onChange={setCustomerAttributesStr}
+            placeholder='{"isRebateEligible": true}'
+            disabled={!needsCustomer}
+          />
+        </div>
       </fieldset>
 
       {/* Scenario picker */}
@@ -852,6 +877,7 @@ export function TestHarness() {
           appId={needsAppId && appId ? appId : undefined}
           customer={customer}
           subscriptions={subscriptions}
+          customerAttributes={customerAttributes}
           session={token}
           mode={mode}
           apiBaseUrl={needsAppId ? apiBase : undefined}

@@ -211,6 +211,7 @@ export class CancelFlowMachine {
   private analyticsClient: AnalyticsClient | null = null
   private directCustomer: DirectCustomer | null = null
   private directSubscriptions: DirectSubscription[] | null = null
+  private customerAttributes: Record<string, unknown> | null = null
   private creds: SessionCredentials | null = null
   private config: SdkConfig | null = null
   private blueprintId: string | null = null
@@ -231,6 +232,7 @@ export class CancelFlowMachine {
     // every callback by name without a separate copy.
     this.callbacks = config
     if (config.mode) this.configMode = config.mode
+    if (config.customerAttributes) this.customerAttributes = config.customerAttributes
     if (config.appId && config.customer) {
       this.analyticsClient = new AnalyticsClient(config.appId, config.apiBaseUrl)
       this.directCustomer = config.customer
@@ -243,7 +245,7 @@ export class CancelFlowMachine {
     if (config.session) {
       if (config.steps) this.localSteps = config.steps
     } else if (config.steps) {
-      const merged = applyMergeFieldsToSteps(config.steps, this.directCustomer)
+      const merged = applyMergeFieldsToSteps(config.steps, this.directCustomer, this.customerAttributes)
       this.graph = buildStepGraph(merged, defaultOfferCopy)
     }
 
@@ -437,7 +439,7 @@ export class CancelFlowMachine {
     this.blueprintId = result.blueprintId
 
     const merged = this.localSteps ? mergeLocalSteps(result.steps, this.localSteps) : result.steps
-    const steps = applyMergeFieldsToSteps(merged, config.customer ?? null)
+    const steps = applyMergeFieldsToSteps(merged, config.customer ?? null, this.customerAttributes)
     this.graph = buildStepGraph(steps, defaultOfferCopy)
 
     this.state = this.buildInitialState(config.customer ?? null, config.subscriptions ?? [])
@@ -636,12 +638,17 @@ export class CancelFlowMachine {
     const direct = this.directCustomer
       ? directDataToSessionCustomer(this.directCustomer, this.directSubscriptions ?? undefined)
       : undefined
+    // The consumer's attribute layer wins key conflicts with customer.metadata,
+    // matching merge-field precedence and the embed's session shape.
+    const customAttributes = this.customerAttributes
+      ? { ...direct?.customAttributes, ...this.customerAttributes }
+      : direct?.customAttributes
     // Token identifies the customer authoritatively; direct data fills in
     // extras (email, plan, metadata) but never overrides id/subscriptionId.
     if (this.creds) {
-      return { ...direct, id: this.creds.customerId, subscriptionId: this.creds.subscriptionId }
+      return { ...direct, customAttributes, id: this.creds.customerId, subscriptionId: this.creds.subscriptionId }
     }
-    return direct
+    return direct ? { ...direct, customAttributes } : undefined
   }
 
   private buildBasePayload(): SessionPayload {

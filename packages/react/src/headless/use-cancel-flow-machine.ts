@@ -71,7 +71,10 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
     const creds = decodeSessionToken(config.session)
     const api = new ChurnkeyApi(creds, config.apiBaseUrl)
     api
-      .fetchConfig()
+      // Read through the ref, not the closure: an inline `customerAttributes`
+      // object literal would otherwise join the dep list and re-fetch (and
+      // reset the flow) on every render.
+      .fetchConfig(callbacksRef.current.customerAttributes)
       .then((sdkConfig) => {
         if (cancelled) return
         machine.initializeFromConfig(sdkConfig, api, creds)
