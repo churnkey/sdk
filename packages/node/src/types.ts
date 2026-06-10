@@ -3,12 +3,16 @@ export interface ChurnkeyConfig {
   apiKey: string
 }
 
-export type Mode = 'live' | 'test'
+export type Mode = 'live' | 'test' | 'sandbox'
 
 export interface CreateTokenParams {
   customerId: string
   subscriptionId?: string
-  /** Defaults to 'live'. Use 'test' to segregate staging sessions in analytics. */
+  /**
+   * Defaults to 'live'. Use 'test' to segregate staging sessions in analytics,
+   * or 'sandbox' when the org is connected to a Stripe Sandbox (sandboxes have
+   * their own account ID and credentials, unlike classic test mode).
+   */
   mode?: Mode
 }
 

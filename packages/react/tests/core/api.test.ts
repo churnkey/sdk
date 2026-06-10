@@ -113,6 +113,14 @@ describe('ChurnkeyApi action paths', () => {
     expect(headers['x-ck-subscription']).toBe('sub_456')
   })
 
+  it('sends x-ck-mode sandbox for sandbox credentials', async () => {
+    const spy = spyFetch()
+    const api = new ChurnkeyApi({ ...creds, mode: 'sandbox' }, 'https://api.test/v1')
+    await api.pause({ duration: 1, interval: 'month' })
+    const headers = spy.mock.calls[0][1]?.headers as Record<string, string>
+    expect(headers['x-ck-mode']).toBe('sandbox')
+  })
+
   it('throws on non-2xx response with status in message', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('not found', { status: 404 }))
     const api = new ChurnkeyApi(creds, 'https://api.test/v1')

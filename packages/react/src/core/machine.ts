@@ -8,7 +8,7 @@ import type {
   SessionPayload,
   StepViewed,
 } from './api'
-import { AnalyticsClient, directDataToSessionCustomer } from './api'
+import { AnalyticsClient, directDataToSessionCustomer, toApiMode } from './api'
 import type { SdkConfig } from './api-types'
 import { applyMergeFieldsToSteps } from './merge-fields'
 import { buildStepGraph, type ResolvedStep, type StepGraph } from './step-graph'
@@ -23,6 +23,7 @@ import type {
   FlowCallbacks,
   FlowConfig,
   FlowState,
+  Mode,
   OfferDecision,
   ReasonConfig,
   Step,
@@ -219,7 +220,7 @@ export class CancelFlowMachine {
   private stepsViewed: StepViewed[] = []
   private presentedOffers: PresentedOffer[] = []
   private customStepResults: Record<string, unknown> = {}
-  private configMode: 'live' | 'test' = 'live'
+  private configMode: Mode = 'live'
   private stepEnteredAt: number = Date.now()
   private aborted = false
   // Visited-step stack. `back` pops this so it lands on the actually-seen
@@ -670,7 +671,7 @@ export class CancelFlowMachine {
       stepsViewed: this.stepsViewed,
       customStepResults: Object.keys(this.customStepResults).length > 0 ? this.customStepResults : undefined,
       // Token's signed mode wins — the client can't override it.
-      mode: (this.creds?.mode ?? this.configMode) === 'test' ? 'TEST' : 'LIVE',
+      mode: toApiMode(this.creds?.mode ?? this.configMode),
       provider: this.isTokenMode() ? undefined : 'sdk-react',
       embedVersion: 'sdk-react',
     }

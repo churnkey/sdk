@@ -627,6 +627,16 @@ export interface FlowState {
 
 // ─── Flow config ─────────────────────────────────────────────────────────────
 
+export const MODES = ['live', 'test', 'sandbox'] as const
+
+/**
+ * Environment a session runs against. `'test'` and `'sandbox'` both keep
+ * sessions out of live analytics; `'sandbox'` additionally routes server-side
+ * billing actions to the org's Stripe Sandbox credentials, which live under a
+ * separate Stripe account ID from live/test mode.
+ */
+export type Mode = (typeof MODES)[number]
+
 export interface FlowConfig extends FlowCallbacks {
   appId?: string
   customer?: DirectCustomer
@@ -644,12 +654,13 @@ export interface FlowConfig extends FlowCallbacks {
   apiBaseUrl?: string
   steps?: Step[]
   /**
-   * Tags the session as live or test. Use `'test'` from staging so your
-   * dashboard can filter out non-production traffic. Defaults to `'live'`.
+   * Tags the session as live, test, or sandbox. Use `'test'` from staging so
+   * your dashboard can filter out non-production traffic, or `'sandbox'` when
+   * the org is connected to a Stripe Sandbox. Defaults to `'live'`.
    * In token mode the mode is encoded in the signed token and overrides
    * this field.
    */
-  mode?: 'live' | 'test'
+  mode?: Mode
 }
 
 type OfferCallback = (offer: AcceptedOffer, customer: DirectCustomer | null) => Promise<void> | void
@@ -698,7 +709,7 @@ export interface CancelFlowProps extends FlowCallbacks {
   steps?: Step[]
   apiBaseUrl?: string
   /** See FlowConfig.mode. Ignored in token mode (the token is authoritative). */
-  mode?: 'live' | 'test'
+  mode?: Mode
   appearance?: Appearance
   classNames?: StructuralClassNames
   components?: Partial<ComponentOverrides>

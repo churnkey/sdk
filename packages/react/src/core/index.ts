@@ -50,6 +50,7 @@ export type {
   FlowConfig,
   FlowState,
   ModalProps,
+  Mode,
   OfferClassNames,
   OfferConfig,
   OfferCopy,
