@@ -11,6 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect 
 - Every MCP action is now attributable: the API audit log records the acting user, client, and scope for configuration writes made over OAuth.
 - `CHURNKEY_MODE=test` (or `x-ck-mode: test` per HTTP request) selects test-mode data over OAuth — with key auth, mode stays encoded in the key prefix.
 - Streamable HTTP transport accepts `Authorization: Bearer <ck_oat_…>` OAuth access tokens per request — no app id required; user, org, and scopes resolve from the token.
+- Streamable HTTP transport implements MCP-spec OAuth discovery: `GET /.well-known/oauth-protected-resource` (RFC 9728, resource = `CHURNKEY_MCP_PUBLIC_URL`, authorization server = the Churnkey API origin) and a `WWW-Authenticate: Bearer resource_metadata="…"` header on 401s, so OAuth-capable MCP clients can run the sign-in flow themselves against a hosted endpoint.
 
 ### Changed (BREAKING)
 

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { createServer as createNodeServer, type IncomingHttpHeaders, type ServerResponse } from 'node:http'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { type ChurnkeyMcpHttpConfig, loadHttpRequestConfig, loadHttpServerConfig } from './config'
+import { type ChurnkeyMcpHttpConfig, loadHttpRequestConfig, loadHttpServerConfig, resolveBaseUrl } from './config'
 import { createServer } from './server'
 
 type HttpServer = ReturnType<typeof createNodeServer>
@@ -10,9 +10,26 @@ interface HttpSession {
   transport: StreamableHTTPServerTransport
 }
 
+const PROTECTED_RESOURCE_PATH = '/.well-known/oauth-protected-resource'
+
+// The canonical public URL of THIS MCP server (e.g. https://mcp.churnkey.co),
+// advertised as the OAuth resource identifier. Defaults to the local bind
+// address for development.
+function resolvePublicUrl(config: ChurnkeyMcpHttpConfig, env: NodeJS.ProcessEnv): string {
+  return (env.CHURNKEY_MCP_PUBLIC_URL ?? `http://${config.host}:${config.port}`).replace(/\/$/, '')
+}
+
+// The Churnkey API origin acts as the OAuth authorization server; its RFC 8414
+// metadata lives at <origin>/.well-known/oauth-authorization-server.
+function resolveAuthorizationServer(env: NodeJS.ProcessEnv): string {
+  return new URL(resolveBaseUrl(env)).origin
+}
+
 export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Promise<HttpServer> {
   const config = loadHttpServerConfig(env)
   const sessions = new Map<string, HttpSession>()
+  const publicUrl = resolvePublicUrl(config, env)
+  const resourceMetadataUrl = `${publicUrl}${PROTECTED_RESOURCE_PATH}`
 
   const httpServer = createNodeServer(async (req, res) => {
     try {
@@ -24,6 +41,21 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
       }
 
       const requestUrl = new URL(req.url ?? '/', `http://${req.headers.host ?? `${config.host}:${config.port}`}`)
+
+      // RFC 9728 protected-resource metadata: lets spec-compliant MCP clients
+      // discover the authorization server and run the OAuth flow themselves.
+      if (requestUrl.pathname === PROTECTED_RESOURCE_PATH) {
+        res.writeHead(200, { 'content-type': 'application/json' }).end(
+          JSON.stringify({
+            resource: publicUrl,
+            authorization_servers: [resolveAuthorizationServer(env)],
+            bearer_methods_supported: ['header'],
+            resource_documentation: 'https://docs.churnkey.co/data-integrations/mcp',
+          }),
+        )
+        return
+      }
+
       if (requestUrl.pathname !== config.path) {
         res.writeHead(404, { 'content-type': 'text/plain' }).end('Not found')
         return
@@ -71,7 +103,13 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
     } catch (err) {
       if (!res.headersSent) {
         const message = err instanceof Error ? err.message : String(err)
-        res.writeHead(401, { 'content-type': 'text/plain' }).end(message)
+        // Point OAuth-capable MCP clients at the resource metadata (MCP auth spec).
+        res
+          .writeHead(401, {
+            'content-type': 'text/plain',
+            'www-authenticate': `Bearer resource_metadata="${resourceMetadataUrl}"`,
+          })
+          .end(message)
       } else {
         res.end()
       }

@@ -71,8 +71,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ChurnkeyMcpCon
 
 export function loadHttpServerConfig(env: NodeJS.ProcessEnv = process.env): ChurnkeyMcpHttpConfig {
   const port = Number(env.CHURNKEY_MCP_PORT ?? 3333)
-  if (!Number.isInteger(port) || port <= 0 || port > 65535) {
-    throw new Error('CHURNKEY_MCP_PORT must be an integer between 1 and 65535')
+  // Port 0 binds an ephemeral port (useful for tests/embedding).
+  if (!Number.isInteger(port) || port < 0 || port > 65535) {
+    throw new Error('CHURNKEY_MCP_PORT must be an integer between 0 and 65535')
   }
 
   const path = env.CHURNKEY_MCP_PATH ?? '/mcp'
