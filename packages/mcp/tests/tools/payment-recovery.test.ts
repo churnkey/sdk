@@ -52,3 +52,117 @@ describe('payment recovery tools', () => {
     ).toThrow()
   })
 })
+
+describe('payment recovery parity tools (XDEV-2332 follow-up)', () => {
+  it('exposes the parity tool set with correct annotations', () => {
+    const byName = Object.fromEntries(paymentRecoveryTools(makeClient()).map((t) => [t.name, t]))
+    expect(byName.list_recovery_audience_attributes.annotations.readOnlyHint).toBe(true)
+    for (const name of [
+      'update_recovery_email_offers',
+      'update_recovery_sms',
+      'add_recovery_email',
+      'update_recovery_audience',
+    ]) {
+      expect(byName[name].annotations.readOnlyHint).toBe(false)
+      expect(byName[name].annotations.destructiveHint).toBe(false)
+    }
+    for (const name of ['remove_recovery_email', 'set_recovery_blueprint_enabled']) {
+      expect(byName[name].annotations.destructiveHint).toBe(true)
+    }
+    // confirm literals required
+    expect(() => byName.remove_recovery_email.inputSchema.parse({ blueprintId: 'b', emailGuid: 'g' })).toThrow()
+    expect(() =>
+      byName.set_recovery_blueprint_enabled.inputSchema.parse({ blueprintId: 'b', enabled: false }),
+    ).toThrow()
+  })
+
+  it('routes offers with null-to-remove semantics', async () => {
+    const client = makeClient()
+    const byName = Object.fromEntries(paymentRecoveryTools(client).map((t) => [t.name, t]))
+    const args = byName.update_recovery_email_offers.inputSchema.parse({
+      blueprintId: 'bp1',
+      emailGuid: 'g1',
+      discount: { couponId: 'SAVE20' },
+      invoiceDiscount: null,
+    })
+    await byName.update_recovery_email_offers.handler(args)
+    expect(client.post).toHaveBeenCalledWith('/data/payment-recovery/blueprints/bp1/email/g1/offers', {
+      body: { discount: { couponId: 'SAVE20' }, invoiceDiscount: null },
+    })
+    expect(() =>
+      byName.update_recovery_email_offers.inputSchema.parse({
+        blueprintId: 'b',
+        emailGuid: 'g',
+        invoiceDiscount: { type: 'PERCENT', amount: -5 },
+      }),
+    ).toThrow()
+  })
+
+  it('routes SMS updates on the shared step guid', async () => {
+    const client = makeClient()
+    const byName = Object.fromEntries(paymentRecoveryTools(client).map((t) => [t.name, t]))
+    const args = byName.update_recovery_sms.inputSchema.parse({
+      blueprintId: 'bp1',
+      emailGuid: 'g1',
+      updates: { enabled: true, sendOnDay: 2 },
+    })
+    await byName.update_recovery_sms.handler(args)
+    expect(client.post).toHaveBeenCalledWith('/data/payment-recovery/blueprints/bp1/sms/g1', {
+      body: { updates: { enabled: true, sendOnDay: 2 } },
+    })
+    expect(() =>
+      byName.update_recovery_sms.inputSchema.parse({ blueprintId: 'b', emailGuid: 'g', updates: {} }),
+    ).toThrow()
+  })
+
+  it('routes add/remove and audience edits', async () => {
+    const client = makeClient()
+    const byName = Object.fromEntries(paymentRecoveryTools(client).map((t) => [t.name, t]))
+
+    await byName.add_recovery_email.handler(byName.add_recovery_email.inputSchema.parse({ blueprintId: 'bp1' }))
+    expect(client.post).toHaveBeenCalledWith('/data/payment-recovery/blueprints/bp1/emails', { body: {} })
+
+    await byName.remove_recovery_email.handler(
+      byName.remove_recovery_email.inputSchema.parse({
+        confirm: 'remove_recovery_email',
+        blueprintId: 'bp1',
+        emailGuid: 'g2',
+      }),
+    )
+    expect(client.post).toHaveBeenCalledWith('/data/payment-recovery/blueprints/bp1/email/g2/remove', {
+      body: { confirm: 'remove_recovery_email' },
+    })
+
+    await byName.update_recovery_audience.handler(
+      byName.update_recovery_audience.inputSchema.parse({
+        blueprintId: 'bp1',
+        name: 'Hard declines',
+        filters: [{ attribute: 'PAYMENT_DECLINE_TYPE', operand: 'INCLUDES', value: ['hard'] }],
+      }),
+    )
+    expect(client.post).toHaveBeenCalledWith('/data/payment-recovery/blueprints/bp1/audience', {
+      body: {
+        name: 'Hard declines',
+        filters: [{ attribute: 'PAYMENT_DECLINE_TYPE', operand: 'INCLUDES', value: ['hard'] }],
+      },
+    })
+
+    await byName.set_recovery_blueprint_enabled.handler(
+      byName.set_recovery_blueprint_enabled.inputSchema.parse({
+        confirm: 'set_recovery_blueprint_enabled',
+        blueprintId: 'bp1',
+        enabled: false,
+      }),
+    )
+    expect(client.post).toHaveBeenCalledWith('/data/payment-recovery/blueprints/bp1/enabled', {
+      body: { confirm: 'set_recovery_blueprint_enabled', enabled: false },
+    })
+  })
+
+  it('caps audience name at 60 chars like the dashboard', () => {
+    const byName = Object.fromEntries(paymentRecoveryTools(makeClient()).map((t) => [t.name, t]))
+    expect(() =>
+      byName.update_recovery_audience.inputSchema.parse({ blueprintId: 'b', name: 'n'.repeat(61) }),
+    ).toThrow()
+  })
+})
