@@ -16,6 +16,8 @@ export const DEFAULT_SCOPES = [
   'cancel_flows.adaptive_offers.write',
   'stripe_settings.read',
   'stripe_settings.write',
+  'dns.read',
+  'dns.write',
   'payment_recovery.metrics.read',
   'payment_recovery.campaigns.write',
   'account.api_usage.read',
