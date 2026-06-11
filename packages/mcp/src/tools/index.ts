@@ -5,6 +5,7 @@ import { metricsTools } from './metrics'
 import { recoveryTools } from './recoveries'
 import { segmentTools } from './segments'
 import { sessionTools } from './sessions'
+import { settingsTools } from './settings'
 import type { ToolDefinition } from './types'
 
 export function allTools(client: ChurnkeyClient): ToolDefinition[] {
@@ -14,6 +15,7 @@ export function allTools(client: ChurnkeyClient): ToolDefinition[] {
     ...recoveryTools(client),
     ...blueprintTools(client),
     ...segmentTools(client),
+    ...settingsTools(client),
     ...dsrTools(client),
   ]
 }

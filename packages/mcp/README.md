@@ -23,6 +23,8 @@ Model Context Protocol server for [Churnkey](https://churnkey.co). Lets AI agent
 | `reorder_segments` | Reorder cancel flow segment priority. Requires `confirm: "reorder_segments"` and writes an audit log. |
 | `set_segment_enabled` | Enable/disable a segment (live targeting on/off). Requires `confirm: "set_segment_enabled"` and writes an audit log. |
 | `update_segment_filter` | Replace a segment's audience filter rules (whole-array replace). Requires `confirm: "update_segment_filter"` and writes an audit log. |
+| `get_stripe_settings` / `update_stripe_settings` | Read (with descriptions + recommendations) and change workspace billing settings: proration, cancellation timing, pause behavior, invoice handling on pause, coupon stacking, session recording. Writes require `confirm: "update_stripe_settings"`, validate conflicting combinations with explanations, and are audit-logged with before/after values. *Direct revenue impact.* |
+| `get_adaptive_offers` / `update_adaptive_offers` | Read and configure adaptive (auto-optimized) discounts: strategy, percent/duration ranges, Intelligence access state. Changes reset the optimizer's learning period; writes require `confirm: "update_adaptive_offers"`. Attaching to a flow step (via `update_blueprint_offer` `config.autoOptimize`) requires both the adaptive-offers and blueprints write scopes. |
 | `dsr_access` | GDPR/CCPA data access by email. |
 | `dsr_delete` | GDPR/CCPA data delete by email. *Destructive.* |
 
