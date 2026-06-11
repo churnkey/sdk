@@ -6,6 +6,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect 
 
 ### Added
 
+- `get_flow_metrics` tool: per-flow performance metrics (total sessions, customers saved, save rate, boosted revenue in USD + per-currency, session outcomes by offer type, Intelligence-gated Feedback AI themes) scoped by segment, published blueprint version, or A/B test, with date-range windowing. Includes a `sampleSizeWarning` for small windows and a one-line `summary` for quoting. Backed by the new `GET /v1/data/flow-metrics` endpoint (`cancel_flows.metrics.read`).
+- Session reads over OAuth now write a per-call audit entry (actor, client, scopes used, session count, redaction state) per the XDEV-2338 spec.
+
 - **Per-user OAuth 2.1 authentication** (authorization code + PKCE, S256). New CLI: `npx @churnkey/mcp auth login` opens the browser, walks the Churnkey consent screen (scopes pre-checked within your role ceiling, PII scopes flagged, uncheck anything), and stores tokens in `~/.churnkey/mcp-auth.json` (chmod 600, `CHURNKEY_CONFIG_DIR` to relocate). `auth status` and `auth logout` (logout revokes the server-side grant via RFC 7009) included. `--scopes a,b` narrows the requested scopes.
 - Access tokens (~1h) refresh automatically with refresh-token rotation; a 401 mid-session triggers one transparent refresh + retry. Revocation (dashboard "Active MCP sessions", admin disable, `auth logout`) takes effect immediately.
 - Every MCP action is now attributable: the API audit log records the acting user, client, and scope for configuration writes made over OAuth.
