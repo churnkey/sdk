@@ -44,7 +44,7 @@ export function dnsTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Register a custom domain (e.g. billing.example.com) for Churnkey-hosted pages. Idempotent — re-adding an existing domain returns its current state instead of failing.',
         '',
-        'The response includes `requiredRecords` (the CNAME the customer must add) and a `nextStep`. ' + BOUNDARY,
+        `The response includes \`requiredRecords\` (the CNAME the customer must add) and a \`nextStep\`. ${BOUNDARY}`,
         '',
         'Requires confirm: "add_custom_domain".',
       ].join('\n'),
