@@ -166,6 +166,9 @@ For MCP client configs, point the client directly at the built server:
 | `CHURNKEY_MCP_PATH` | no | `/mcp` |
 | `CHURNKEY_MCP_ALLOWED_HOSTS` | no | — |
 | `CHURNKEY_MCP_CORS_ORIGIN` | no | — |
+| `CHURNKEY_MCP_PUBLIC_URL` | no | `http://<host>:<port>` |
+
+`CHURNKEY_MCP_PUBLIC_URL` is the canonical public URL of the HTTP endpoint (e.g. `https://mcp.churnkey.co`). The server advertises it as the OAuth resource identifier: `GET /.well-known/oauth-protected-resource` returns RFC 9728 metadata pointing at the Churnkey API's authorization server, and unauthenticated requests get a `WWW-Authenticate: Bearer resource_metadata="…"` header — so OAuth-capable MCP clients (Claude, etc.) can discover and run the sign-in flow themselves when connecting to a hosted endpoint.
 
 `CHURNKEY_MCP_ALLOWED_HOSTS` is a comma-separated list of accepted `Host` headers, including ports when present (for example, `mcp.churnkey.co,localhost:3333`). `CHURNKEY_MCP_CORS_ORIGIN` is intentionally opt-in; set it to one exact browser origin, or `*`, only when a browser-based MCP client needs CORS.
 
