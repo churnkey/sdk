@@ -6,6 +6,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect 
 
 ### Added
 
+- Stripe settings tools (`get_stripe_settings` / `update_stripe_settings`, scopes `stripe_settings.read/.write`): every setting ships with an LLM-readable description + recommendation; writes require a confirm literal, explain conflicting combinations (e.g. `pauseEndOfTerm` × `annualPauseExtendTerm`), and audit-log before/after values. XDEV-2336.
+- Adaptive offers tools (`get_adaptive_offers` / `update_adaptive_offers`, scopes `cancel_flows.adaptive_offers.read/.write`): strategy presets (conservative/balanced/aggressive), 5–95%-in-5%-steps guardrails, Intelligence gating, learning-period warnings, and a compound-scope rule — attaching an adaptive offer to a flow step via `update_blueprint_offer` requires `cancel_flows.adaptive_offers.write` **and** `cancel_flows.blueprints.write`. XDEV-2335.
 - `get_flow_metrics` tool: per-flow performance metrics (total sessions, customers saved, save rate, boosted revenue in USD + per-currency, session outcomes by offer type, Intelligence-gated Feedback AI themes) scoped by segment, published blueprint version, or A/B test, with date-range windowing. Includes a `sampleSizeWarning` for small windows and a one-line `summary` for quoting. Backed by the new `GET /v1/data/flow-metrics` endpoint (`cancel_flows.metrics.read`).
 - Session reads over OAuth now write a per-call audit entry (actor, client, scopes used, session count, redaction state) per the XDEV-2338 spec.
 
