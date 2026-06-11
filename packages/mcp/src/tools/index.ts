@@ -1,5 +1,6 @@
 import type { ChurnkeyClient } from '../client'
 import { abTestTools } from './abtests'
+import { auditTools } from './audit'
 import { blueprintTools } from './blueprints'
 import { dnsTools } from './dns'
 import { dsrTools } from './dsr'
@@ -22,6 +23,7 @@ export function allTools(client: ChurnkeyClient): ToolDefinition[] {
     ...abTestTools(client),
     ...settingsTools(client),
     ...dnsTools(client),
+    ...auditTools(client),
     ...dsrTools(client),
   ]
 }

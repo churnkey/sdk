@@ -27,6 +27,7 @@ export const DEFAULT_SCOPES = [
   'payment_recovery.campaigns.read_pii',
   'payment_recovery.campaigns.write',
   'account.api_usage.read',
+  'account.audit_log.read',
   'dsr.read',
   'dsr.write',
 ]
