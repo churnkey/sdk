@@ -340,7 +340,12 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         blueprintId: z.string().optional().describe('Scope to one campaign config.'),
         active: z.boolean().optional().describe('Only running (true) or finished (false) sequences.'),
         recovered: z.boolean().optional().describe('Only recovered (true) or unrecovered (false).'),
-        customerEmail: z.string().optional().describe('Exact customer email (requires read_pii to be useful).'),
+        customerEmail: z
+          .string()
+          .optional()
+          .describe(
+            'Exact customer email. Requires the payment_recovery.campaigns.read_pii scope (the filter is an identity probe).',
+          ),
         limit: z.number().int().min(1).max(500).optional().describe('Default 100, max 500.'),
         skip: z.number().int().min(0).optional().describe('Pagination offset.'),
       }),
