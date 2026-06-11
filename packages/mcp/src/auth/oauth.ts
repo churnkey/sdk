@@ -18,6 +18,8 @@ export const DEFAULT_SCOPES = [
   'stripe_settings.write',
   'dns.read',
   'dns.write',
+  'ab_test.read',
+  'ab_test.write',
   'payment_recovery.metrics.read',
   'payment_recovery.blueprints.read',
   'payment_recovery.blueprints.write',
