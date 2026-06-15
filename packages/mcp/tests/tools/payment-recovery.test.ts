@@ -2,9 +2,16 @@ import { describe, expect, it, vi } from 'vitest'
 import type { ChurnkeyClient } from '../../src/client'
 import { paymentRecoveryTools } from '../../src/tools/payment-recovery'
 
+// Mirrors the dunning audience-attribute palette shape that
+// list_recovery_audience_attributes returns (built-in + org custom attributes).
+const AUDIENCE_CATALOG = {
+  builtIn: [{ attribute: 'PAYMENT_DECLINE_TYPE' }, { attribute: 'INVOICE_AMOUNT_DUE' }],
+  custom: [{ attribute: 'plan_tier' }],
+}
+
 function makeClient() {
   return {
-    get: vi.fn().mockResolvedValue({}),
+    get: vi.fn().mockResolvedValue(AUDIENCE_CATALOG),
     post: vi.fn().mockResolvedValue({}),
   } as unknown as ChurnkeyClient
 }
@@ -156,6 +163,60 @@ describe('payment recovery parity tools (XDEV-2332 follow-up)', () => {
     )
     expect(client.post).toHaveBeenCalledWith('/data/payment-recovery/blueprints/bp1/enabled', {
       body: { confirm: 'set_recovery_blueprint_enabled', enabled: false },
+    })
+  })
+
+  it('fail-fast rejects unknown audience filter attributes before the update (XDEV-2380)', async () => {
+    const client = makeClient()
+    const byName = Object.fromEntries(paymentRecoveryTools(client).map((t) => [t.name, t]))
+    const tool = byName.update_recovery_audience
+
+    await expect(
+      tool.handler(
+        tool.inputSchema.parse({
+          blueprintId: 'bp1',
+          filters: [{ attribute: 'NOT_A_REAL_ATTRIBUTE', operand: 'INCLUDES', value: ['x'] }],
+        }),
+      ),
+    ).rejects.toThrow(/NOT_A_REAL_ATTRIBUTE.*not a known attribute.*list_recovery_audience_attributes/s)
+    // Caught the typo before issuing the update.
+    expect(client.post).not.toHaveBeenCalled()
+  })
+
+  it('fail-fast allows valid built-in and org custom filter attributes', async () => {
+    const client = makeClient()
+    const byName = Object.fromEntries(paymentRecoveryTools(client).map((t) => [t.name, t]))
+    const tool = byName.update_recovery_audience
+
+    await tool.handler(
+      tool.inputSchema.parse({
+        blueprintId: 'bp1',
+        filters: [
+          { attribute: 'PAYMENT_DECLINE_TYPE', operand: 'INCLUDES', value: ['hard'] },
+          { attribute: 'plan_tier', operand: 'INCLUDES', value: ['pro'], type: 'STRING' },
+        ],
+      }),
+    )
+    expect(client.get).toHaveBeenCalledWith('/data/payment-recovery/audience-attributes')
+    expect(client.post).toHaveBeenCalledWith('/data/payment-recovery/blueprints/bp1/audience', {
+      body: {
+        filters: [
+          { attribute: 'PAYMENT_DECLINE_TYPE', operand: 'INCLUDES', value: ['hard'] },
+          { attribute: 'plan_tier', operand: 'INCLUDES', value: ['pro'], type: 'STRING' },
+        ],
+      },
+    })
+  })
+
+  it('skips the catalog fetch for rename-only audience edits', async () => {
+    const client = makeClient()
+    const byName = Object.fromEntries(paymentRecoveryTools(client).map((t) => [t.name, t]))
+    const tool = byName.update_recovery_audience
+
+    await tool.handler(tool.inputSchema.parse({ blueprintId: 'bp1', name: 'Renamed only' }))
+    expect(client.get).not.toHaveBeenCalled()
+    expect(client.post).toHaveBeenCalledWith('/data/payment-recovery/blueprints/bp1/audience', {
+      body: { name: 'Renamed only' },
     })
   })
 

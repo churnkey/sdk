@@ -5,6 +5,33 @@ import type { ToolDefinition } from './types'
 const blueprintId = z.string().describe('Campaign blueprint id (from list_recovery_blueprints).')
 const campaignId = z.string().describe('Running campaign instance id (from list_recovery_campaigns).')
 
+// Shape of the dunning audience-attribute palette returned by
+// list_recovery_audience_attributes (GET /data/payment-recovery/audience-attributes).
+interface AudienceAttributeCatalog {
+  builtIn?: { attribute?: string }[]
+  custom?: { attribute?: string }[]
+}
+
+// Fail-fast client-side check (XDEV-2380, the SDK complement to the api#885
+// server-side fix): reject filter attributes that are neither in the dunning
+// built-in palette nor one of the org's custom attributes BEFORE the round-trip,
+// so the agent gets a clear error instead of a server-side 422. Uses the SAME
+// source as list_recovery_audience_attributes.
+async function assertKnownAudienceAttributes(client: ChurnkeyClient, filters: { attribute: string }[]): Promise<void> {
+  const catalog = await client.get<AudienceAttributeCatalog>('/data/payment-recovery/audience-attributes')
+  const known = new Set(
+    [...(catalog.builtIn ?? []), ...(catalog.custom ?? [])].map((entry) => entry.attribute).filter(Boolean),
+  )
+  filters.forEach((filter, index) => {
+    if (!known.has(filter.attribute)) {
+      throw new Error(
+        `filter[${index}].attribute "${filter.attribute}" is not a known attribute or one of your custom attributes. ` +
+          'Call list_recovery_audience_attributes for the supported attributes (custom attributes are also allowed).',
+      )
+    }
+  })
+}
+
 const emailUpdates = z
   .object({
     enabled: z
@@ -284,7 +311,15 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
       handler: async (args) => {
-        const { blueprintId: id, ...body } = args as { blueprintId: string }
+        const { blueprintId: id, ...body } = args as {
+          blueprintId: string
+          filters?: { attribute: string }[]
+        }
+        // Validate filter attributes against the live palette before the update
+        // round-trip (only when filters are being replaced — renames don't touch them).
+        if (body.filters?.length) {
+          await assertKnownAudienceAttributes(client, body.filters)
+        }
         return client.post(`/data/payment-recovery/blueprints/${encodeURIComponent(id)}/audience`, { body })
       },
     },
