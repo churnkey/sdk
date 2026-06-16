@@ -29,8 +29,11 @@ export function dsrTools(client: ChurnkeyClient): ToolDefinition[] {
     {
       name: 'dsr_delete',
       title: 'GDPR/CCPA data delete request',
-      description:
+      description: [
         'Permanently delete all Churnkey data for a customer email (GDPR Article 17 / CCPA right-to-delete). DESTRUCTIVE and irreversible. Always confirm the exact email with the user before invoking.',
+        '',
+        'Deletion is all-or-nothing. Check the `deleted` boolean in the response: when true, `deletedCounts` lists what was removed; when false, nothing was deleted and `reasonForRejection` explains why (e.g. the profile is too large to delete via the API — contact support). Relay `reasonForRejection` rather than reporting success. A small number of accounts have DSR disabled and return a 403 with a support-contact message.',
+      ].join('\n'),
       inputSchema: deleteInput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
       handler: async (args) => client.post('/data/dsr/delete', { body: args }),

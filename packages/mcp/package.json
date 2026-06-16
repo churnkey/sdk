@@ -1,6 +1,6 @@
 {
   "name": "@churnkey/mcp",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Model Context Protocol server for Churnkey. Lets agents query sessions, payment-recovery analytics, and DSR endpoints with a Data API key.",
   "license": "MIT",
   "repository": {
@@ -8,7 +8,15 @@
     "url": "https://github.com/churnkey/sdk.git",
     "directory": "packages/mcp"
   },
-  "keywords": ["churnkey", "mcp", "model-context-protocol", "claude", "cursor", "subscription", "retention"],
+  "keywords": [
+    "churnkey",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "cursor",
+    "subscription",
+    "retention"
+  ],
   "type": "module",
   "bin": {
     "churnkey-mcp": "./dist/bin.js"
@@ -24,12 +32,18 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "test": "vitest run",
+    "local-run": "pnpm build >/dev/null && node scripts/local-run.mjs",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "start": "node dist/bin.js"
+    "start": "node dist/bin.js",
+    "start:http": "node dist/bin.js --http"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
@@ -38,6 +52,7 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
   }
 }
