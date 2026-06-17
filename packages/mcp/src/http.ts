@@ -15,8 +15,12 @@ const PROTECTED_RESOURCE_PATH = '/.well-known/oauth-protected-resource'
 // The canonical public URL of THIS MCP server (e.g. https://mcp.churnkey.co),
 // advertised as the OAuth resource identifier. Defaults to the local bind
 // address for development.
-function resolvePublicUrl(config: ChurnkeyMcpHttpConfig, env: NodeJS.ProcessEnv): string {
-  return (env.CHURNKEY_MCP_PUBLIC_URL ?? `http://${config.host}:${config.port}`).replace(/\/$/, '')
+function resolvePublicUrl(config: ChurnkeyMcpHttpConfig, env: NodeJS.ProcessEnv, boundPort?: number): string {
+  // Prefer the actually-bound port over the configured one: with an ephemeral
+  // bind (port 0) `config.port` is still 0, which would advertise a useless
+  // `http://host:0` resource identifier. An explicit public URL always wins.
+  const port = boundPort ?? config.port
+  return (env.CHURNKEY_MCP_PUBLIC_URL ?? `http://${config.host}:${port}`).replace(/\/$/, '')
 }
 
 // The Churnkey API origin acts as the OAuth authorization server; its RFC 8414
@@ -28,8 +32,10 @@ function resolveAuthorizationServer(env: NodeJS.ProcessEnv): string {
 export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Promise<HttpServer> {
   const config = loadHttpServerConfig(env)
   const sessions = new Map<string, HttpSession>()
-  const publicUrl = resolvePublicUrl(config, env)
-  const resourceMetadataUrl = `${publicUrl}${PROTECTED_RESOURCE_PATH}`
+  // Recomputed once the server is listening so an ephemeral (port 0) bind
+  // advertises its real port; the request handler reads these by reference.
+  let publicUrl = resolvePublicUrl(config, env)
+  let resourceMetadataUrl = `${publicUrl}${PROTECTED_RESOURCE_PATH}`
 
   const httpServer = createNodeServer(async (req, res) => {
     try {
@@ -124,6 +130,13 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
     })
   })
 
+  // Resolve the real bound port (matters for an ephemeral `port: 0` bind) and
+  // refresh the advertised OAuth resource identifier accordingly.
+  const address = httpServer.address()
+  const boundPort = typeof address === 'object' && address !== null ? address.port : config.port
+  publicUrl = resolvePublicUrl(config, env, boundPort)
+  resourceMetadataUrl = `${publicUrl}${PROTECTED_RESOURCE_PATH}`
+
   const closeSessions = async () => {
     await Promise.all([...sessions.values()].map(({ transport }) => transport.close()))
     sessions.clear()
@@ -132,7 +145,7 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
     void closeSessions()
   })
 
-  console.error(`Churnkey MCP HTTP server listening at http://${config.host}:${config.port}${config.path}`)
+  console.error(`Churnkey MCP HTTP server listening at http://${config.host}:${boundPort}${config.path}`)
   return httpServer
 }
 
