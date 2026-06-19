@@ -28,7 +28,7 @@ export async function authLogin(args: string[], env: NodeJS.ProcessEnv = process
   out(`\nAuthenticated with ${baseUrl}.`)
   out(`Granted scopes:\n${granted.map((s) => `  - ${s}`).join('\n')}`)
   out(`\nCredentials stored in ${authFilePath(env)} (refresh token, chmod 600).`)
-  out('The MCP server will now authenticate as you — no CHURNKEY_API_KEY needed.')
+  out('The MCP server will now authenticate as you.')
 }
 
 export function authStatus(env: NodeJS.ProcessEnv = process.env): void {
