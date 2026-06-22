@@ -50,7 +50,13 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
 
       // RFC 9728 protected-resource metadata: lets spec-compliant MCP clients
       // discover the authorization server and run the OAuth flow themselves.
-      if (requestUrl.pathname === PROTECTED_RESOURCE_PATH) {
+      // Served at both the root well-known and the path-aware variant
+      // (`/.well-known/oauth-protected-resource/mcp`) — some clients (Claude.ai,
+      // ChatGPT) probe the path-inserted form derived from the MCP endpoint URL.
+      if (
+        requestUrl.pathname === PROTECTED_RESOURCE_PATH ||
+        requestUrl.pathname === `${PROTECTED_RESOURCE_PATH}${config.path}`
+      ) {
         res.writeHead(200, { 'content-type': 'application/json' }).end(
           JSON.stringify({
             resource: publicUrl,
@@ -86,7 +92,10 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
       }
 
       if (req.method !== 'POST') {
-        res.writeHead(400, { 'content-type': 'text/plain' }).end('Missing MCP session ID')
+        // A GET/DELETE with no session is a transport probe, not a stream. MCP
+        // clients (notably Claude.ai) expect 405 + Allow here; a 400 breaks
+        // their transport detection.
+        res.writeHead(405, { 'content-type': 'text/plain', allow: 'POST' }).end('Method Not Allowed')
         return
       }
 
@@ -162,7 +171,7 @@ function setCorsHeaders(headers: IncomingHttpHeaders, res: ServerResponse, env: 
     'access-control-allow-headers',
     'authorization, content-type, mcp-session-id, mcp-protocol-version, x-ck-app, x-ck-api-key, x-ck-mode',
   )
-  res.setHeader('access-control-expose-headers', 'mcp-session-id')
+  res.setHeader('access-control-expose-headers', 'mcp-session-id, mcp-protocol-version, www-authenticate')
 }
 
 function isAllowedHost(headers: IncomingHttpHeaders, config: ChurnkeyMcpHttpConfig): boolean {

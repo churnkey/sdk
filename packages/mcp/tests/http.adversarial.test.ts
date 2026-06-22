@@ -64,16 +64,17 @@ describe('http — routing', () => {
   it('honors a custom path (404 on default /mcp then)', async () => {
     const { base } = await start({ CHURNKEY_MCP_PATH: '/custom' })
     expect((await fetch(`${base}/mcp`)).status).toBe(404)
-    // /custom with a GET and no session → 400 "Missing MCP session ID"
+    // /custom with a GET and no session → 405 (transport probe, not a stream)
     const res = await fetch(`${base}/custom`)
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(405)
   })
 
-  it('GET to /mcp with no session id → 400 missing session', async () => {
+  it('GET to /mcp with no session id → 405 Method Not Allowed + Allow: POST', async () => {
     const { base } = await start()
     const res = await fetch(`${base}/mcp`, { method: 'GET' })
-    expect(res.status).toBe(400)
-    expect(await res.text()).toBe('Missing MCP session ID')
+    expect(res.status).toBe(405)
+    expect(res.headers.get('allow')).toBe('POST')
+    expect(await res.text()).toBe('Method Not Allowed')
   })
 
   it('request with an unknown mcp-session-id → 404 session not found', async () => {
@@ -110,7 +111,9 @@ describe('http — OPTIONS / CORS', () => {
     expect(res.headers.get('access-control-allow-origin')).toBe('https://app.churnkey.co')
     expect(res.headers.get('access-control-allow-methods')).toContain('POST')
     expect(res.headers.get('vary')).toBe('origin')
-    expect(res.headers.get('access-control-expose-headers')).toBe('mcp-session-id')
+    expect(res.headers.get('access-control-expose-headers')).toBe(
+      'mcp-session-id, mcp-protocol-version, www-authenticate',
+    )
   })
 
   it('does NOT set CORS headers for a non-matching origin', async () => {
@@ -323,5 +326,13 @@ describe('http — protected-resource metadata default URL', () => {
     expect(port).toBeGreaterThan(0)
     expect(body.resource).toBe(base)
     expect(body.resource).not.toContain(':0')
+  })
+
+  it('also serves the path-aware variant /.well-known/oauth-protected-resource/mcp', async () => {
+    const { base } = await start()
+    const variant = await fetch(`${base}/.well-known/oauth-protected-resource/mcp`)
+    expect(variant.status).toBe(200)
+    const root = await fetch(`${base}/.well-known/oauth-protected-resource`)
+    expect(await variant.json()).toEqual(await root.json())
   })
 })
