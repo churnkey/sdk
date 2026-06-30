@@ -142,6 +142,12 @@ export interface PlanOption extends DirectPrice {
   features?: string[]
   /** Pre-formatted "before" price rendered struck-through (e.g. "$49/mo"). */
   msrp?: string
+  /**
+   * The merchant's external offer id for this plan, when configured in the
+   * cancel flow. Use it in `handlePlanChange` to map the chosen plan back to
+   * your own catalog when a single Stripe price backs several of your offers.
+   */
+  externalId?: string
 }
 
 export interface TrialExtensionOffer {
