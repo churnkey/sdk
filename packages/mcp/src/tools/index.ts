@@ -1,5 +1,6 @@
 import type { ChurnkeyClient } from '../client'
 import { abTestTools } from './abtests'
+import { accountTools } from './account'
 import { auditTools } from './audit'
 import { blueprintTools } from './blueprints'
 import { dnsTools } from './dns'
@@ -14,6 +15,9 @@ import type { ToolDefinition } from './types'
 
 export function allTools(client: ChurnkeyClient): ToolDefinition[] {
   return [
+    // Identity/context first — agents are nudged to call get_account before
+    // acting (which org, which mode, what scopes).
+    ...accountTools(client),
     ...sessionTools(client),
     ...metricsTools(client),
     ...recoveryTools(client),

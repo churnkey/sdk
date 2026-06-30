@@ -5,6 +5,8 @@ import { z } from 'zod'
 // ships zero tools, so allTools() returns []). The tool factory captures the ChurnkeyClient
 // instance createServer builds, so tests can drive it / read lastActingOrg.
 const handler = vi.fn()
+const modeReadHandler = vi.fn()
+const modeWriteHandler = vi.fn()
 let capturedClient: ChurnkeyClient | undefined
 vi.mock('../src/tools', () => ({
   allTools: (client: ChurnkeyClient) => {
@@ -18,12 +20,33 @@ vi.mock('../src/tools', () => ({
         annotations: { readOnlyHint: true },
         handler,
       },
+      // A mode-scoped READ tool — should echo the mode and get the data note.
+      {
+        name: 'mode_read_tool',
+        title: 'Mode read',
+        description: 'reads runtime data',
+        inputSchema: z.object({}),
+        annotations: { readOnlyHint: true },
+        modeScoped: true,
+        handler: modeReadHandler,
+      },
+      // A mode-scoped WRITE tool — should echo the mode and get the traffic note.
+      {
+        name: 'mode_write_tool',
+        title: 'Mode write',
+        description: 'affects live traffic',
+        inputSchema: z.object({}),
+        annotations: { readOnlyHint: false, destructiveHint: true },
+        modeScoped: true,
+        handler: modeWriteHandler,
+      },
     ]
   },
 }))
 
 import type { ChurnkeyClient } from '../src/client'
 import { createServer, SERVER_NAME, SERVER_VERSION } from '../src/server'
+import { MODE_DATA_NOTE, MODE_TRAFFIC_NOTE } from '../src/tools/shared'
 
 const config = {
   baseUrl: 'https://api.example.com/v1',
@@ -37,8 +60,16 @@ function getToolCallback(server: ReturnType<typeof createServer>, name: string) 
   return registered?.handler as (args: unknown, extra?: unknown) => Promise<{ content: any[]; isError?: boolean }>
 }
 
+/** Read the description the server registered for a tool (post mode-note suffix). */
+function getToolDescription(server: ReturnType<typeof createServer>, name: string): string {
+  const anyServer = server as unknown as Record<string, any>
+  return anyServer._registeredTools?.[name]?.description as string
+}
+
 afterEach(() => {
   handler.mockReset()
+  modeReadHandler.mockReset()
+  modeWriteHandler.mockReset()
   vi.restoreAllMocks()
   // Drop the per-test client reference so no captured state can bleed into the
   // next test (or across files when the runner shares a module registry, e.g.
@@ -128,5 +159,47 @@ describe('server tool wrapper', () => {
     capturedClient!.lastActingOrg = { id: 'org_noname' }
     const res = await cb({ value: 'x' }, {})
     expect(res.content[1].text).toBe('Acting on workspace: org_noname (org org_noname).')
+  })
+})
+
+describe('mode-scoped tools', () => {
+  it('does NOT echo a mode line for a non-mode-scoped tool', async () => {
+    handler.mockResolvedValue({ ok: true })
+    const server = createServer(config)
+    const res = await getToolCallback(server, 'echo_tool')({ value: 'x' }, {})
+    expect(res.content.some((c: any) => /^Mode:/.test(c.text))).toBe(false)
+  })
+
+  it('echoes LIVE on a mode-scoped tool when no test mode is set', async () => {
+    modeReadHandler.mockResolvedValue({ rows: [] })
+    const server = createServer(config) // no mode → live
+    const res = await getToolCallback(server, 'mode_read_tool')({}, {})
+    const modeLine = res.content.find((c: any) => c.text.startsWith('Mode:'))
+    expect(modeLine?.text).toContain('Mode: LIVE')
+    expect(modeLine?.text).toContain('live mode')
+  })
+
+  it('echoes TEST on a mode-scoped tool when the session is in test mode', async () => {
+    modeReadHandler.mockResolvedValue({ rows: [] })
+    const server = createServer({ ...config, mode: 'test' })
+    const res = await getToolCallback(server, 'mode_read_tool')({}, {})
+    const modeLine = res.content.find((c: any) => c.text.startsWith('Mode:'))
+    expect(modeLine?.text).toContain('Mode: TEST')
+    expect(modeLine?.text).toContain('test mode')
+  })
+
+  it('appends the data note to a mode-scoped read description, and the traffic note to a write', () => {
+    const server = createServer(config)
+    const readDesc = getToolDescription(server, 'mode_read_tool')
+    const writeDesc = getToolDescription(server, 'mode_write_tool')
+    expect(readDesc).toContain(MODE_DATA_NOTE)
+    expect(readDesc).not.toContain(MODE_TRAFFIC_NOTE)
+    expect(writeDesc).toContain(MODE_TRAFFIC_NOTE)
+    expect(writeDesc).not.toContain(MODE_DATA_NOTE)
+  })
+
+  it('leaves a non-mode-scoped tool description untouched', () => {
+    const server = createServer(config)
+    expect(getToolDescription(server, 'echo_tool')).toBe('echoes')
   })
 })

@@ -46,6 +46,7 @@ export function sessionTools(client: ChurnkeyClient): ToolDefinition[] {
       ].join('\n'),
       inputSchema: listSessionsInput,
       annotations: { readOnlyHint: true, openWorldHint: true },
+      modeScoped: true,
       handler: async (args) => client.get('/data/warehouse/sessions', { query: buildQuery(args) }),
     },
     {
@@ -66,6 +67,7 @@ export function sessionTools(client: ChurnkeyClient): ToolDefinition[] {
       ].join('\n'),
       inputSchema: aggregateSessionsInput,
       annotations: { readOnlyHint: true, openWorldHint: true },
+      modeScoped: true,
       handler: async (args) => client.get('/data/warehouse/session-aggregation', { query: buildQuery(args) }),
     },
   ]
