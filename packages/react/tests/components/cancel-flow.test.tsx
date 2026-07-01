@@ -374,7 +374,7 @@ describe('CancelFlow', () => {
     expect(screen.queryByLabelText('Additional detail')).toBeNull()
   })
 
-  it('renders the period-end notice when the active subscription has a current period', () => {
+  it('does not render an "access continues" notice on the confirm step', () => {
     render(
       <CancelFlow
         appId="app_test"
@@ -392,11 +392,10 @@ describe('CancelFlow', () => {
       />,
     )
 
-    // Intl.DateTimeFormat output varies by runtime locale; assert the
-    // notice fires and at least carries the year. Tighter date matching
-    // would couple the test to the test runner's locale.
-    const notice = screen.getByText(/Your access continues until .*2025/)
-    expect(notice).toBeInTheDocument()
+    // The hardcoded period-end notice was removed: it always rendered when the
+    // subscription had a current period, regardless of whether the cancel is
+    // immediate or end-of-cycle, so it could contradict the merchant's setting.
+    expect(screen.queryByText(/access continues until/i)).not.toBeInTheDocument()
   })
 
   it("marks the customer's current plan and excludes it from preselection", async () => {
