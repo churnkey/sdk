@@ -520,6 +520,71 @@ function SeatStep({
   )
 }
 
+// Renders the `annual_term_extension` custom offer type — the end-to-end check
+// that a type registered server-side, configured in the no-code builder, and
+// served through /cancel-flow/config renders via customComponents and reports
+// its result on accept. Config arrives as `offer.data` (here: days).
+function AnnualTermExtension({ offer, onAccept, onDecline, isProcessing }: CustomOfferProps) {
+  const data = (offer as { data?: Record<string, unknown> }).data ?? {}
+  const days = (data.days as number) ?? 30
+
+  return (
+    <div className="ck-step ck-step-offer">
+      <h2 className="ck-step-title">{offer.copy.headline}</h2>
+      {offer.copy.body ? <p className="ck-step-description">{offer.copy.body}</p> : null}
+
+      <div className="ck-offer-card">
+        <div
+          style={{
+            padding: '24px 0',
+            textAlign: 'center',
+            background: 'var(--ck-color-surface-muted)',
+            borderRadius: 'var(--ck-radius-lg)',
+            marginBottom: 20,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 44,
+              fontWeight: 700,
+              lineHeight: 1,
+              fontVariantNumeric: 'tabular-nums',
+              letterSpacing: '-0.02em',
+              color: 'var(--ck-color-text)',
+            }}
+          >
+            +{days}
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              color: 'var(--ck-color-text-muted)',
+              marginTop: 4,
+              fontWeight: 600,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}
+          >
+            free days on your annual term
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="ck-button ck-button-primary"
+          onClick={() => onAccept({ days })}
+          disabled={isProcessing}
+        >
+          {isProcessing ? 'Extending…' : `Add ${days} free days`}
+        </button>
+        <button type="button" className="ck-button-link" onClick={onDecline}>
+          No thanks, cancel
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function TestHarness() {
   const [appId, setAppId] = usePersistedField('appId')
   const [apiKey, setApiKey] = usePersistedField('apiKey')
@@ -887,6 +952,7 @@ export function TestHarness() {
           customComponents={{
             nps: NpsStep,
             'change-seats': SeatAdjuster,
+            annual_term_extension: AnnualTermExtension,
           }}
           onAccept={handleAccept}
           onCancel={handleCancel}
