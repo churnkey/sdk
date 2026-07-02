@@ -193,6 +193,12 @@ export type OfferDecision = OfferConfig & { copy: OfferCopy; decisionId?: string
 
 export interface OfferCopy {
   headline: string
+  /**
+   * May contain HTML when the flow was authored in the Churnkey dashboard
+   * (the description editor is rich text). Render with the exported
+   * `RichText` component — the same renderer the built-in steps use — rather
+   * than as a text node, or the markup shows escaped.
+   */
   body: string
   cta: string
   declineCta: string

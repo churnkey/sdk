@@ -1,4 +1,4 @@
-import { CancelFlow } from '@churnkey/react'
+import { CancelFlow, RichText } from '@churnkey/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import '@churnkey/react/styles.css'
 import type {
@@ -531,7 +531,7 @@ function AnnualTermExtension({ offer, onAccept, onDecline, isProcessing }: Custo
   return (
     <div className="ck-step ck-step-offer">
       <h2 className="ck-step-title">{offer.copy.headline}</h2>
-      {offer.copy.body ? <p className="ck-step-description">{offer.copy.body}</p> : null}
+      <RichText html={offer.copy.body} className="ck-step-description" />
 
       <div className="ck-offer-card">
         <div
