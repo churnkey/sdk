@@ -24,6 +24,16 @@ export class ChurnkeyClient {
     this.tokenProvider = config.auth.kind === 'oauth' ? (tokenProvider ?? new OAuthTokenProvider()) : null
   }
 
+  /**
+   * The effective live/test mode for this session. The client sends `x-ck-mode`
+   * based on config.mode and the API honors it (defaulting to live), so this is
+   * authoritative for what mode a request runs in. server.ts surfaces it on
+   * mode-scoped tool results.
+   */
+  get mode(): 'live' | 'test' {
+    return this.config.mode === 'test' ? 'test' : 'live'
+  }
+
   async get<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
     return this.request<T>('GET', path, options)
   }

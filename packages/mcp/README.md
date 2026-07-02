@@ -6,6 +6,7 @@ Model Context Protocol server for [Churnkey](https://churnkey.co). Lets AI agent
 
 | Tool | Description |
 |------|-------------|
+| `get_account` | Identity & session context — call it first to orient: which workspace (org) the token acts on, the authenticated user, coarse entitlements (active subscription, Intelligence access), the granted OAuth scopes (so you know what's permitted), and the **effective mode** (live/test). No scope required. |
 | `list_sessions` | Cancel/dunning sessions, with filters for date range, customer, outcome (saveType/canceled/aborted), plan, segment, A/B test, etc. Negation via `not: { ... }`. Default 50 / max 500 per call. |
 | `aggregate_sessions` | Session counts, optionally grouped by `breakdownBy` dimensions (saveType, offerType, planId, day/week/month, …). Same filter set as `list_sessions`. |
 | `aggregate_payment_recoveries` | Failed-payment recovery (dunning) counts and dollar amounts — invoice / recovered / pending / lost, in original currency and USD. Group by time, card brand, decline reason, outcome, blueprint, currency, recovered/active state. |
@@ -42,7 +43,9 @@ Segment tools (`reorder_segments`, `set_segment_enabled`, `update_segment_filter
 
 Each tool's input schema is fully described to the MCP client — enums for `saveType` / `offerType` / `billingInterval` / breakdown dimensions, `not` object for exclusions, structured types for booleans and numbers.
 
-Mode (live vs test): with OAuth, set `CHURNKEY_MODE=test` (sent as `x-ck-mode: test`); with a deprecated Data API key, mode comes from the key prefix (`test_…`). Mode applies to **session analytics** and DSR. **Blueprint/segment configuration is shared across modes** (not key-dependent), and **payment-recovery analytics are not partitioned by mode** (dunning campaigns come from real provider failed-payment events and carry no test/live distinction).
+Mode (live vs test): with OAuth, set `CHURNKEY_MODE=test` (sent as `x-ck-mode: test`); with a deprecated Data API key, mode comes from the key prefix (`test_…`). Mode defaults to **live**, and `get_account` reports the effective mode for the session.
+
+Mode applies to **session analytics only** (`list_sessions` / `aggregate_sessions` — the only surface partitioned by test/live, so those two tools echo the active mode in their results). Everything else is mode-independent: **blueprint / segment / recovery configuration is shared across modes** (not key-dependent); **payment-recovery analytics are not partitioned by mode** (dunning campaigns come from real provider failed-payment events and carry no test/live distinction); `get_flow_metrics` is live-mode by definition (it joins real invoices); and DSR looks up a customer by email across the whole workspace regardless of mode.
 
 ## Authentication
 

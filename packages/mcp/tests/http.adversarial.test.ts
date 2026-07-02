@@ -309,10 +309,17 @@ describe('http — protected-resource metadata default URL', () => {
       resource: string
       authorization_servers: string[]
       bearer_methods_supported: string[]
+      scopes_supported: string[]
     }
     expect(body.resource).toBe('http://127.0.0.1:4555')
     expect(body.authorization_servers).toEqual(['https://api.churnkey.co'])
     expect(body.bearer_methods_supported).toEqual(['header'])
+    // RFC 9728: the PRM must advertise scopes so generic MCP clients request
+    // them; otherwise they authorize with an empty scope set and the AS rejects
+    // it ("At least one scope is required").
+    expect(Array.isArray(body.scopes_supported)).toBe(true)
+    expect(body.scopes_supported.length).toBeGreaterThan(0)
+    expect(body.scopes_supported).toContain('cancel_flows.blueprints.read')
     void base
   })
 
