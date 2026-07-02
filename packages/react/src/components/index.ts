@@ -1,4 +1,7 @@
 export { CancelFlow } from './cancel-flow'
+// Copy rendering — offer/step body may carry dashboard-authored HTML; this is
+// the renderer the built-in steps use, so custom components can match them.
+export { RichText } from './rich-text'
 // Steps
 export { DefaultConfirm } from './steps/default-confirm'
 export { DefaultFeedback } from './steps/default-feedback'

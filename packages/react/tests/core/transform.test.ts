@@ -156,4 +156,63 @@ describe('transformSdkConfig', () => {
     expect(offer.plans[0].id).toBe('plan_pro')
     expect(offer.plans[0].amount.value).toBe(4999)
   })
+
+  it('passes a merchant-defined offer through with its type key, data, copy, and decisionId', () => {
+    // The custom offer isn't part of the SdkOffer union (see SdkCustomOffer),
+    // so the fixture is cast — same shape the wire actually carries.
+    const config = {
+      blueprintId: 'bp_1',
+      steps: [
+        {
+          type: 'offer',
+          guid: 'o1',
+          offer: {
+            type: 'annual_term_extension',
+            data: { days: 30 },
+            decisionId: 'dec_1',
+            copy: { headline: 'Extend your term', body: 'On us', cta: 'Accept', declineCta: 'No thanks' },
+          },
+        },
+      ],
+      customer: { id: 'cus_1' },
+      subscriptions: [],
+      settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false },
+    } as unknown as SdkConfig
+
+    const { steps } = transformSdkConfig(config)
+    const offer = (
+      steps[0] as {
+        offer: { type: string; data?: Record<string, unknown>; decisionId?: string; copy: { headline: string } }
+      }
+    ).offer
+    expect(offer.type).toBe('annual_term_extension')
+    expect(offer.data).toEqual({ days: 30 })
+    expect(offer.decisionId).toBe('dec_1')
+    expect(offer.copy.headline).toBe('Extend your term')
+  })
+
+  it('passes a custom offer with no data through as a bare type', () => {
+    const config = {
+      blueprintId: 'bp_1',
+      steps: [
+        {
+          type: 'offer',
+          guid: 'o1',
+          offer: {
+            type: 'winback_call',
+            decisionId: 'dec_2',
+            copy: { headline: 'Talk to us', body: '', cta: 'Accept', declineCta: 'No thanks' },
+          },
+        },
+      ],
+      customer: { id: 'cus_1' },
+      subscriptions: [],
+      settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false },
+    } as unknown as SdkConfig
+
+    const { steps } = transformSdkConfig(config)
+    const offer = (steps[0] as { offer: { type: string; data?: unknown } }).offer
+    expect(offer.type).toBe('winback_call')
+    expect('data' in offer).toBe(false)
+  })
 })
