@@ -3,8 +3,9 @@
 // resolved — coupon ids hydrated to amounts and durations, plan ids inlined
 // as DirectPrice[], so this layer is a pure shape projection.
 
-import type { SdkConfig, SdkDiscountOffer, SdkOffer, SdkReason, SdkStep } from './api-types'
+import type { SdkConfig, SdkCustomOffer, SdkDiscountOffer, SdkOffer, SdkReason, SdkStep } from './api-types'
 import type { BuiltInOfferConfig, OfferConfig, OfferCopy, OfferDecision, ReasonConfig, Step } from './types'
+import { BUILT_IN_OFFER_TYPES } from './utils'
 
 export interface TransformResult {
   steps: Step[]
@@ -77,6 +78,14 @@ function transformOfferDecision(o: SdkOffer): OfferDecision {
 }
 
 function transformOfferConfig(o: SdkOffer): OfferConfig {
+  // Merchant-defined offers arrive with the registered key as `type` and the
+  // builder's config as `data` — pass both through untouched so the renderer
+  // can match customComponents[type]. Without this the switch below returned
+  // undefined and the offer was silently dropped.
+  if (!BUILT_IN_OFFER_TYPES.includes(o.type)) {
+    const custom = o as unknown as SdkCustomOffer
+    return custom.data !== undefined ? { type: custom.type, data: custom.data } : { type: custom.type }
+  }
   switch (o.type) {
     case 'discount': {
       const d: SdkDiscountOffer = o
