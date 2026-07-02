@@ -520,10 +520,8 @@ function SeatStep({
   )
 }
 
-// Renders the `annual_term_extension` custom offer type — the end-to-end check
-// that a type registered server-side, configured in the no-code builder, and
-// served through /cancel-flow/config renders via customComponents and reports
-// its result on accept. Config arrives as `offer.data` (here: days).
+// Custom offer type for the token-mode e2e path: builder config arrives as
+// offer.data (here: days), copy comes from the step's header/description.
 function AnnualTermExtension({ offer, onAccept, onDecline, isProcessing }: CustomOfferProps) {
   const data = (offer as { data?: Record<string, unknown> }).data ?? {}
   const days = (data.days as number) ?? 30

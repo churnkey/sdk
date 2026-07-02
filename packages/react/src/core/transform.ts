@@ -78,10 +78,9 @@ function transformOfferDecision(o: SdkOffer): OfferDecision {
 }
 
 function transformOfferConfig(o: SdkOffer): OfferConfig {
-  // Merchant-defined offers arrive with the registered key as `type` and the
-  // builder's config as `data` — pass both through untouched so the renderer
-  // can match customComponents[type]. Without this the switch below returned
-  // undefined and the offer was silently dropped.
+  // Merchant-defined offers: `type` is the registered key and `data` the
+  // builder's config. Pass both through untouched so the renderer can match
+  // customComponents[type].
   if (!BUILT_IN_OFFER_TYPES.includes(o.type)) {
     const custom = o as unknown as SdkCustomOffer
     return custom.data !== undefined ? { type: custom.type, data: custom.data } : { type: custom.type }

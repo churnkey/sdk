@@ -67,25 +67,22 @@ export type SdkOffer =
   | SdkContactOffer
   | SdkRebateOffer
 
-/**
- * A merchant-defined offer type. `type` is the registered key (matched against
- * `customComponents`); `data` is the config values from the flow builder.
- * Deliberately not part of the SdkOffer union — a `type: string` member would
- * break the discriminated-union narrowing the transform's switch relies on.
- * The wire can still carry it; the transform detects it by checking the type
- * against the built-in list.
- */
-export interface SdkCustomOffer {
-  type: string
-  data?: Record<string, unknown>
-  decisionId?: string
-  copy: SdkOfferCopy
-}
-
 interface SdkOfferBase {
   /** Per-offer guid — used for analytics joins between presented and accepted offers. */
   decisionId?: string
   copy: SdkOfferCopy
+}
+
+/**
+ * A merchant-defined offer: `type` is the registered key (matched against
+ * `customComponents`), `data` the config values from the flow builder. Kept
+ * out of the SdkOffer union — a `type: string` member would break the
+ * narrowing the transform's switch relies on, so the transform detects it by
+ * checking the type against the built-in list instead.
+ */
+export interface SdkCustomOffer extends SdkOfferBase {
+  type: string
+  data?: Record<string, unknown>
 }
 
 export interface SdkDiscountOffer extends SdkOfferBase {
