@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { createServer as createNodeServer, type IncomingHttpHeaders, type ServerResponse } from 'node:http'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
+import { DEFAULT_SCOPES } from './auth/oauth'
 import { type ChurnkeyMcpHttpConfig, loadHttpRequestConfig, loadHttpServerConfig, resolveBaseUrl } from './config'
 import { createServer } from './server'
 
@@ -62,6 +63,12 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
             resource: publicUrl,
             authorization_servers: [resolveAuthorizationServer(env)],
             bearer_methods_supported: ['header'],
+            // Advertise the supported scopes (RFC 9728 `scopes_supported`) so
+            // generic clients (Claude.ai, ChatGPT, Claude Code) know what to
+            // request. Without it they start the authorization request with an
+            // empty scope set, which the authorization server rejects with
+            // "At least one scope is required" — blocking login entirely.
+            scopes_supported: DEFAULT_SCOPES,
             resource_documentation: 'https://docs.churnkey.co/data-integrations/mcp',
           }),
         )
