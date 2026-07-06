@@ -32,19 +32,21 @@ export function DefaultPauseOffer({
       <div className={cn('ck-offer-card ck-pause-card', classNames?.card)}>
         <div className="ck-pause-eyebrow">We&apos;ll see you back on</div>
         <div className="ck-pause-date">{resumeDate}</div>
-        <div className={cn('ck-pause-chips', classNames?.pauseSlider)}>
-          {Array.from({ length: max }, (_, i) => i + 1).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMonths(m)}
-              className={cn('ck-pause-chip', m === months && 'ck-pause-chip--selected')}
-              aria-pressed={m === months}
-            >
-              {m} {m === 1 ? 'month' : 'months'}
-            </button>
-          ))}
-        </div>
+        {max > 1 && (
+          <div className={cn('ck-pause-chips', classNames?.pauseSlider)}>
+            {Array.from({ length: max }, (_, i) => i + 1).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMonths(m)}
+                className={cn('ck-pause-chip', m === months && 'ck-pause-chip--selected')}
+                aria-pressed={m === months}
+              >
+                {m} {m === 1 ? 'month' : 'months'}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <button
         type="button"
