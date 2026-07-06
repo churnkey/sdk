@@ -190,8 +190,11 @@ export class ChurnkeyApi {
     })
   }
 
-  async cancelSubscription(): Promise<void> {
-    await this.request(this.orgUrl('cancel-flow/actions/cancel'), { cancelAtPeriodEnd: true })
+  async cancelSubscription(cancelAtPeriodEnd = true, blueprintId?: string): Promise<void> {
+    await this.request(this.orgUrl('cancel-flow/actions/cancel'), {
+      cancelAtPeriodEnd,
+      ...(blueprintId && { blueprintId }),
+    })
   }
 
   async changePlan(planId: string): Promise<void> {
