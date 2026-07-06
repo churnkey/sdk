@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.6.3 — 2026-07-06
+
+### Fixed
+
+- `DefaultPauseOffer` no longer shows the duration chip selector when the offer only has one month to choose from.
+
 ## 0.6.2 — 2026-07-02
 
 ### Added
