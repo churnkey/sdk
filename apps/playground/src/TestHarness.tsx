@@ -11,6 +11,7 @@ import type {
   Mode,
   Step,
 } from '@churnkey/react/core'
+import { CreativeDiscountShowcase } from '../../../packages/react/recipes/creative-discount-showcase'
 
 type Scenario =
   | 'open-source'
@@ -951,6 +952,7 @@ export function TestHarness() {
             nps: NpsStep,
             'change-seats': SeatAdjuster,
             annual_term_extension: AnnualTermExtension,
+            creative_discount_showcase: CreativeDiscountShowcase,
           }}
           onAccept={handleAccept}
           onCancel={handleCancel}
