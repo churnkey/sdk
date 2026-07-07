@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.6.4 — 2026-07-07
+
+### Added
+
+- add `settings.cancelAtPeriodEnd` to SDK config types, and pass configured cancellation timing into token-mode cancel actions
+
 ## 0.6.3 — 2026-07-06
 
 ### Fixed
