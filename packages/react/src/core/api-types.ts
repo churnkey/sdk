@@ -18,6 +18,7 @@ export interface SdkConfig {
 export interface SdkSettings {
   clickToCancelEnabled: boolean
   strictFTCComplianceEnabled: boolean
+  cancelAtPeriodEnd?: boolean
   discountCooldown?: number
   pauseCooldown?: number
 }

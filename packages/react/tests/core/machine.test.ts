@@ -461,19 +461,30 @@ describe('CancelFlowMachine', () => {
         steps: [{ type: 'survey', reasons: [{ id: 'r1', label: 'Missing features' }] }, { type: 'confirm' }],
         onCancel,
       })
-      machine.initializeFromConfig(sdkConfig({ blueprintId: 'bp_1' }), mockApi as any, {
-        appId: 'a',
-        customerId: 'c',
-        authHash: 'h',
-        mode: 'live' as const,
-        issuedAt: 0,
-      })
+      machine.initializeFromConfig(
+        sdkConfig({
+          blueprintId: 'bp_1',
+          settings: {
+            clickToCancelEnabled: false,
+            strictFTCComplianceEnabled: false,
+            cancelAtPeriodEnd: false,
+          },
+        }),
+        mockApi as any,
+        {
+          appId: 'a',
+          customerId: 'c',
+          authHash: 'h',
+          mode: 'live' as const,
+          issuedAt: 0,
+        },
+      )
       machine.selectReason('r1')
       machine.next()
       await machine.cancel()
 
       expect(calls).toEqual(['action', 'onCancel'])
-      expect(mockApi.cancelSubscription).toHaveBeenCalled()
+      expect(mockApi.cancelSubscription).toHaveBeenCalledWith(false, 'bp_1')
     })
   })
 

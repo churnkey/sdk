@@ -406,7 +406,10 @@ export class CancelFlowMachine {
       if (this.callbacks.handleCancel) {
         await this.callbacks.handleCancel(customer)
       } else if (this.isTokenMode()) {
-        await this.apiClient!.cancelSubscription()
+        await this.apiClient!.cancelSubscription(
+          this.config?.settings.cancelAtPeriodEnd ?? true,
+          this.blueprintId ?? undefined,
+        )
       }
 
       await this.callbacks.onCancel?.(customer)

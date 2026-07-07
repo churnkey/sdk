@@ -47,12 +47,20 @@ describe('ChurnkeyApi action paths', () => {
     expect(calledBody(spy)).toEqual({ duration: 2, interval: 'month' })
   })
 
-  it('cancelSubscription hits cancel-flow/actions/cancel with cancelAtPeriodEnd: true', async () => {
+  it('cancelSubscription defaults to cancelAtPeriodEnd: true', async () => {
     const spy = spyFetch()
     const api = new ChurnkeyApi(creds, 'https://api.test/v1')
     await api.cancelSubscription()
     expect(calledPath(spy)).toBe('https://api.test/v1/api/orgs/app_test/cancel-flow/actions/cancel')
     expect(calledBody(spy)).toEqual({ cancelAtPeriodEnd: true })
+  })
+
+  it('cancelSubscription forwards explicit cancellation timing and blueprint policy hint', async () => {
+    const spy = spyFetch()
+    const api = new ChurnkeyApi(creds, 'https://api.test/v1')
+    await api.cancelSubscription(false, 'bp_1')
+    expect(calledPath(spy)).toBe('https://api.test/v1/api/orgs/app_test/cancel-flow/actions/cancel')
+    expect(calledBody(spy)).toEqual({ cancelAtPeriodEnd: false, blueprintId: 'bp_1' })
   })
 
   it('changePlan hits cancel-flow/actions/change-plan with planId', async () => {
