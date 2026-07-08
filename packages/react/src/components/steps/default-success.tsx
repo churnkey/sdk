@@ -11,7 +11,9 @@ export function DefaultSuccess({ title, description, onClose, classNames }: Succ
       </div>
 
       <h2 className={cn('ck-step-title', classNames?.title)}>{title}</h2>
-      {description && <RichText html={description} className={cn('ck-step-description', classNames?.description)} />}
+      {description && (
+        <RichText as="div" html={description} className={cn('ck-step-description', classNames?.description)} />
+      )}
 
       <div className="ck-success-actions">
         <button type="button" className={cn('ck-button ck-button-primary', classNames?.closeButton)} onClick={onClose}>

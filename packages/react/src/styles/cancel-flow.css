@@ -275,6 +275,19 @@
   margin: 0 0 20px;
 }
 
+/* Embedded video (YouTube/Vimeo/Wistia/Brightcove iframes) authored into a
+   step description. Overrides the inline height="480" the TipTap YouTube node
+   emits and makes the player fill the width at a 16:9 box. */
+.ck-cancel-flow .ck-step-description :is(iframe, video),
+.ck-cancel-flow .ck-step-description [data-youtube-video] {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 10px;
+}
+
 /* --- Buttons --- */
 .ck-cancel-flow .ck-button {
   display: inline-flex;

@@ -35,7 +35,7 @@ export function DefaultPlanChangeOffer({
   return (
     <div className={cn('ck-step ck-step-offer', classNames?.root)}>
       {headline && <h2 className={cn('ck-step-title', classNames?.title)}>{headline}</h2>}
-      {body && <RichText html={body} className={cn('ck-step-description', classNames?.description)} />}
+      {body && <RichText as="div" html={body} className={cn('ck-step-description', classNames?.description)} />}
 
       <div className={cn('ck-offer-card', classNames?.card)}>
         <div className="ck-offer-details ck-plan-grid">
