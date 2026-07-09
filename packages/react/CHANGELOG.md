@@ -2,6 +2,17 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.6.5 — 2026-07-09
+
+### Added
+
+- Render description/body RichText as <div> (as="div") so block-level embeds aren't hoisted.
+- Add responsive 16:9 media CSS under .ck-step-description (iframe, video, [data-youtube-video]) - fills width, overrides the inline height="480".
+
+### Added
+
+- add `settings.cancelAtPeriodEnd` to SDK config types, and pass configured cancellation timing into token-mode cancel actions
+
 ## 0.6.4 — 2026-07-07
 
 ### Added
