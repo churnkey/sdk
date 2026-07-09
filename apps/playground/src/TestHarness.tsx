@@ -529,7 +529,7 @@ function AnnualTermExtension({ offer, onAccept, onDecline, isProcessing }: Custo
   return (
     <div className="ck-step ck-step-offer">
       <h2 className="ck-step-title">{offer.copy.headline}</h2>
-      <RichText html={offer.copy.body} className="ck-step-description" />
+      <RichText as="div" html={offer.copy.body} className="ck-step-description" />
 
       <div className="ck-offer-card">
         <div
