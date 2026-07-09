@@ -41,7 +41,9 @@ export function DefaultSurvey({
   return (
     <div className={cn('ck-step ck-step-survey', classNames?.root)}>
       <h2 className={cn('ck-step-title', classNames?.title)}>{title}</h2>
-      {description && <RichText html={description} className={cn('ck-step-description', classNames?.description)} />}
+      {description && (
+        <RichText as="div" html={description} className={cn('ck-step-description', classNames?.description)} />
+      )}
 
       <div className={cn('ck-reason-list', classNames?.reasonList)} role="radiogroup" aria-label={title}>
         {reasons.map((reason, i) => (

@@ -197,7 +197,9 @@ export interface OfferCopy {
    * May contain HTML when the flow was authored in the Churnkey dashboard
    * (the description editor is rich text). Render with the exported
    * `RichText` component — the same renderer the built-in steps use — rather
-   * than as a text node, or the markup shows escaped.
+   * than as a text node, or the markup shows escaped. Pass `as="div"` (built-in
+   * steps do) so block content like an embedded video iframe isn't hoisted out
+   * of the default `<p>` wrapper.
    */
   body: string
   cta: string
