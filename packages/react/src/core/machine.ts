@@ -223,6 +223,7 @@ export class CancelFlowMachine {
   private customStepResults: Record<string, unknown> = {}
   private configMode: Mode = 'live'
   private i18nConfig: I18nConfig | undefined
+  private localCancelAtPeriodEnd: boolean | null = null
   private resolvedMessages: CancelFlowMessages
   private stepEnteredAt: number = Date.now()
   private aborted = false
@@ -237,6 +238,7 @@ export class CancelFlowMachine {
     this.callbacks = config
     this.i18nConfig = config.i18n
     this.resolvedMessages = buildMessages(config.i18n)
+    if (typeof config.cancelAtPeriodEnd === 'boolean') this.localCancelAtPeriodEnd = config.cancelAtPeriodEnd
     if (config.mode) this.configMode = config.mode
     if (config.customerAttributes) this.customerAttributes = config.customerAttributes
     if (config.appId && config.customer) {
@@ -500,7 +502,7 @@ export class CancelFlowMachine {
       error: null,
       customer,
       subscriptions,
-      cancelAtPeriodEnd: this.config?.settings.cancelAtPeriodEnd ?? null,
+      cancelAtPeriodEnd: this.config?.settings.cancelAtPeriodEnd ?? this.localCancelAtPeriodEnd,
     }
   }
 

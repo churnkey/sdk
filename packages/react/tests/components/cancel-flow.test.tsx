@@ -545,3 +545,40 @@ describe('CancelFlow i18n', () => {
     expect(screen.getByText(/Your access continues until (June 30|July 1), 2026\./)).toBeInTheDocument()
   })
 })
+
+describe('local-mode timing declaration', () => {
+  const timingSteps: Step[] = [{ type: 'confirm' }]
+  const i18n = {
+    messages: {
+      en: { confirm: { cta: { immediate: 'Cancel now', atPeriodEnd: 'Turn off auto-renew' } } },
+    },
+  }
+
+  it('cancelAtPeriodEnd={false} selects the immediate variant in local mode', () => {
+    renderFlow({ steps: timingSteps, cancelAtPeriodEnd: false, i18n })
+    expect(screen.getByText('Cancel now')).toBeInTheDocument()
+    expect(screen.queryByText(/access continues until/i)).not.toBeInTheDocument()
+  })
+
+  it('cancelAtPeriodEnd={true} selects the period-end variant and renders the notice', () => {
+    // appId + customer are required for subscriptions to reach flow state —
+    // the notice needs the current period end from there.
+    renderFlow({
+      steps: timingSteps,
+      cancelAtPeriodEnd: true,
+      i18n,
+      appId: 'app_test',
+      customer: { id: 'cus_1' },
+      subscriptions: [
+        {
+          id: 'sub_1',
+          start: '2024-01-01',
+          status: { name: 'active', currentPeriod: { start: '2026-06-01', end: '2026-07-01' } },
+          items: [{ price: { id: 'p', amount: { value: 100, currency: 'USD' } } }],
+        },
+      ],
+    })
+    expect(screen.getByText('Turn off auto-renew')).toBeInTheDocument()
+    expect(screen.getByText(/Your access continues until (June 30|July 1), 2026\./)).toBeInTheDocument()
+  })
+})

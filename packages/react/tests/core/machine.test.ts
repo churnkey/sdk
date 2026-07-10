@@ -1999,3 +1999,29 @@ describe('org-level translations (token mode)', () => {
     expect(machine.messages.common.continue).toBe('Continue')
   })
 })
+
+describe('local-mode cancelAtPeriodEnd declaration', () => {
+  it('threads the declared timing into state', () => {
+    for (const value of [true, false]) {
+      const machine = new CancelFlowMachine({ ...baseConfig, cancelAtPeriodEnd: value })
+      expect(machine.getSnapshot().cancelAtPeriodEnd).toBe(value)
+    }
+  })
+
+  it('stays null when undeclared', () => {
+    const machine = new CancelFlowMachine(baseConfig)
+    expect(machine.getSnapshot().cancelAtPeriodEnd).toBeNull()
+  })
+
+  it('token-mode server value overrides the local declaration', () => {
+    const machine = new CancelFlowMachine({ session: 'ck_placeholder', cancelAtPeriodEnd: true })
+    machine.initializeFromConfig(
+      sdkConfig({
+        settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false, cancelAtPeriodEnd: false },
+      }),
+      {} as any,
+      { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+    )
+    expect(machine.getSnapshot().cancelAtPeriodEnd).toBe(false)
+  })
+})
