@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatMonthDayLong } from '../../../core/format'
+import { defaultMessages } from '../../../core/messages'
 import type { OfferDecision, OfferStepProps } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { RichText } from '../../rich-text'
@@ -12,7 +13,9 @@ export function DefaultPauseOffer({
   onDecline,
   isProcessing,
   classNames,
+  messages,
 }: OfferStepProps) {
+  const msg = messages ?? defaultMessages
   const o = offer as OfferDecision & { months: number }
   const max = Math.max(1, o.months)
   const [months, setMonths] = useState<number>(1)
@@ -30,7 +33,7 @@ export function DefaultPauseOffer({
       {body && <RichText as="div" html={body} className={cn('ck-step-description', classNames?.description)} />}
 
       <div className={cn('ck-offer-card ck-pause-card', classNames?.card)}>
-        <div className="ck-pause-eyebrow">We&apos;ll see you back on</div>
+        <div className="ck-pause-eyebrow">{msg.offer.pauseEyebrow}</div>
         <div className="ck-pause-date">{resumeDate}</div>
         {max > 1 && (
           <div className={cn('ck-pause-chips', classNames?.pauseSlider)}>
@@ -42,7 +45,7 @@ export function DefaultPauseOffer({
                 className={cn('ck-pause-chip', m === months && 'ck-pause-chip--selected')}
                 aria-pressed={m === months}
               >
-                {m} {m === 1 ? 'month' : 'months'}
+                {m} {m === 1 ? msg.common.month : msg.common.months}
               </button>
             ))}
           </div>
@@ -54,7 +57,7 @@ export function DefaultPauseOffer({
         onClick={() => onAccept({ months })}
         disabled={isProcessing}
       >
-        {isProcessing ? 'Processing...' : offer.copy.cta}
+        {isProcessing ? msg.common.processing : offer.copy.cta}
       </button>
       <button type="button" className={cn('ck-button-link', classNames?.declineButton)} onClick={onDecline}>
         {offer.copy.declineCta}

@@ -1,4 +1,5 @@
 import { formatMonthDay } from '../../../core/format'
+import { defaultMessages } from '../../../core/messages'
 import type { OfferDecision, OfferStepProps } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { RichText } from '../../rich-text'
@@ -11,7 +12,9 @@ export function DefaultTrialExtensionOffer({
   onDecline,
   isProcessing,
   classNames,
+  messages,
 }: OfferStepProps) {
+  const msg = messages ?? defaultMessages
   const o = offer as OfferDecision & { days: number }
   const headline = title ?? offer.copy.headline
   const body = description ?? offer.copy.body
@@ -28,10 +31,10 @@ export function DefaultTrialExtensionOffer({
         <div className="ck-offer-details ck-trial-block">
           <div className="ck-trial-badge">
             <div className="ck-trial-days">+{o.days}</div>
-            <div className="ck-trial-unit">{o.days === 1 ? 'day' : 'days'}</div>
+            <div className="ck-trial-unit">{o.days === 1 ? msg.common.day : msg.common.days}</div>
           </div>
           <div>
-            <div className="ck-trial-end-label">New end date</div>
+            <div className="ck-trial-end-label">{msg.offer.newEndDateLabel}</div>
             <div className="ck-trial-end-date">{newEnd}</div>
           </div>
         </div>
@@ -41,7 +44,7 @@ export function DefaultTrialExtensionOffer({
           onClick={() => onAccept()}
           disabled={isProcessing}
         >
-          {isProcessing ? 'Processing...' : offer.copy.cta}
+          {isProcessing ? msg.common.processing : offer.copy.cta}
         </button>
         <button type="button" className={cn('ck-button-link', classNames?.declineButton)} onClick={onDecline}>
           {offer.copy.declineCta}

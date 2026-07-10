@@ -8,6 +8,7 @@ import type {
   CustomStepProps,
   DirectCustomer,
   DirectSubscription,
+  I18nConfig,
   Mode,
   Step,
 } from '@churnkey/react/core'
@@ -23,6 +24,7 @@ type Scenario =
   | 'all-offers'
   | 'standalone-offer'
   | 'color-scheme'
+  | 'i18n'
 
 const SCENARIOS: { id: Scenario; label: string; description: string }[] = [
   {
@@ -71,6 +73,12 @@ const SCENARIOS: { id: Scenario; label: string; description: string }[] = [
     id: 'color-scheme',
     label: 'Color Scheme',
     description: 'Toggle light / dark / auto. `auto` follows OS preference.',
+  },
+  {
+    id: 'i18n',
+    label: 'i18n / Text Overrides',
+    description:
+      'Message overrides via the i18n prop: chrome strings, timing-aware confirm/success copy, locale fallback chain. Declare the cancel timing to flip variants; leave it undeclared and pairs resolve to atPeriodEnd with the access notice hidden.',
   },
 ]
 
@@ -224,6 +232,51 @@ const allOffersSteps: Step[] = [
   { type: 'confirm', confirmLabel: 'Cancel anyway', goBackLabel: 'Wait, take me back' },
   successStep,
 ]
+
+// No confirmLabel / goBackLabel / success titles here — per-step props beat
+// i18n messages, so setting them would mask exactly what this scenario
+// exists to show. The feedback minLength exercises {minLength} interpolation.
+const i18nSteps: Step[] = [
+  {
+    type: 'survey',
+    reasons: [
+      { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percentOff: 20, durationInMonths: 3 } },
+      { id: 'missing', label: 'Missing features' },
+    ],
+  },
+  { type: 'feedback', required: true, minLength: 20 },
+  { type: 'confirm' },
+  { type: 'success' },
+]
+
+// 'en' shows targeted overrides incl. timing pairs; 'de' is a partial catalog
+// (untranslated keys fall back to the en overrides, then defaults); 'de-AT'
+// has no entry at all, proving the exact → base-language → en chain.
+const I18N_MESSAGES: I18nConfig['messages'] = {
+  en: {
+    common: { continue: 'Keep going →', done: 'All set' },
+    survey: { title: 'Mind telling us why?' },
+    confirm: {
+      cta: { immediate: 'Cancel immediately', atPeriodEnd: 'Turn off auto-renew' },
+      goBack: 'Actually, never mind',
+    },
+    success: {
+      cancelled: {
+        title: { immediate: 'Subscription cancelled', atPeriodEnd: 'Auto-renew is off' },
+        description: {
+          immediate: 'Your access has ended.',
+          atPeriodEnd: 'You keep access until the end of your billing period.',
+        },
+      },
+    },
+  },
+  de: {
+    common: { continue: 'Weiter', back: 'Zurück', done: 'Fertig', processing: 'Wird verarbeitet…' },
+    survey: { title: 'Warum möchtest du kündigen?' },
+    feedback: { title: 'Möchtest du uns noch etwas mitteilen?', placeholderWithMin: 'Mindestens {minLength} Zeichen…' },
+    confirm: { title: 'Kündigung bestätigen', cta: 'Auto-Verlängerung deaktivieren', goBack: 'Doch nicht' },
+  },
+}
 
 // Flow starts directly on an offer step. Exercises buildInitialState's
 // currentStep.offer read for the first step and the offer-first entry path.
@@ -596,6 +649,8 @@ export function TestHarness() {
   const [mode, setMode] = useState<Mode>('test')
   const [open, setOpen] = useState(false)
   const [colorScheme, setColorScheme] = useState<'light' | 'dark' | 'auto'>('light')
+  const [locale, setLocale] = useState<'en' | 'de' | 'de-AT'>('en')
+  const [localTiming, setLocalTiming] = useState<'period-end' | 'immediate' | 'undeclared'>('undeclared')
   const logRef = useRef<HTMLDivElement>(null)
   const [logs, setLogs] = useState<string[]>([])
 
@@ -705,6 +760,8 @@ export function TestHarness() {
         return allOffersSteps
       case 'standalone-offer':
         return standaloneOfferSteps
+      case 'i18n':
+        return i18nSteps
       case 'token':
       case 'token-analytics':
         return undefined
@@ -870,6 +927,36 @@ export function TestHarness() {
         </fieldset>
       )}
 
+      {/* Locale picker (i18n scenario only) */}
+      {scenario === 'i18n' && (
+        <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+          <legend style={{ fontSize: 13, fontWeight: 600, color: '#374151', padding: '0 4px' }}>Locale</legend>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {(['en', 'de', 'de-AT'] as const).map((l) => (
+              <Pill key={l} label={l} selected={locale === l} onClick={() => setLocale(l)} />
+            ))}
+          </div>
+          <p style={{ fontSize: 12, color: '#6b7280', margin: '8px 0 0' }}>
+            <code>de</code> is a partial catalog — untranslated keys fall through to the <code>en</code> overrides, then
+            defaults. <code>de-AT</code> has no catalog entry and resolves via the base language. Switching locale
+            remounts the flow (the machine reads <code>i18n</code> once at mount).
+          </p>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', padding: '12px 0 4px' }}>
+            Cancel timing (local declaration)
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {(['undeclared', 'immediate', 'period-end'] as const).map((t) => (
+              <Pill key={t} label={t} selected={localTiming === t} onClick={() => setLocalTiming(t)} />
+            ))}
+          </div>
+          <p style={{ fontSize: 12, color: '#6b7280', margin: '8px 0 0' }}>
+            Sets the <code>cancelAtPeriodEnd</code> prop. <code>period-end</code> shows the access-until notice on
+            confirm; <code>undeclared</code> resolves pairs to atPeriodEnd but keeps the notice hidden. In token mode
+            the server-resolved value wins.
+          </p>
+        </fieldset>
+      )}
+
       {/* Launch */}
       <button
         type="button"
@@ -938,6 +1025,11 @@ export function TestHarness() {
       {/* CancelFlow */}
       {open && (
         <CancelFlow
+          key={scenario === 'i18n' ? `${locale}-${localTiming}` : undefined}
+          i18n={scenario === 'i18n' ? { locale, messages: I18N_MESSAGES } : undefined}
+          cancelAtPeriodEnd={
+            scenario === 'i18n' && localTiming !== 'undeclared' ? localTiming === 'period-end' : undefined
+          }
           appId={needsAppId && appId ? appId : undefined}
           customer={customer}
           subscriptions={subscriptions}

@@ -1913,3 +1913,98 @@ describe('CancelFlowMachine', () => {
     })
   })
 })
+
+describe('i18n / messages', () => {
+  it('resolves default messages with no i18n config', () => {
+    const machine = new CancelFlowMachine(baseConfig)
+    expect(machine.messages.common.continue).toBe('Continue')
+    expect(machine.messages.confirm.cta).toBe('Cancel subscription')
+  })
+
+  it('layers i18n overrides onto the defaults', () => {
+    const machine = new CancelFlowMachine({
+      ...baseConfig,
+      i18n: {
+        locale: 'en',
+        messages: {
+          en: {
+            common: { continue: 'Keep going' },
+            confirm: { cta: { immediate: 'Cancel', atPeriodEnd: 'Turn off auto-renew' } },
+          },
+        },
+      },
+    })
+    expect(machine.messages.common.continue).toBe('Keep going')
+    expect(machine.messages.confirm.cta).toEqual({ immediate: 'Cancel', atPeriodEnd: 'Turn off auto-renew' })
+    expect(machine.messages.common.back).toBe('Back')
+  })
+
+  it('leaves cancelAtPeriodEnd null in local mode', () => {
+    const machine = new CancelFlowMachine(baseConfig)
+    expect(machine.getSnapshot().cancelAtPeriodEnd).toBeNull()
+  })
+
+  it('threads the server-resolved cancelAtPeriodEnd into state in token mode', () => {
+    for (const value of [true, false]) {
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder' })
+      machine.initializeFromConfig(
+        sdkConfig({
+          settings: {
+            clickToCancelEnabled: false,
+            strictFTCComplianceEnabled: false,
+            cancelAtPeriodEnd: value,
+          },
+        }),
+        {} as any,
+        { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+      )
+      expect(machine.getSnapshot().cancelAtPeriodEnd).toBe(value)
+    }
+  })
+})
+
+describe('local-mode cancelAtPeriodEnd declaration', () => {
+  it('threads the declared timing into state', () => {
+    for (const value of [true, false]) {
+      const machine = new CancelFlowMachine({ ...baseConfig, cancelAtPeriodEnd: value })
+      expect(machine.getSnapshot().cancelAtPeriodEnd).toBe(value)
+    }
+  })
+
+  it('stays null when undeclared', () => {
+    const machine = new CancelFlowMachine(baseConfig)
+    expect(machine.getSnapshot().cancelAtPeriodEnd).toBeNull()
+  })
+
+  it('token-mode server value overrides the local declaration', () => {
+    const machine = new CancelFlowMachine({ session: 'ck_placeholder', cancelAtPeriodEnd: true })
+    machine.initializeFromConfig(
+      sdkConfig({
+        settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false, cancelAtPeriodEnd: false },
+      }),
+      {} as any,
+      { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+    )
+    expect(machine.getSnapshot().cancelAtPeriodEnd).toBe(false)
+  })
+})
+
+// Pavel's review on #34: the local declaration must not leak into token mode
+// even when the server omits settings.cancelAtPeriodEnd — display would
+// otherwise diverge from the cancel action's own end-of-period fallback.
+describe('token mode ignores the local timing declaration', () => {
+  it('stays null when the server omits cancelAtPeriodEnd despite a local declaration', () => {
+    const machine = new CancelFlowMachine({ session: 'ck_placeholder', cancelAtPeriodEnd: false })
+    machine.initializeFromConfig(
+      sdkConfig({ settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false } }),
+      {} as any,
+      { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+    )
+    expect(machine.getSnapshot().cancelAtPeriodEnd).toBeNull()
+  })
+
+  it('stays null pre-fetch in token mode', () => {
+    const machine = new CancelFlowMachine({ session: 'ck_placeholder', cancelAtPeriodEnd: false })
+    expect(machine.getSnapshot().cancelAtPeriodEnd).toBeNull()
+  })
+})

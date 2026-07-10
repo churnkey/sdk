@@ -1,9 +1,11 @@
+import { defaultMessages } from '../../core/messages'
 import type { SuccessStepProps } from '../../core/types'
 import { cn } from '../../core/utils'
 import { RichText } from '../rich-text'
 import { Checkmark } from './shared'
 
-export function DefaultSuccess({ title, description, onClose, classNames }: SuccessStepProps) {
+export function DefaultSuccess({ title, description, onClose, classNames, messages }: SuccessStepProps) {
+  const m = messages ?? defaultMessages
   return (
     <div className={cn('ck-step ck-step-success', classNames?.root)}>
       <div className={cn('ck-success-icon', classNames?.icon)}>
@@ -17,7 +19,7 @@ export function DefaultSuccess({ title, description, onClose, classNames }: Succ
 
       <div className="ck-success-actions">
         <button type="button" className={cn('ck-button ck-button-primary', classNames?.closeButton)} onClick={onClose}>
-          Done
+          {m.common.done}
         </button>
       </div>
     </div>

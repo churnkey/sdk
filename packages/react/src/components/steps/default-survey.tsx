@@ -1,3 +1,4 @@
+import { defaultMessages } from '../../core/messages'
 import type { ReasonButtonProps, SurveyStepProps } from '../../core/types'
 import { cn } from '../../core/utils'
 import { RichText } from '../rich-text'
@@ -33,7 +34,9 @@ export function DefaultSurvey({
   onNext,
   classNames,
   components,
+  messages,
 }: SurveyStepProps) {
+  const m = messages ?? defaultMessages
   const ReasonButton = components?.ReasonButton ?? DefaultReasonButton
   const selected = reasons.find((r) => r.id === selectedReason)
   const showFollowup = selected?.freeform === true
@@ -60,11 +63,11 @@ export function DefaultSurvey({
       {showFollowup && (
         <textarea
           className={cn('ck-reason-followup', classNames?.followupInput)}
-          placeholder="Tell us more (optional)"
+          placeholder={m.survey.followupPlaceholder}
           rows={3}
           value={followupResponse}
           onChange={(e) => onFollowupResponseChange(e.target.value)}
-          aria-label="Additional detail"
+          aria-label={m.survey.followupAriaLabel}
         />
       )}
 
@@ -74,7 +77,7 @@ export function DefaultSurvey({
         onClick={onNext}
         disabled={!selectedReason}
       >
-        Continue
+        {m.common.continue}
       </button>
     </div>
   )

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatPriceFromMinor } from '../../../core/format'
+import { defaultMessages, formatMessage } from '../../../core/messages'
 import type { OfferDecision, OfferStepProps, PlanOption } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { RichText } from '../../rich-text'
@@ -14,7 +15,9 @@ export function DefaultPlanChangeOffer({
   onDecline,
   isProcessing,
   classNames,
+  messages,
 }: OfferStepProps) {
+  const msg = messages ?? defaultMessages
   const o = offer as OfferDecision & { plans?: PlanOption[] }
   const plans = o.plans ?? []
   // Mark the customer's current plan via their first subscription's first
@@ -27,9 +30,9 @@ export function DefaultPlanChangeOffer({
   const headline = title ?? offer.copy.headline
   const body = description ?? offer.copy.body
   const ctaLabel = isProcessing
-    ? 'Processing...'
+    ? msg.common.processing
     : selectedPlan?.name
-      ? `Switch to ${selectedPlan.name}`
+      ? formatMessage(msg.offer.switchToCta, { planName: selectedPlan.name })
       : offer.copy.cta
 
   return (
@@ -60,7 +63,7 @@ export function DefaultPlanChangeOffer({
               >
                 <div className="ck-plan-name">
                   {plan.name ?? plan.id}
-                  {isCurrent && <span className="ck-plan-current-badge">Current</span>}
+                  {isCurrent && <span className="ck-plan-current-badge">{msg.offer.currentPlanBadge}</span>}
                 </div>
                 {plan.tagline && <div className="ck-plan-tagline">{plan.tagline}</div>}
 
