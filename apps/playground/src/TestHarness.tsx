@@ -78,7 +78,7 @@ const SCENARIOS: { id: Scenario; label: string; description: string }[] = [
     id: 'i18n',
     label: 'i18n / Text Overrides',
     description:
-      'Message overrides via the i18n prop: chrome strings, timing-aware confirm/success copy, locale fallback chain. Local mode, so timing is unknown → pairs resolve to atPeriodEnd and the access notice stays hidden.',
+      'Message overrides via the i18n prop: chrome strings, timing-aware confirm/success copy, locale fallback chain. Declare the cancel timing to flip variants; leave it undeclared and pairs resolve to atPeriodEnd with the access notice hidden.',
   },
 ]
 
@@ -650,6 +650,7 @@ export function TestHarness() {
   const [open, setOpen] = useState(false)
   const [colorScheme, setColorScheme] = useState<'light' | 'dark' | 'auto'>('light')
   const [locale, setLocale] = useState<'en' | 'de' | 'de-AT'>('en')
+  const [localTiming, setLocalTiming] = useState<'period-end' | 'immediate' | 'undeclared'>('undeclared')
   const logRef = useRef<HTMLDivElement>(null)
   const [logs, setLogs] = useState<string[]>([])
 
@@ -940,6 +941,19 @@ export function TestHarness() {
             defaults. <code>de-AT</code> has no catalog entry and resolves via the base language. Switching locale
             remounts the flow (the machine reads <code>i18n</code> once at mount).
           </p>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', padding: '12px 0 4px' }}>
+            Cancel timing (local declaration)
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {(['undeclared', 'immediate', 'period-end'] as const).map((t) => (
+              <Pill key={t} label={t} selected={localTiming === t} onClick={() => setLocalTiming(t)} />
+            ))}
+          </div>
+          <p style={{ fontSize: 12, color: '#6b7280', margin: '8px 0 0' }}>
+            Sets the <code>cancelAtPeriodEnd</code> prop. <code>period-end</code> shows the access-until notice on
+            confirm; <code>undeclared</code> resolves pairs to atPeriodEnd but keeps the notice hidden. In token mode
+            the server-resolved value wins.
+          </p>
         </fieldset>
       )}
 
@@ -1011,8 +1025,11 @@ export function TestHarness() {
       {/* CancelFlow */}
       {open && (
         <CancelFlow
-          key={scenario === 'i18n' ? locale : undefined}
+          key={scenario === 'i18n' ? `${locale}-${localTiming}` : undefined}
           i18n={scenario === 'i18n' ? { locale, messages: I18N_MESSAGES } : undefined}
+          cancelAtPeriodEnd={
+            scenario === 'i18n' && localTiming !== 'undeclared' ? localTiming === 'period-end' : undefined
+          }
           appId={needsAppId && appId ? appId : undefined}
           customer={customer}
           subscriptions={subscriptions}

@@ -653,10 +653,11 @@ export interface FlowState {
   customer: DirectCustomer | null
   subscriptions: DirectSubscription[]
   /**
-   * Effective cancel timing for this flow, resolved server-side per blueprint
-   * (token mode). `null` when unknown — local mode, or before the config
-   * fetch settles. Drives timing-aware messages; `null` reads as period-end,
-   * matching the default the cancel action uses.
+   * Effective cancel timing for this flow: the server-resolved value per
+   * blueprint (token mode), else the developer's `cancelAtPeriodEnd`
+   * declaration (local mode), else `null` — unknown. Drives timing-aware
+   * messages; `null` reads as period-end, matching the default the cancel
+   * action uses.
    */
   cancelAtPeriodEnd: boolean | null
 }
@@ -704,6 +705,14 @@ export interface FlowConfig extends FlowCallbacks {
    * via `steps`. Read once at mount, like `steps`.
    */
   i18n?: I18nConfig
+  /**
+   * Local-mode declaration of your billing behavior: does cancellation take
+   * effect at the end of the billing period (`true`) or immediately
+   * (`false`)? Drives timing-aware messages and the confirm step's
+   * access-until notice. In token mode the server-resolved value is
+   * authoritative and this is ignored.
+   */
+  cancelAtPeriodEnd?: boolean
 }
 
 type OfferCallback = (offer: AcceptedOffer, customer: DirectCustomer | null) => Promise<void> | void
@@ -755,6 +764,8 @@ export interface CancelFlowProps extends FlowCallbacks {
   mode?: Mode
   /** See FlowConfig.i18n. */
   i18n?: I18nConfig
+  /** See FlowConfig.cancelAtPeriodEnd. Local mode only; the token config wins. */
+  cancelAtPeriodEnd?: boolean
   appearance?: Appearance
   classNames?: StructuralClassNames
   components?: Partial<ComponentOverrides>

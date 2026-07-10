@@ -349,8 +349,9 @@ function StepRenderer({
 }
 
 // The notice makes a factual claim about billing behavior, so it requires the
-// timing to be KNOWN to be period-end — the server-resolved value in token
-// mode. `null` (local mode) stays silent: an earlier hardcoded version of this
+// timing to be KNOWN to be period-end — server-resolved in token mode, or the
+// developer's explicit cancelAtPeriodEnd declaration in local mode. `null`
+// (undeclared local mode) stays silent: an earlier hardcoded version of this
 // notice was removed precisely because it could contradict the merchant's
 // actual setting. Also empty when the period end can't be determined or the
 // resolved message is blank.
