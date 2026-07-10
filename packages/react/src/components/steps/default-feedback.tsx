@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { defaultMessages, formatMessage } from '../../core/messages'
 import type { FeedbackStepProps } from '../../core/types'
 import { cn } from '../../core/utils'
 import { RichText } from '../rich-text'
@@ -13,12 +14,15 @@ export function DefaultFeedback({
   onChange,
   onSubmit,
   classNames,
+  messages,
 }: FeedbackStepProps) {
+  const m = messages ?? defaultMessages
   const [focused, setFocused] = useState(false)
   const hasMin = minLength > 0
   const isUnderMin = hasMin && value.length > 0 && value.length < minLength
   const isValid = !required || value.length >= minLength
-  const placeholderText = placeholder ?? (hasMin ? `At least ${minLength} characters…` : 'Type your thoughts…')
+  const placeholderText =
+    placeholder ?? (hasMin ? formatMessage(m.feedback.placeholderWithMin, { minLength }) : m.feedback.placeholder)
 
   return (
     <div className={cn('ck-step ck-step-feedback', classNames?.root)}>
@@ -62,7 +66,7 @@ export function DefaultFeedback({
         onClick={onSubmit}
         disabled={!isValid}
       >
-        Continue
+        {m.common.continue}
       </button>
     </div>
   )

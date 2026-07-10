@@ -1,4 +1,5 @@
 import type { ComponentType, ReactElement, ReactNode } from 'react'
+import type { CancelFlowMessages, I18nConfig } from './messages'
 
 // ─── Direct shape — billing data passed in and out of the SDK ─────────────
 //
@@ -520,11 +521,15 @@ export interface ModalProps {
 export interface CloseButtonProps {
   onClose: () => void
   className?: string
+  /** Accessible label. Defaults to "Close". */
+  label?: string
 }
 
 export interface BackButtonProps {
   onBack: () => void
   className?: string
+  /** Visible label. Defaults to "Back". */
+  label?: string
 }
 
 // ─── Step component props ────────────────────────────────────────────────────
@@ -544,6 +549,8 @@ export interface SurveyStepProps {
   onNext: () => void
   classNames?: SurveyClassNames
   components?: Partial<ComponentOverrides>
+  /** Resolved message catalog. Default components fall back to `defaultMessages` when absent. */
+  messages?: CancelFlowMessages
 }
 
 export interface OfferStepProps {
@@ -567,6 +574,8 @@ export interface OfferStepProps {
    * implementations can ignore this.
    */
   components?: Partial<ComponentOverrides>
+  /** Resolved message catalog. Default components fall back to `defaultMessages` when absent. */
+  messages?: CancelFlowMessages
 }
 
 export interface FeedbackStepProps {
@@ -581,6 +590,8 @@ export interface FeedbackStepProps {
   onChange: (text: string) => void
   onSubmit: () => void
   classNames?: FeedbackClassNames
+  /** Resolved message catalog. Default components fall back to `defaultMessages` when absent. */
+  messages?: CancelFlowMessages
 }
 
 export interface ConfirmStepProps {
@@ -592,10 +603,18 @@ export interface ConfirmStepProps {
   lossesLabel?: string
   confirmLabel: string
   goBackLabel: string
+  /**
+   * Timing-resolved access notice ("Your access continues until June 14, 2026."),
+   * rendered between the loss list and the confirm button. Absent when the
+   * period end is unknown or the resolved message is empty.
+   */
+  periodEndNotice?: string
   onConfirm: () => Promise<void>
   onGoBack: () => void
   isProcessing: boolean
   classNames?: ConfirmClassNames
+  /** Resolved message catalog. Default components fall back to `defaultMessages` when absent. */
+  messages?: CancelFlowMessages
 }
 
 export interface SuccessStepProps {
@@ -607,6 +626,8 @@ export interface SuccessStepProps {
   subscriptions: DirectSubscription[]
   onClose: () => void
   classNames?: SuccessClassNames
+  /** Resolved message catalog. Default components fall back to `defaultMessages` when absent. */
+  messages?: CancelFlowMessages
 }
 
 // ─── Sub-component props ─────────────────────────────────────────────────────
@@ -631,6 +652,13 @@ export interface FlowState {
   error: Error | null
   customer: DirectCustomer | null
   subscriptions: DirectSubscription[]
+  /**
+   * Effective cancel timing for this flow, resolved server-side per blueprint
+   * (token mode). `null` when unknown — local mode, or before the config
+   * fetch settles. Drives timing-aware messages; `null` reads as period-end,
+   * matching the default the cancel action uses.
+   */
+  cancelAtPeriodEnd: boolean | null
 }
 
 // ─── Flow config ─────────────────────────────────────────────────────────────
@@ -669,6 +697,13 @@ export interface FlowConfig extends FlowCallbacks {
    * this field.
    */
   mode?: Mode
+  /**
+   * Locale and message overrides for the SDK's own strings (buttons, loading
+   * and confirmation chrome). Flow content — step titles, offer copy — is
+   * authored in the dashboard and localized server-side; override it there or
+   * via `steps`. Read once at mount, like `steps`.
+   */
+  i18n?: I18nConfig
 }
 
 type OfferCallback = (offer: AcceptedOffer, customer: DirectCustomer | null) => Promise<void> | void
@@ -718,6 +753,8 @@ export interface CancelFlowProps extends FlowCallbacks {
   apiBaseUrl?: string
   /** See FlowConfig.mode. Ignored in token mode (the token is authoritative). */
   mode?: Mode
+  /** See FlowConfig.i18n. */
+  i18n?: I18nConfig
   appearance?: Appearance
   classNames?: StructuralClassNames
   components?: Partial<ComponentOverrides>

@@ -1,7 +1,7 @@
 import type { BackButtonProps } from '../../core/types'
 import { cn } from '../../core/utils'
 
-export function DefaultBackButton({ onBack, className }: BackButtonProps) {
+export function DefaultBackButton({ onBack, className, label }: BackButtonProps) {
   return (
     <button type="button" className={cn('ck-back-button', className)} onClick={onBack}>
       <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -13,7 +13,7 @@ export function DefaultBackButton({ onBack, className }: BackButtonProps) {
           strokeLinejoin="round"
         />
       </svg>
-      <span>Back</span>
+      <span>{label ?? 'Back'}</span>
     </button>
   )
 }

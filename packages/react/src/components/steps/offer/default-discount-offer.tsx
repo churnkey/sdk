@@ -1,4 +1,5 @@
 import { discountPhrase } from '../../../core/format'
+import { defaultMessages } from '../../../core/messages'
 import type { OfferDecision, OfferStepProps } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { RichText } from '../../rich-text'
@@ -11,7 +12,9 @@ export function DefaultDiscountOffer({
   onDecline,
   isProcessing,
   classNames,
+  messages,
 }: OfferStepProps) {
+  const msg = messages ?? defaultMessages
   const o = offer as OfferDecision & {
     percentOff?: number
     amountOff?: number
@@ -29,7 +32,7 @@ export function DefaultDiscountOffer({
 
       <div className={cn('ck-offer-card', classNames?.card)}>
         <div className="ck-offer-details ck-offer-discount">
-          <div className="ck-offer-discount-eyebrow">Limited-time offer</div>
+          <div className="ck-offer-discount-eyebrow">{msg.offer.limitedTimeEyebrow}</div>
           <div className="ck-offer-discount-phrase">{phrase}</div>
         </div>
         <button
@@ -38,7 +41,7 @@ export function DefaultDiscountOffer({
           onClick={() => onAccept()}
           disabled={isProcessing}
         >
-          {isProcessing ? 'Processing...' : offer.copy.cta}
+          {isProcessing ? msg.common.processing : offer.copy.cta}
         </button>
         <button type="button" className={cn('ck-button-link', classNames?.declineButton)} onClick={onDecline}>
           {offer.copy.declineCta}

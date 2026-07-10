@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { defaultMessages } from './messages'
 import type { Appearance, AppearanceVariables } from './types'
 
 export const BUILT_IN_STEP_TYPES: readonly string[] = ['survey', 'offer', 'feedback', 'confirm', 'success']
@@ -84,9 +85,11 @@ export function appearanceToStyle(appearance?: Appearance): CSSProperties | unde
 
 // Step-level fallback titles when neither token-mode config nor local
 // step config provide one. Offer and Success are absent — Offer falls back
-// to `offer.copy.headline`, Success branches on outcome.
+// to `offer.copy.headline`, Success branches on outcome. Kept for backwards
+// compatibility; the renderer now reads titles from the message catalog,
+// which these mirror.
 export const defaultTitles = {
-  survey: 'Why are you cancelling?',
-  feedback: 'Any other feedback?',
-  confirm: 'Confirm cancellation',
+  survey: defaultMessages.survey.title,
+  feedback: defaultMessages.feedback.title,
+  confirm: defaultMessages.confirm.title,
 } as const

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CancelFlow } from '../../src/components/cancel-flow'
 import type { AcceptedOffer, CustomOfferProps, Step } from '../../src/core/types'
 
@@ -392,9 +392,10 @@ describe('CancelFlow', () => {
       />,
     )
 
-    // The hardcoded period-end notice was removed: it always rendered when the
-    // subscription had a current period, regardless of whether the cancel is
-    // immediate or end-of-cycle, so it could contradict the merchant's setting.
+    // Local mode doesn't know the flow's cancel timing, so the notice must
+    // stay silent — a wrong "access continues" claim contradicts the
+    // merchant's setting. Token mode renders it when the server-resolved
+    // timing is period-end.
     expect(screen.queryByText(/access continues until/i)).not.toBeInTheDocument()
   })
 
@@ -457,5 +458,90 @@ describe('CancelFlow', () => {
         expect.objectContaining({ id: 'cus_1' }),
       )
     })
+  })
+})
+
+// ─── i18n ─────────────────────────────────────────────────────────────────────
+
+function sessionToken(): string {
+  const payload = JSON.stringify({ a: 'app_1', c: 'cus_1', h: 'hash' })
+  return `ck_${btoa(payload).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`
+}
+
+function stubConfigFetch(settings: Record<string, unknown>) {
+  const config = {
+    blueprintId: 'bp_1',
+    steps: [{ type: 'confirm', guid: 'c1', title: 'Confirm cancellation' }],
+    customer: { id: 'cus_1' },
+    subscriptions: [
+      {
+        id: 'sub_1',
+        start: '2024-01-01',
+        status: { name: 'active', currentPeriod: { start: '2026-06-01', end: '2026-07-01' } },
+        items: [{ price: { id: 'p', amount: { value: 100, currency: 'USD' } } }],
+      },
+    ],
+    settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false, ...settings },
+  }
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => ({
+      ok: true,
+      status: 200,
+      json: async () => (String(url).includes('cancel-flow/config') ? config : {}),
+    })),
+  )
+}
+
+describe('CancelFlow i18n', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('applies message overrides to chrome strings in local mode', async () => {
+    renderFlow({
+      i18n: {
+        locale: 'en',
+        messages: { en: { common: { continue: 'Keep going' }, survey: { title: 'Tell us why' } } },
+      },
+      steps: [{ type: 'survey', reasons: [{ id: 'r1', label: 'Too expensive' }] }, { type: 'confirm' }],
+    })
+    expect(screen.getByText('Tell us why')).toBeInTheDocument()
+    expect(screen.getByText('Keep going')).toBeInTheDocument()
+  })
+
+  it('renders the immediate variant of timing-aware messages in token mode', async () => {
+    stubConfigFetch({ cancelAtPeriodEnd: false })
+    render(
+      <CancelFlow
+        session={sessionToken()}
+        i18n={{
+          messages: {
+            en: { confirm: { cta: { immediate: 'Cancel now', atPeriodEnd: 'Turn off auto-renew' } } },
+          },
+        }}
+      />,
+    )
+    expect(await screen.findByText('Cancel now')).toBeInTheDocument()
+    // Immediate timing must not claim continued access.
+    expect(screen.queryByText(/access continues until/i)).not.toBeInTheDocument()
+  })
+
+  it('renders the period-end variant and the access notice in token mode', async () => {
+    stubConfigFetch({ cancelAtPeriodEnd: true })
+    render(
+      <CancelFlow
+        session={sessionToken()}
+        i18n={{
+          messages: {
+            en: { confirm: { cta: { immediate: 'Cancel now', atPeriodEnd: 'Turn off auto-renew' } } },
+          },
+        }}
+      />,
+    )
+    expect(await screen.findByText('Turn off auto-renew')).toBeInTheDocument()
+    // The period end formats in the runner's local timezone, so the UTC
+    // midnight boundary can land on either side of July 1.
+    expect(screen.getByText(/Your access continues until (June 30|July 1), 2026\./)).toBeInTheDocument()
   })
 })

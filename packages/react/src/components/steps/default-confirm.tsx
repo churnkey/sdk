@@ -1,3 +1,4 @@
+import { defaultMessages } from '../../core/messages'
 import type { ConfirmStepProps } from '../../core/types'
 import { cn } from '../../core/utils'
 import { RichText } from '../rich-text'
@@ -9,11 +10,14 @@ export function DefaultConfirm({
   lossesLabel,
   confirmLabel,
   goBackLabel,
+  periodEndNotice,
   onConfirm,
   onGoBack,
   isProcessing,
   classNames,
+  messages,
 }: ConfirmStepProps) {
+  const m = messages ?? defaultMessages
   const hasLosses = Array.isArray(losses) && losses.length > 0
   return (
     <div className={cn('ck-step ck-step-confirm', classNames?.root)}>
@@ -24,7 +28,7 @@ export function DefaultConfirm({
 
       {hasLosses && (
         <div className={cn('ck-loss-block', classNames?.lossList)}>
-          <div className={cn('ck-loss-label', classNames?.lossLabel)}>{lossesLabel ?? "You'll lose access to:"}</div>
+          <div className={cn('ck-loss-label', classNames?.lossLabel)}>{lossesLabel ?? m.confirm.lossesLabel}</div>
           <ul className="ck-loss-list">
             {losses.map((item) => (
               <li key={item} className={cn('ck-loss-item', classNames?.lossItem)}>
@@ -38,13 +42,15 @@ export function DefaultConfirm({
         </div>
       )}
 
+      {periodEndNotice && <p className={cn('ck-period-end', classNames?.periodEndNotice)}>{periodEndNotice}</p>}
+
       <button
         type="button"
         className={cn('ck-button ck-button-danger', classNames?.confirmButton)}
         onClick={onConfirm}
         disabled={isProcessing}
       >
-        {isProcessing ? 'Processing...' : confirmLabel}
+        {isProcessing ? m.common.processing : confirmLabel}
       </button>
       <button type="button" className={cn('ck-button-link', classNames?.goBackButton)} onClick={onGoBack}>
         {goBackLabel}

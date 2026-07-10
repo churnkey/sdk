@@ -1,3 +1,4 @@
+import { defaultMessages } from '../../../core/messages'
 import type { OfferStepProps } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { RichText } from '../../rich-text'
@@ -14,7 +15,9 @@ export function DefaultContactOffer({
   onDecline,
   isProcessing,
   classNames,
+  messages,
 }: OfferStepProps) {
+  const msg = messages ?? defaultMessages
   const headline = title ?? offer.copy.headline
   const body = description ?? offer.copy.body
 
@@ -30,7 +33,7 @@ export function DefaultContactOffer({
           onClick={() => onAccept()}
           disabled={isProcessing}
         >
-          {isProcessing ? 'Processing...' : offer.copy.cta}
+          {isProcessing ? msg.common.processing : offer.copy.cta}
         </button>
         <button type="button" className={cn('ck-button-link', classNames?.declineButton)} onClick={onDecline}>
           {offer.copy.declineCta}

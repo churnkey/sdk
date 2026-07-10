@@ -1,5 +1,7 @@
 import { type ReactElement, useEffect } from 'react'
+import { formatPeriodEnd } from '../core/format'
 import type { CancelFlowMachine } from '../core/machine'
+import { type CancelFlowMessages, formatMessage, selectTiming } from '../core/messages'
 import type {
   CancelFlowProps,
   ComponentOverrides,
@@ -13,7 +15,7 @@ import type {
   SuccessStep,
   SurveyStep,
 } from '../core/types'
-import { appearanceToStyle, BUILT_IN_OFFER_TYPES, defaultTitles } from '../core/utils'
+import { appearanceToStyle, BUILT_IN_OFFER_TYPES } from '../core/utils'
 import { useCancelFlowMachine } from '../headless/use-cancel-flow-machine'
 import { DefaultConfirm } from './steps/default-confirm'
 import { DefaultFeedback } from './steps/default-feedback'
@@ -38,6 +40,7 @@ export function CancelFlow(props: CancelFlowProps) {
         isLoading={isLoading}
         loadError={loadError}
         onRetry={retry}
+        messages={machine.messages}
       />
     )
   }
@@ -62,6 +65,7 @@ function LoadStatus({
   isLoading,
   loadError,
   onRetry,
+  messages,
 }: {
   appearance?: CancelFlowProps['appearance']
   classNames?: CancelFlowProps['classNames']
@@ -70,6 +74,7 @@ function LoadStatus({
   isLoading: boolean
   loadError: Error | null
   onRetry: () => void
+  messages: CancelFlowMessages
 }) {
   const scheme = useColorScheme(appearance?.colorScheme)
   const appearanceStyle = appearanceToStyle(appearance)
@@ -80,7 +85,7 @@ function LoadStatus({
   return (
     <div className="ck-cancel-flow" data-color-scheme={scheme} style={appearanceStyle}>
       <Modal open={true} onClose={handleClose} className={classNames?.modal} overlayClassName={classNames?.overlay}>
-        <CloseButton onClose={handleClose} className={classNames?.closeButton} />
+        <CloseButton onClose={handleClose} className={classNames?.closeButton} label={messages.common.close} />
         <div className="ck-content">
           {isLoading && (
             <div className="ck-loading" style={{ padding: '32px', textAlign: 'center' }}>
@@ -96,13 +101,13 @@ function LoadStatus({
                   margin: '0 auto 16px',
                 }}
               />
-              <p style={{ color: 'var(--ck-color-text-secondary, #6b7280)' }}>Loading your options...</p>
+              <p style={{ color: 'var(--ck-color-text-secondary, #6b7280)' }}>{messages.common.loading}</p>
             </div>
           )}
           {loadError && (
             <div className="ck-error" role="alert" style={{ padding: '32px', textAlign: 'center' }}>
               <p className="ck-error-message" style={{ marginBottom: 16 }}>
-                We couldn't load your cancellation options. Please try again.
+                {messages.common.loadError}
               </p>
               <button
                 type="button"
@@ -119,7 +124,7 @@ function LoadStatus({
                   cursor: 'pointer',
                 }}
               >
-                Try again
+                {messages.common.tryAgain}
               </button>
             </div>
           )}
@@ -141,6 +146,7 @@ interface FlowShellProps {
 function FlowShell({ machine, state, appearance, classNames, components, customComponents }: FlowShellProps) {
   const scheme = useColorScheme(appearance?.colorScheme)
   const appearanceStyle = appearanceToStyle(appearance)
+  const messages = machine.messages
 
   const Modal = components?.Modal ?? DefaultModal
   const CloseButton = components?.CloseButton ?? DefaultCloseButton
@@ -149,12 +155,14 @@ function FlowShell({ machine, state, appearance, classNames, components, customC
   return (
     <div className="ck-cancel-flow" data-color-scheme={scheme} style={appearanceStyle}>
       <Modal open={true} onClose={machine.close} className={classNames?.modal} overlayClassName={classNames?.overlay}>
-        <CloseButton onClose={machine.close} className={classNames?.closeButton} />
+        <CloseButton onClose={machine.close} className={classNames?.closeButton} label={messages.common.close} />
         <div className="ck-content">
-          {machine.canGoBack && <BackButton onBack={machine.back} className={classNames?.backButton} />}
+          {machine.canGoBack && (
+            <BackButton onBack={machine.back} className={classNames?.backButton} label={messages.common.back} />
+          )}
           {state.error && (
             <div className="ck-error" role="alert">
-              <p className="ck-error-message">Something went wrong. Please try again.</p>
+              <p className="ck-error-message">{messages.common.error}</p>
             </div>
           )}
           <StepRenderer state={state} machine={machine} components={components} customComponents={customComponents} />
@@ -176,6 +184,7 @@ function StepRenderer({
   customComponents?: CustomComponents
 }) {
   const stepConfig = machine.currentStep
+  const messages = machine.messages
 
   switch (state.step) {
     case 'survey': {
@@ -183,7 +192,7 @@ function StepRenderer({
       const config = stepConfig as SurveyStep | undefined
       return (
         <Survey
-          title={config?.title ?? defaultTitles.survey}
+          title={config?.title ?? messages.survey.title}
           description={config?.description}
           customer={state.customer}
           subscriptions={state.subscriptions}
@@ -195,6 +204,7 @@ function StepRenderer({
           onNext={machine.next}
           classNames={config?.classNames}
           components={components}
+          messages={messages}
         />
       )
     }
@@ -234,6 +244,7 @@ function StepRenderer({
           isProcessing={state.isProcessing}
           classNames={config?.classNames}
           components={components}
+          messages={messages}
         />
       )
     }
@@ -243,7 +254,7 @@ function StepRenderer({
       const config = stepConfig as FeedbackStep | undefined
       return (
         <Feedback
-          title={config?.title ?? defaultTitles.feedback}
+          title={config?.title ?? messages.feedback.title}
           description={config?.description}
           customer={state.customer}
           subscriptions={state.subscriptions}
@@ -254,6 +265,7 @@ function StepRenderer({
           onChange={machine.setFeedback}
           onSubmit={machine.next}
           classNames={config?.classNames}
+          messages={messages}
         />
       )
     }
@@ -263,18 +275,20 @@ function StepRenderer({
       const config = stepConfig as ConfirmStep | undefined
       return (
         <Confirm
-          title={config?.title ?? defaultTitles.confirm}
+          title={config?.title ?? messages.confirm.title}
           description={config?.description}
           customer={state.customer}
           subscriptions={state.subscriptions}
           losses={config?.losses}
           lossesLabel={config?.lossesLabel}
-          confirmLabel={config?.confirmLabel ?? 'Cancel subscription'}
-          goBackLabel={config?.goBackLabel ?? 'Go back'}
+          confirmLabel={config?.confirmLabel ?? selectTiming(messages.confirm.cta, state.cancelAtPeriodEnd)}
+          goBackLabel={config?.goBackLabel ?? messages.confirm.goBack}
+          periodEndNotice={resolvePeriodEndNotice(state, messages)}
           onConfirm={machine.cancel}
           onGoBack={machine.back}
           isProcessing={state.isProcessing}
           classNames={config?.classNames}
+          messages={messages}
         />
       )
     }
@@ -288,17 +302,21 @@ function StepRenderer({
           outcome={state.outcome ?? 'cancelled'}
           offer={machine.currentOffer ?? undefined}
           title={
-            isSaved ? (config?.savedTitle ?? 'Welcome back!') : (config?.cancelledTitle ?? 'Subscription cancelled')
+            isSaved
+              ? (config?.savedTitle ?? messages.success.saved.title)
+              : (config?.cancelledTitle ?? selectTiming(messages.success.cancelled.title, state.cancelAtPeriodEnd))
           }
           description={
             isSaved
-              ? (config?.savedDescription ?? 'Your offer has been applied.')
-              : (config?.cancelledDescription ?? "We're sorry to see you go.")
+              ? (config?.savedDescription ?? messages.success.saved.description)
+              : (config?.cancelledDescription ??
+                selectTiming(messages.success.cancelled.description, state.cancelAtPeriodEnd))
           }
           customer={state.customer}
           subscriptions={state.subscriptions}
           onClose={machine.close}
           classNames={config?.classNames}
+          messages={messages}
         />
       )
     }
@@ -328,6 +346,21 @@ function StepRenderer({
       )
     }
   }
+}
+
+// The notice makes a factual claim about billing behavior, so it requires the
+// timing to be KNOWN to be period-end — the server-resolved value in token
+// mode. `null` (local mode) stays silent: an earlier hardcoded version of this
+// notice was removed precisely because it could contradict the merchant's
+// actual setting. Also empty when the period end can't be determined or the
+// resolved message is blank.
+function resolvePeriodEndNotice(state: FlowState, messages: CancelFlowMessages): string | undefined {
+  if (state.cancelAtPeriodEnd !== true) return undefined
+  const template = selectTiming(messages.confirm.periodEndNotice, state.cancelAtPeriodEnd)
+  if (!template) return undefined
+  const periodEnd = formatPeriodEnd(state.subscriptions)
+  if (!periodEnd) return undefined
+  return formatMessage(template, { periodEnd })
 }
 
 // Skip runs in an effect so we don't mutate machine state during render.

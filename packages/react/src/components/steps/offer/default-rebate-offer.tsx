@@ -1,4 +1,5 @@
 import { formatPriceFromMinor } from '../../../core/format'
+import { defaultMessages, formatMessage } from '../../../core/messages'
 import type { OfferDecision, OfferStepProps } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { RichText } from '../../rich-text'
@@ -18,7 +19,9 @@ export function DefaultRebateOffer({
   onDecline,
   isProcessing,
   classNames,
+  messages,
 }: OfferStepProps) {
+  const msg = messages ?? defaultMessages
   const o = offer as RebateDecision
   const headline = title ?? offer.copy.headline
   const body = description ?? offer.copy.body
@@ -40,22 +43,25 @@ export function DefaultRebateOffer({
         <div className="ck-offer-rebate">
           {o.amountPaidMinor != null && (
             <div className="ck-offer-rebate-row">
-              <span>You paid this period</span>
+              <span>{msg.offer.rebate.paidLabel}</span>
               <span>{formatPriceFromMinor(o.amountPaidMinor, currency)}</span>
             </div>
           )}
           <div className="ck-offer-rebate-row ck-offer-rebate-credit">
             <span>
-              Money back
+              {msg.offer.rebate.moneyBackLabel}
               {taxRefunded > 0 && (
-                <span className="ck-offer-rebate-tax"> (incl. {formatPriceFromMinor(taxRefunded, currency)} tax)</span>
+                <span className="ck-offer-rebate-tax">
+                  {' '}
+                  {formatMessage(msg.offer.rebate.inclTax, { amount: formatPriceFromMinor(taxRefunded, currency) })}
+                </span>
               )}
             </span>
             <span>−{formatPriceFromMinor(refund, currency)}</span>
           </div>
           {o.netAfterRebateMinor != null && (
             <div className="ck-offer-rebate-row ck-offer-rebate-total">
-              <span>Your net for this period</span>
+              <span>{msg.offer.rebate.netLabel}</span>
               <span>{formatPriceFromMinor(o.netAfterRebateMinor, currency)}</span>
             </div>
           )}
@@ -67,7 +73,7 @@ export function DefaultRebateOffer({
           onClick={() => onAccept()}
           disabled={isProcessing}
         >
-          {isProcessing ? 'Processing...' : offer.copy.cta}
+          {isProcessing ? msg.common.processing : offer.copy.cta}
         </button>
         <button type="button" className={cn('ck-button-link', classNames?.declineButton)} onClick={onDecline}>
           {offer.copy.declineCta}

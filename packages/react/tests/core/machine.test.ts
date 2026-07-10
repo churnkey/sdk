@@ -1913,3 +1913,52 @@ describe('CancelFlowMachine', () => {
     })
   })
 })
+
+describe('i18n / messages', () => {
+  it('resolves default messages with no i18n config', () => {
+    const machine = new CancelFlowMachine(baseConfig)
+    expect(machine.messages.common.continue).toBe('Continue')
+    expect(machine.messages.confirm.cta).toBe('Cancel subscription')
+  })
+
+  it('layers i18n overrides onto the defaults', () => {
+    const machine = new CancelFlowMachine({
+      ...baseConfig,
+      i18n: {
+        locale: 'en',
+        messages: {
+          en: {
+            common: { continue: 'Keep going' },
+            confirm: { cta: { immediate: 'Cancel', atPeriodEnd: 'Turn off auto-renew' } },
+          },
+        },
+      },
+    })
+    expect(machine.messages.common.continue).toBe('Keep going')
+    expect(machine.messages.confirm.cta).toEqual({ immediate: 'Cancel', atPeriodEnd: 'Turn off auto-renew' })
+    expect(machine.messages.common.back).toBe('Back')
+  })
+
+  it('leaves cancelAtPeriodEnd null in local mode', () => {
+    const machine = new CancelFlowMachine(baseConfig)
+    expect(machine.getSnapshot().cancelAtPeriodEnd).toBeNull()
+  })
+
+  it('threads the server-resolved cancelAtPeriodEnd into state in token mode', () => {
+    for (const value of [true, false]) {
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder' })
+      machine.initializeFromConfig(
+        sdkConfig({
+          settings: {
+            clickToCancelEnabled: false,
+            strictFTCComplianceEnabled: false,
+            cancelAtPeriodEnd: value,
+          },
+        }),
+        {} as any,
+        { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+      )
+      expect(machine.getSnapshot().cancelAtPeriodEnd).toBe(value)
+    }
+  })
+})
