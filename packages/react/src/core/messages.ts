@@ -52,7 +52,11 @@ export interface CancelFlowMessages {
     cta: TimingAware
     goBack: string
     /** Shown between the description and the confirm button. Supports
-     *  `{periodEnd}`. An empty variant suppresses the notice. */
+     *  `{periodEnd}`. The default immediate variant is empty, which
+     *  suppresses the notice for immediate timing; empty OVERRIDE values are
+     *  dropped like any blank override, so to remove the notice entirely
+     *  replace the `Confirm` component or hide it via
+     *  `classNames.periodEndNotice`. */
     periodEndNotice: TimingAware
   }
   success: {
