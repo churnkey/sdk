@@ -1962,3 +1962,40 @@ describe('i18n / messages', () => {
     }
   })
 })
+
+describe('org-level translations (token mode)', () => {
+  function initWith(config: Partial<SdkConfig>, i18n?: import('../../src/core/messages').I18nConfig) {
+    const machine = new CancelFlowMachine(i18n ? { session: 'ck_placeholder', i18n } : { session: 'ck_placeholder' })
+    machine.initializeFromConfig(sdkConfig(config), {} as any, {
+      appId: 'a',
+      customerId: 'c',
+      authHash: 'h',
+      mode: 'live' as const,
+      issuedAt: 0,
+    })
+    return machine
+  }
+
+  it('applies config.translations onto the defaults', () => {
+    const machine = initWith({
+      translations: { en: { common: { continue: 'Org continue' }, confirm: { goBack: 'Org go back' } } },
+    })
+    expect(machine.messages.common.continue).toBe('Org continue')
+    expect(machine.messages.confirm.goBack).toBe('Org go back')
+    expect(machine.messages.common.back).toBe('Back')
+  })
+
+  it('developer i18n messages beat org translations', () => {
+    const machine = initWith(
+      { translations: { en: { common: { continue: 'Org continue', done: 'Org done' } } } },
+      { locale: 'en', messages: { en: { common: { continue: 'Developer continue' } } } },
+    )
+    expect(machine.messages.common.continue).toBe('Developer continue')
+    expect(machine.messages.common.done).toBe('Org done')
+  })
+
+  it('leaves the pre-fetch resolution untouched when the config has no translations', () => {
+    const machine = initWith({})
+    expect(machine.messages.common.continue).toBe('Continue')
+  })
+})

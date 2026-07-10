@@ -239,23 +239,28 @@ function localeChain(locale: string): string[] {
   return chain
 }
 
-/**
- * Resolve the full catalog for a locale: built-in defaults, then `patches`
- * in argument order (the org-level layer, once it exists, goes here), then
- * the config's per-locale messages in fallback-chain order — so the
- * developer's own overrides always end up on top.
- */
-export function buildMessages(i18n?: I18nConfig, ...patches: Array<MessagesPatch | undefined>): CancelFlowMessages {
-  const locale = resolveLocale(i18n?.locale)
-  let resolved = defaultMessages
-  for (const patch of patches) {
-    resolved = mergeMessages(resolved, patch)
-  }
-  if (i18n?.messages) {
-    const byLowerKey = new Map(Object.entries(i18n.messages).map(([k, v]) => [k.toLowerCase(), v]))
-    for (const lang of localeChain(locale)) {
-      resolved = mergeMessages(resolved, byLowerKey.get(lang))
-    }
+function applyLocaleLayer(
+  base: CancelFlowMessages,
+  byLang: Record<string, MessagesPatch> | undefined,
+  chain: string[],
+): CancelFlowMessages {
+  if (!byLang) return base
+  const byLowerKey = new Map(Object.entries(byLang).map(([k, v]) => [k.toLowerCase(), v]))
+  let resolved = base
+  for (const lang of chain) {
+    resolved = mergeMessages(resolved, byLowerKey.get(lang))
   }
   return resolved
+}
+
+/**
+ * Resolve the full catalog for a locale. Layers, lowest to highest: built-in
+ * defaults, then `orgMessages` (dashboard-configured overrides delivered on
+ * the token-mode config), then the config's own per-locale messages — the
+ * developer's overrides always end up on top. Both per-language layers run
+ * through the same locale fallback chain.
+ */
+export function buildMessages(i18n?: I18nConfig, orgMessages?: Record<string, MessagesPatch>): CancelFlowMessages {
+  const chain = localeChain(resolveLocale(i18n?.locale))
+  return applyLocaleLayer(applyLocaleLayer(defaultMessages, orgMessages, chain), i18n?.messages, chain)
 }

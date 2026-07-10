@@ -129,13 +129,34 @@ describe('resolveLocale / buildMessages', () => {
     expect(resolved.common.continue).toBe('PT-BR')
   })
 
-  it('layers extra patches below the developer messages', () => {
-    // The patches argument is where the org-level layer will slot in.
+  it('layers org messages below the developer messages', () => {
     const resolved = buildMessages(
       { locale: 'en', messages: { en: { common: { continue: 'Developer' } } } },
-      { common: { continue: 'Org', back: 'Org back' } },
+      { en: { common: { continue: 'Org', back: 'Org back' } } },
     )
     expect(resolved.common.continue).toBe('Developer')
     expect(resolved.common.back).toBe('Org back')
+  })
+
+  it('runs the org layer through the same locale fallback chain', () => {
+    const resolved = buildMessages(
+      { locale: 'de-AT' },
+      {
+        en: { common: { continue: 'Org EN continue', done: 'Org EN done' } },
+        de: { common: { continue: 'Org DE continue' } },
+      },
+    )
+    expect(resolved.common.continue).toBe('Org DE continue')
+    expect(resolved.common.done).toBe('Org EN done')
+    expect(resolved.common.back).toBe('Back')
+  })
+
+  it('org timing-aware overrides survive under unrelated developer overrides', () => {
+    const resolved = buildMessages(
+      { locale: 'en', messages: { en: { common: { continue: 'Developer' } } } },
+      { en: { confirm: { cta: { immediate: 'Cancel', atPeriodEnd: 'Turn off auto-renew' } } } },
+    )
+    expect(resolved.confirm.cta).toEqual({ immediate: 'Cancel', atPeriodEnd: 'Turn off auto-renew' })
+    expect(resolved.common.continue).toBe('Developer')
   })
 })
