@@ -238,7 +238,14 @@ export class CancelFlowMachine {
     this.callbacks = config
     this.i18nConfig = config.i18n
     this.resolvedMessages = buildMessages(config.i18n)
-    if (typeof config.cancelAtPeriodEnd === 'boolean') this.localCancelAtPeriodEnd = config.cancelAtPeriodEnd
+    // Local mode only — in token mode the server-resolved value is
+    // authoritative, and when the server omits it the timing must stay
+    // unknown rather than silently adopting the local claim. `null` copy
+    // reads as period-end, matching the token cancel action's fallback, so
+    // display and execution stay consistent either way.
+    if (!config.session && typeof config.cancelAtPeriodEnd === 'boolean') {
+      this.localCancelAtPeriodEnd = config.cancelAtPeriodEnd
+    }
     if (config.mode) this.configMode = config.mode
     if (config.customerAttributes) this.customerAttributes = config.customerAttributes
     if (config.appId && config.customer) {

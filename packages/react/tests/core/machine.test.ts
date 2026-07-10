@@ -2025,3 +2025,23 @@ describe('local-mode cancelAtPeriodEnd declaration', () => {
     expect(machine.getSnapshot().cancelAtPeriodEnd).toBe(false)
   })
 })
+
+// Pavel's review on #34: the local declaration must not leak into token mode
+// even when the server omits settings.cancelAtPeriodEnd — display would
+// otherwise diverge from the cancel action's own end-of-period fallback.
+describe('token mode ignores the local timing declaration', () => {
+  it('stays null when the server omits cancelAtPeriodEnd despite a local declaration', () => {
+    const machine = new CancelFlowMachine({ session: 'ck_placeholder', cancelAtPeriodEnd: false })
+    machine.initializeFromConfig(
+      sdkConfig({ settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false } }),
+      {} as any,
+      { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 },
+    )
+    expect(machine.getSnapshot().cancelAtPeriodEnd).toBeNull()
+  })
+
+  it('stays null pre-fetch in token mode', () => {
+    const machine = new CancelFlowMachine({ session: 'ck_placeholder', cancelAtPeriodEnd: false })
+    expect(machine.getSnapshot().cancelAtPeriodEnd).toBeNull()
+  })
+})

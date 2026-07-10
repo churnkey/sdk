@@ -709,8 +709,9 @@ export interface FlowConfig extends FlowCallbacks {
    * Local-mode declaration of your billing behavior: does cancellation take
    * effect at the end of the billing period (`true`) or immediately
    * (`false`)? Drives timing-aware messages and the confirm step's
-   * access-until notice. In token mode the server-resolved value is
-   * authoritative and this is ignored.
+   * access-until notice. In token mode this is ignored: the server-resolved
+   * value is authoritative, and if the server omits it the timing is treated
+   * as unknown rather than falling back to this declaration.
    */
   cancelAtPeriodEnd?: boolean
 }
