@@ -160,3 +160,48 @@ describe('resolveLocale / buildMessages', () => {
     expect(resolved.common.continue).toBe('Developer')
   })
 })
+
+// The org layer arrives unvalidated over the wire, so the merge must treat
+// the catalog as the schema: wrong-shaped patches are dropped, never trusted.
+describe('malformed patches (base-driven dispatch)', () => {
+  it('ignores a string landing on a category node', () => {
+    const merged = mergeMessages(defaultMessages, { common: 'hello' } as never)
+    expect(merged.common.continue).toBe('Continue')
+    expect(typeof merged.common).toBe('object')
+  })
+
+  it('ignores a timing pair landing on a plain leaf', () => {
+    const merged = mergeMessages(defaultMessages, {
+      common: { continue: { atPeriodEnd: 'x' } },
+    } as never)
+    expect(merged.common.continue).toBe('Continue')
+  })
+
+  it('ignores a timing pair landing on a category node', () => {
+    const merged = mergeMessages(defaultMessages, {
+      confirm: { immediate: 'x', atPeriodEnd: 'y' },
+    } as never)
+    expect(merged.confirm.title).toBe('Confirm cancellation')
+    expect('immediate' in merged.confirm).toBe(false)
+  })
+
+  it('drops keys the catalog does not declare', () => {
+    const merged = mergeMessages(defaultMessages, { common: { madeUp: 'x' } } as never)
+    expect('madeUp' in merged.common).toBe(false)
+  })
+
+  it('ignores non-string variant values in a pair', () => {
+    const merged = mergeMessages(defaultMessages, {
+      confirm: { cta: { atPeriodEnd: 42 } },
+    } as never)
+    expect(merged.confirm.cta).toBe('Cancel subscription')
+  })
+
+  it('ignores arrays and numbers on leaves', () => {
+    const merged = mergeMessages(defaultMessages, {
+      common: { continue: 42, back: ['x'] },
+    } as never)
+    expect(merged.common.continue).toBe('Continue')
+    expect(merged.common.back).toBe('Back')
+  })
+})

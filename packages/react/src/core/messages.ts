@@ -194,26 +194,56 @@ export function formatMessage(template: string, vars: Record<string, string | nu
   })
 }
 
-// Empty-string overrides are dropped (a blank dashboard field must not
-// clobber a real string — same rule as the embed), which is why defaults
-// may legitimately hold '' but patches never land one.
-function mergeValue(base: unknown, patch: unknown): unknown {
-  if (typeof patch === 'string') return patch === '' ? base : patch
-  if (isTimingVariants(patch)) {
-    const baseVariants: TimingVariants =
-      typeof base === 'string'
-        ? { immediate: base, atPeriodEnd: base }
-        : { immediate: '', atPeriodEnd: '', ...(base as Partial<TimingVariants>) }
-    const result = { ...baseVariants }
-    if (patch.immediate) result.immediate = patch.immediate
-    if (patch.atPeriodEnd) result.atPeriodEnd = patch.atPeriodEnd
-    return result
+// Leaves that accept an { immediate, atPeriodEnd } pair, by dot-path. The
+// base value alone can't identify them — most default to a plain string —
+// and pair patches must be rejected everywhere else: a pair landing on a
+// plain leaf would reach the renderer as an object child and throw.
+const TIMING_AWARE_PATHS: ReadonlySet<string> = new Set([
+  'confirm.cta',
+  'confirm.periodEndNotice',
+  'success.cancelled.title',
+  'success.cancelled.description',
+])
+
+// The base (catalog) drives the merge, not the patch: org overrides arrive
+// unvalidated over the wire, so a patch shaped wrong for its slot is dropped
+// rather than trusted, and keys the catalog doesn't declare are ignored —
+// the catalog is closed. Empty-string overrides are also dropped (a blank
+// dashboard field must not clobber a real string — same rule as the embed),
+// which is why defaults may legitimately hold '' but patches never land one.
+function mergeValue(base: unknown, patch: unknown, path: string): unknown {
+  if (typeof base === 'string' || isTimingVariants(base)) {
+    if (typeof patch === 'string') return patch === '' ? base : patch
+    if (isTimingVariants(patch) && TIMING_AWARE_PATHS.has(path)) {
+      const result: TimingVariants =
+        typeof base === 'string'
+          ? { immediate: base, atPeriodEnd: base }
+          : { immediate: '', atPeriodEnd: '', ...(base as Partial<TimingVariants>) }
+      let applied = false
+      if (typeof patch.immediate === 'string' && patch.immediate) {
+        result.immediate = patch.immediate
+        applied = true
+      }
+      if (typeof patch.atPeriodEnd === 'string' && patch.atPeriodEnd) {
+        result.atPeriodEnd = patch.atPeriodEnd
+        applied = true
+      }
+      return applied ? result : base
+    }
+    return base
   }
-  if (typeof patch === 'object' && patch !== null && typeof base === 'object' && base !== null) {
+  if (
+    typeof base === 'object' &&
+    base !== null &&
+    typeof patch === 'object' &&
+    patch !== null &&
+    !Array.isArray(patch) &&
+    !isTimingVariants(patch)
+  ) {
     const merged: Record<string, unknown> = { ...(base as Record<string, unknown>) }
     for (const [key, value] of Object.entries(patch)) {
-      if (value == null) continue
-      merged[key] = key in merged ? mergeValue(merged[key], value) : value
+      if (value == null || !(key in merged)) continue
+      merged[key] = mergeValue(merged[key], value, path ? `${path}.${key}` : key)
     }
     return merged
   }
@@ -222,7 +252,7 @@ function mergeValue(base: unknown, patch: unknown): unknown {
 
 export function mergeMessages(base: CancelFlowMessages, patch: MessagesPatch | undefined): CancelFlowMessages {
   if (!patch) return base
-  return mergeValue(base, patch) as CancelFlowMessages
+  return mergeValue(base, patch, '') as CancelFlowMessages
 }
 
 export function resolveLocale(explicit?: string): string {
