@@ -241,6 +241,8 @@ const i18nSteps: Step[] = [
     type: 'survey',
     reasons: [
       { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percentOff: 20, durationInMonths: 3 } },
+      // Pause demonstrates per-offer success copy incl. the {resumeDate} token.
+      { id: 'busy', label: 'Too busy right now', offer: { type: 'pause', months: 3 } },
       { id: 'missing', label: 'Missing features' },
     ],
   },

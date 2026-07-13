@@ -102,8 +102,10 @@ describe('CancelFlow', () => {
     await user.click(screen.getByText('Continue'))
     await user.click(screen.getByText('Accept offer'))
 
+    // Built-in offer types get type-specific success copy (embed parity);
+    // the generic "Welcome back!" remains the fallback for other types.
     await waitFor(() => {
-      expect(screen.getByText('Welcome back!')).toBeInTheDocument()
+      expect(screen.getByText('Discount applied.')).toBeInTheDocument()
     })
     expect(onAccept).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'discount', percentOff: 20, durationInMonths: 3 }),
@@ -580,5 +582,65 @@ describe('local-mode timing declaration', () => {
     })
     expect(screen.getByText('Turn off auto-renew')).toBeInTheDocument()
     expect(screen.getByText(/Your access continues until (June 30|July 1), 2026\./)).toBeInTheDocument()
+  })
+})
+
+describe('per-offer success copy', () => {
+  const offerSteps: Step[] = [
+    {
+      type: 'survey',
+      reasons: [
+        { id: 'expensive', label: 'Too expensive', offer: { type: 'discount', percentOff: 20, durationInMonths: 3 } },
+        { id: 'busy', label: 'Too busy', offer: { type: 'pause', months: 3 } },
+      ],
+    },
+    { type: 'confirm' },
+  ]
+
+  it('accepting a discount shows discount-specific copy', async () => {
+    const user = userEvent.setup()
+    renderFlow({ steps: offerSteps })
+    await user.click(screen.getByText('Too expensive'))
+    await user.click(screen.getByText('Continue'))
+    await user.click(screen.getByText('Accept offer'))
+    expect(await screen.findByText('Discount applied.')).toBeInTheDocument()
+    expect(screen.getByText("We're so happy you're still here.")).toBeInTheDocument()
+  })
+
+  it('accepting a pause shows the resume date', async () => {
+    const user = userEvent.setup()
+    renderFlow({ steps: offerSteps })
+    await user.click(screen.getByText('Too busy'))
+    await user.click(screen.getByText('Continue'))
+    // Pick the max pause length so the asserted date is deterministic.
+    await user.click(screen.getByText('3 months'))
+    await user.click(screen.getByText('Pause subscription'))
+    expect(await screen.findByText('Subscription paused.')).toBeInTheDocument()
+    const resume = new Date()
+    resume.setMonth(resume.getMonth() + 3)
+    const formatted = resume.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    expect(screen.getByText(`You won't be billed again until ${formatted}.`)).toBeInTheDocument()
+  })
+
+  it('per-offer copy loses to an explicit savedTitle', async () => {
+    const user = userEvent.setup()
+    renderFlow({ steps: [...offerSteps, { type: 'success', savedTitle: 'Custom saved title' }] })
+    await user.click(screen.getByText('Too expensive'))
+    await user.click(screen.getByText('Continue'))
+    await user.click(screen.getByText('Accept offer'))
+    expect(await screen.findByText('Custom saved title')).toBeInTheDocument()
+  })
+
+  it('i18n can override one offer type without touching the others', async () => {
+    const user = userEvent.setup()
+    renderFlow({
+      steps: offerSteps,
+      i18n: { messages: { en: { success: { saved: { discount: { title: 'Deal locked in!' } } } } } },
+    })
+    await user.click(screen.getByText('Too expensive'))
+    await user.click(screen.getByText('Continue'))
+    await user.click(screen.getByText('Accept offer'))
+    expect(await screen.findByText('Deal locked in!')).toBeInTheDocument()
+    expect(screen.getByText("We're so happy you're still here.")).toBeInTheDocument()
   })
 })

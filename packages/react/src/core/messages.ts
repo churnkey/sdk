@@ -19,6 +19,12 @@ export interface TimingVariants {
  */
 export type TimingAware = string | TimingVariants
 
+/** Success-screen copy for one accepted offer type. */
+export interface SavedOfferCopy {
+  title: string
+  description: string
+}
+
 export interface CancelFlowMessages {
   common: {
     continue: string
@@ -61,8 +67,19 @@ export interface CancelFlowMessages {
   }
   success: {
     saved: {
+      /** Generic fallback — used for offer types without their own entry
+       *  (contact, redirect, custom types). */
       title: string
       description: string
+      discount: SavedOfferCopy
+      pause: SavedOfferCopy & {
+        /** Used instead of `description` when the resume date is known
+         *  (the built-in pause UI always supplies it). Supports `{resumeDate}`. */
+        resumeDescription: string
+      }
+      trial_extension: SavedOfferCopy
+      plan_change: SavedOfferCopy
+      rebate: SavedOfferCopy
     }
     cancelled: {
       title: TimingAware
@@ -143,9 +160,20 @@ export const defaultMessages: CancelFlowMessages = {
     },
   },
   success: {
+    // Per-offer defaults mirror the embed's *Applied keys so the two
+    // surfaces confirm the same outcome with the same words.
     saved: {
       title: 'Welcome back!',
       description: 'Your offer has been applied.',
+      discount: { title: 'Discount applied.', description: "We're so happy you're still here." },
+      pause: {
+        title: 'Subscription paused.',
+        description: "You won't be billed until your subscription resumes.",
+        resumeDescription: "You won't be billed again until {resumeDate}.",
+      },
+      trial_extension: { title: 'Trial extended.', description: 'Your trial has been extended successfully.' },
+      plan_change: { title: 'Plan changed.', description: 'Your new plan is now in effect.' },
+      rebate: { title: 'Refund issued.', description: "Your money's on its way back." },
     },
     cancelled: {
       title: 'Subscription cancelled',

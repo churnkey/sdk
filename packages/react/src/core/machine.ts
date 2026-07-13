@@ -404,7 +404,7 @@ export class CancelFlowMachine {
       await this.callbacks.onAccept?.(acceptedOffer, customer)
 
       this.markCurrentOfferAccepted()
-      this.enterSuccessStep('saved')
+      this.enterSuccessStep('saved', acceptedOffer)
       this.recordOutcome('saved', offer, safeResult)
     } catch (error) {
       this.setState({ isProcessing: false, error: error as Error })
@@ -510,6 +510,7 @@ export class CancelFlowMachine {
       customer,
       subscriptions,
       cancelAtPeriodEnd: this.config?.settings.cancelAtPeriodEnd ?? this.localCancelAtPeriodEnd,
+      acceptedOffer: null,
     }
   }
 
@@ -661,9 +662,17 @@ export class CancelFlowMachine {
   // Terminal transition. Prefer moving currentStepId to a declared success
   // step so the developer's savedTitle / classNames / custom component
   // applies; otherwise stay put and the renderer's defaults cover it.
-  private enterSuccessStep(outcome: 'saved' | 'cancelled'): void {
+  // The accepted offer is snapshotted into state here because currentOffer
+  // derives from currentStepId, which a declared success step moves off the
+  // offer — per-offer success copy needs a stable source.
+  private enterSuccessStep(outcome: 'saved' | 'cancelled', acceptedOffer?: AcceptedOffer): void {
     const success = this.getStepConfig('success')
-    const partial: Partial<FlowState> = { step: 'success', outcome, isProcessing: false }
+    const partial: Partial<FlowState> = {
+      step: 'success',
+      outcome,
+      isProcessing: false,
+      acceptedOffer: acceptedOffer ?? null,
+    }
     if (success) partial.currentStepId = success.guid
     this.setState(partial)
   }
