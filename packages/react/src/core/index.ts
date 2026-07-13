@@ -14,7 +14,14 @@ export type {
 } from './api-types'
 export { calculateDiscountedPrice, formatPeriodEnd, formatPrice } from './format'
 export { CancelFlowMachine } from './machine'
-export type { CancelFlowMessages, I18nConfig, MessagesPatch, TimingAware, TimingVariants } from './messages'
+export type {
+  CancelFlowMessages,
+  I18nConfig,
+  MessagesPatch,
+  SavedOfferCopy,
+  TimingAware,
+  TimingVariants,
+} from './messages'
 export { buildMessages, defaultMessages, formatMessage, selectTiming } from './messages'
 export type { ResolvedStep } from './step-graph'
 export type { SessionCredentials } from './token'

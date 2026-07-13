@@ -620,6 +620,9 @@ export interface ConfirmStepProps {
 export interface SuccessStepProps {
   outcome: 'saved' | 'cancelled'
   offer?: OfferDecision
+  /** The accepted offer (consumer-facing shape, incl. any accept result).
+   *  Present when outcome is 'saved'. */
+  acceptedOffer?: AcceptedOffer
   title: string
   description?: string
   customer: DirectCustomer | null
@@ -648,6 +651,9 @@ export interface FlowState {
   followupResponse: string
   feedback: string
   outcome: 'saved' | 'cancelled' | null
+  /** The offer the customer accepted, set alongside outcome 'saved'. Drives
+   *  per-offer success copy; `null` until then and for cancellations. */
+  acceptedOffer: AcceptedOffer | null
   isProcessing: boolean
   error: Error | null
   customer: DirectCustomer | null

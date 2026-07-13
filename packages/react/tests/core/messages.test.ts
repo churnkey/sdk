@@ -129,13 +129,79 @@ describe('resolveLocale / buildMessages', () => {
     expect(resolved.common.continue).toBe('PT-BR')
   })
 
-  it('layers extra patches below the developer messages', () => {
-    // The patches argument is where the org-level layer will slot in.
+  it('layers org messages below the developer messages', () => {
     const resolved = buildMessages(
       { locale: 'en', messages: { en: { common: { continue: 'Developer' } } } },
-      { common: { continue: 'Org', back: 'Org back' } },
+      { en: { common: { continue: 'Org', back: 'Org back' } } },
     )
     expect(resolved.common.continue).toBe('Developer')
     expect(resolved.common.back).toBe('Org back')
+  })
+
+  it('runs the org layer through the same locale fallback chain', () => {
+    const resolved = buildMessages(
+      { locale: 'de-AT' },
+      {
+        en: { common: { continue: 'Org EN continue', done: 'Org EN done' } },
+        de: { common: { continue: 'Org DE continue' } },
+      },
+    )
+    expect(resolved.common.continue).toBe('Org DE continue')
+    expect(resolved.common.done).toBe('Org EN done')
+    expect(resolved.common.back).toBe('Back')
+  })
+
+  it('org timing-aware overrides survive under unrelated developer overrides', () => {
+    const resolved = buildMessages(
+      { locale: 'en', messages: { en: { common: { continue: 'Developer' } } } },
+      { en: { confirm: { cta: { immediate: 'Cancel', atPeriodEnd: 'Turn off auto-renew' } } } },
+    )
+    expect(resolved.confirm.cta).toEqual({ immediate: 'Cancel', atPeriodEnd: 'Turn off auto-renew' })
+    expect(resolved.common.continue).toBe('Developer')
+  })
+})
+
+// The org layer arrives unvalidated over the wire, so the merge must treat
+// the catalog as the schema: wrong-shaped patches are dropped, never trusted.
+describe('malformed patches (base-driven dispatch)', () => {
+  it('ignores a string landing on a category node', () => {
+    const merged = mergeMessages(defaultMessages, { common: 'hello' } as never)
+    expect(merged.common.continue).toBe('Continue')
+    expect(typeof merged.common).toBe('object')
+  })
+
+  it('ignores a timing pair landing on a plain leaf', () => {
+    const merged = mergeMessages(defaultMessages, {
+      common: { continue: { atPeriodEnd: 'x' } },
+    } as never)
+    expect(merged.common.continue).toBe('Continue')
+  })
+
+  it('ignores a timing pair landing on a category node', () => {
+    const merged = mergeMessages(defaultMessages, {
+      confirm: { immediate: 'x', atPeriodEnd: 'y' },
+    } as never)
+    expect(merged.confirm.title).toBe('Confirm cancellation')
+    expect('immediate' in merged.confirm).toBe(false)
+  })
+
+  it('drops keys the catalog does not declare', () => {
+    const merged = mergeMessages(defaultMessages, { common: { madeUp: 'x' } } as never)
+    expect('madeUp' in merged.common).toBe(false)
+  })
+
+  it('ignores non-string variant values in a pair', () => {
+    const merged = mergeMessages(defaultMessages, {
+      confirm: { cta: { atPeriodEnd: 42 } },
+    } as never)
+    expect(merged.confirm.cta).toBe('Cancel subscription')
+  })
+
+  it('ignores arrays and numbers on leaves', () => {
+    const merged = mergeMessages(defaultMessages, {
+      common: { continue: 42, back: ['x'] },
+    } as never)
+    expect(merged.common.continue).toBe('Continue')
+    expect(merged.common.back).toBe('Back')
   })
 })

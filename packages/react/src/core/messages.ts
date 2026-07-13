@@ -19,6 +19,12 @@ export interface TimingVariants {
  */
 export type TimingAware = string | TimingVariants
 
+/** Success-screen copy for one accepted offer type. */
+export interface SavedOfferCopy {
+  title: string
+  description: string
+}
+
 export interface CancelFlowMessages {
   common: {
     continue: string
@@ -61,8 +67,19 @@ export interface CancelFlowMessages {
   }
   success: {
     saved: {
+      /** Generic fallback — used for offer types without their own entry
+       *  (contact, redirect, custom types). */
       title: string
       description: string
+      discount: SavedOfferCopy
+      pause: SavedOfferCopy & {
+        /** Used instead of `description` when the resume date is known
+         *  (the built-in pause UI always supplies it). Supports `{resumeDate}`. */
+        resumeDescription: string
+      }
+      trial_extension: SavedOfferCopy
+      plan_change: SavedOfferCopy
+      rebate: SavedOfferCopy
     }
     cancelled: {
       title: TimingAware
@@ -143,9 +160,20 @@ export const defaultMessages: CancelFlowMessages = {
     },
   },
   success: {
+    // Per-offer defaults mirror the embed's *Applied keys so the two
+    // surfaces confirm the same outcome with the same words.
     saved: {
       title: 'Welcome back!',
       description: 'Your offer has been applied.',
+      discount: { title: 'Discount applied.', description: "We're so happy you're still here." },
+      pause: {
+        title: 'Subscription paused.',
+        description: "You won't be billed until your subscription resumes.",
+        resumeDescription: "You won't be billed again until {resumeDate}.",
+      },
+      trial_extension: { title: 'Trial extended.', description: 'Your trial has been extended successfully.' },
+      plan_change: { title: 'Plan changed.', description: 'Your new plan is now in effect.' },
+      rebate: { title: 'Refund issued.', description: "Your money's on its way back." },
     },
     cancelled: {
       title: 'Subscription cancelled',
@@ -194,26 +222,56 @@ export function formatMessage(template: string, vars: Record<string, string | nu
   })
 }
 
-// Empty-string overrides are dropped (a blank dashboard field must not
-// clobber a real string — same rule as the embed), which is why defaults
-// may legitimately hold '' but patches never land one.
-function mergeValue(base: unknown, patch: unknown): unknown {
-  if (typeof patch === 'string') return patch === '' ? base : patch
-  if (isTimingVariants(patch)) {
-    const baseVariants: TimingVariants =
-      typeof base === 'string'
-        ? { immediate: base, atPeriodEnd: base }
-        : { immediate: '', atPeriodEnd: '', ...(base as Partial<TimingVariants>) }
-    const result = { ...baseVariants }
-    if (patch.immediate) result.immediate = patch.immediate
-    if (patch.atPeriodEnd) result.atPeriodEnd = patch.atPeriodEnd
-    return result
+// Leaves that accept an { immediate, atPeriodEnd } pair, by dot-path. The
+// base value alone can't identify them — most default to a plain string —
+// and pair patches must be rejected everywhere else: a pair landing on a
+// plain leaf would reach the renderer as an object child and throw.
+const TIMING_AWARE_PATHS: ReadonlySet<string> = new Set([
+  'confirm.cta',
+  'confirm.periodEndNotice',
+  'success.cancelled.title',
+  'success.cancelled.description',
+])
+
+// The base (catalog) drives the merge, not the patch: org overrides arrive
+// unvalidated over the wire, so a patch shaped wrong for its slot is dropped
+// rather than trusted, and keys the catalog doesn't declare are ignored —
+// the catalog is closed. Empty-string overrides are also dropped (a blank
+// dashboard field must not clobber a real string — same rule as the embed),
+// which is why defaults may legitimately hold '' but patches never land one.
+function mergeValue(base: unknown, patch: unknown, path: string): unknown {
+  if (typeof base === 'string' || isTimingVariants(base)) {
+    if (typeof patch === 'string') return patch === '' ? base : patch
+    if (isTimingVariants(patch) && TIMING_AWARE_PATHS.has(path)) {
+      const result: TimingVariants =
+        typeof base === 'string'
+          ? { immediate: base, atPeriodEnd: base }
+          : { immediate: '', atPeriodEnd: '', ...(base as Partial<TimingVariants>) }
+      let applied = false
+      if (typeof patch.immediate === 'string' && patch.immediate) {
+        result.immediate = patch.immediate
+        applied = true
+      }
+      if (typeof patch.atPeriodEnd === 'string' && patch.atPeriodEnd) {
+        result.atPeriodEnd = patch.atPeriodEnd
+        applied = true
+      }
+      return applied ? result : base
+    }
+    return base
   }
-  if (typeof patch === 'object' && patch !== null && typeof base === 'object' && base !== null) {
+  if (
+    typeof base === 'object' &&
+    base !== null &&
+    typeof patch === 'object' &&
+    patch !== null &&
+    !Array.isArray(patch) &&
+    !isTimingVariants(patch)
+  ) {
     const merged: Record<string, unknown> = { ...(base as Record<string, unknown>) }
     for (const [key, value] of Object.entries(patch)) {
-      if (value == null) continue
-      merged[key] = key in merged ? mergeValue(merged[key], value) : value
+      if (value == null || !(key in merged)) continue
+      merged[key] = mergeValue(merged[key], value, path ? `${path}.${key}` : key)
     }
     return merged
   }
@@ -222,7 +280,7 @@ function mergeValue(base: unknown, patch: unknown): unknown {
 
 export function mergeMessages(base: CancelFlowMessages, patch: MessagesPatch | undefined): CancelFlowMessages {
   if (!patch) return base
-  return mergeValue(base, patch) as CancelFlowMessages
+  return mergeValue(base, patch, '') as CancelFlowMessages
 }
 
 export function resolveLocale(explicit?: string): string {
@@ -243,23 +301,28 @@ function localeChain(locale: string): string[] {
   return chain
 }
 
-/**
- * Resolve the full catalog for a locale: built-in defaults, then `patches`
- * in argument order (the org-level layer, once it exists, goes here), then
- * the config's per-locale messages in fallback-chain order — so the
- * developer's own overrides always end up on top.
- */
-export function buildMessages(i18n?: I18nConfig, ...patches: Array<MessagesPatch | undefined>): CancelFlowMessages {
-  const locale = resolveLocale(i18n?.locale)
-  let resolved = defaultMessages
-  for (const patch of patches) {
-    resolved = mergeMessages(resolved, patch)
-  }
-  if (i18n?.messages) {
-    const byLowerKey = new Map(Object.entries(i18n.messages).map(([k, v]) => [k.toLowerCase(), v]))
-    for (const lang of localeChain(locale)) {
-      resolved = mergeMessages(resolved, byLowerKey.get(lang))
-    }
+function applyLocaleLayer(
+  base: CancelFlowMessages,
+  byLang: Record<string, MessagesPatch> | undefined,
+  chain: string[],
+): CancelFlowMessages {
+  if (!byLang) return base
+  const byLowerKey = new Map(Object.entries(byLang).map(([k, v]) => [k.toLowerCase(), v]))
+  let resolved = base
+  for (const lang of chain) {
+    resolved = mergeMessages(resolved, byLowerKey.get(lang))
   }
   return resolved
+}
+
+/**
+ * Resolve the full catalog for a locale. Layers, lowest to highest: built-in
+ * defaults, then `orgMessages` (dashboard-configured overrides delivered on
+ * the token-mode config), then the config's own per-locale messages — the
+ * developer's overrides always end up on top. Both per-language layers run
+ * through the same locale fallback chain.
+ */
+export function buildMessages(i18n?: I18nConfig, orgMessages?: Record<string, MessagesPatch>): CancelFlowMessages {
+  const chain = localeChain(resolveLocale(i18n?.locale))
+  return applyLocaleLayer(applyLocaleLayer(defaultMessages, orgMessages, chain), i18n?.messages, chain)
 }

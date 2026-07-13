@@ -11,7 +11,7 @@ import type {
 import { AnalyticsClient, directDataToSessionCustomer, toApiMode } from './api'
 import type { SdkConfig } from './api-types'
 import { applyMergeFieldsToSteps } from './merge-fields'
-import { buildMessages, type CancelFlowMessages } from './messages'
+import { buildMessages, type CancelFlowMessages, type I18nConfig } from './messages'
 import { buildStepGraph, type ResolvedStep, type StepGraph } from './step-graph'
 import type { SessionCredentials } from './token'
 import { defaultOfferCopy, transformSdkConfig } from './transform'
@@ -222,6 +222,7 @@ export class CancelFlowMachine {
   private presentedOffers: PresentedOffer[] = []
   private customStepResults: Record<string, unknown> = {}
   private configMode: Mode = 'live'
+  private i18nConfig: I18nConfig | undefined
   private localCancelAtPeriodEnd: boolean | null = null
   private resolvedMessages: CancelFlowMessages
   private stepEnteredAt: number = Date.now()
@@ -235,6 +236,7 @@ export class CancelFlowMachine {
     // FlowConfig extends FlowCallbacks; storing the whole config covers
     // every callback by name without a separate copy.
     this.callbacks = config
+    this.i18nConfig = config.i18n
     this.resolvedMessages = buildMessages(config.i18n)
     // Local mode only — in token mode the server-resolved value is
     // authoritative, and when the server omits it the timing must stay
@@ -402,7 +404,7 @@ export class CancelFlowMachine {
       await this.callbacks.onAccept?.(acceptedOffer, customer)
 
       this.markCurrentOfferAccepted()
-      this.enterSuccessStep('saved')
+      this.enterSuccessStep('saved', acceptedOffer)
       this.recordOutcome('saved', offer, safeResult)
     } catch (error) {
       this.setState({ isProcessing: false, error: error as Error })
@@ -460,6 +462,12 @@ export class CancelFlowMachine {
     this.creds = creds
     this.config = config
 
+    // Re-resolve with the org's dashboard-configured overrides, which ride
+    // along on the config payload. Developer i18n.messages still win.
+    if (config.translations) {
+      this.resolvedMessages = buildMessages(this.i18nConfig, config.translations)
+    }
+
     const result = transformSdkConfig(config)
     this.blueprintId = result.blueprintId
 
@@ -502,6 +510,7 @@ export class CancelFlowMachine {
       customer,
       subscriptions,
       cancelAtPeriodEnd: this.config?.settings.cancelAtPeriodEnd ?? this.localCancelAtPeriodEnd,
+      acceptedOffer: null,
     }
   }
 
@@ -653,9 +662,17 @@ export class CancelFlowMachine {
   // Terminal transition. Prefer moving currentStepId to a declared success
   // step so the developer's savedTitle / classNames / custom component
   // applies; otherwise stay put and the renderer's defaults cover it.
-  private enterSuccessStep(outcome: 'saved' | 'cancelled'): void {
+  // The accepted offer is snapshotted into state here because currentOffer
+  // derives from currentStepId, which a declared success step moves off the
+  // offer — per-offer success copy needs a stable source.
+  private enterSuccessStep(outcome: 'saved' | 'cancelled', acceptedOffer?: AcceptedOffer): void {
     const success = this.getStepConfig('success')
-    const partial: Partial<FlowState> = { step: 'success', outcome, isProcessing: false }
+    const partial: Partial<FlowState> = {
+      step: 'success',
+      outcome,
+      isProcessing: false,
+      acceptedOffer: acceptedOffer ?? null,
+    }
     if (success) partial.currentStepId = success.guid
     this.setState(partial)
   }

@@ -1,8 +1,9 @@
 import { type ReactElement, useEffect } from 'react'
-import { formatPeriodEnd } from '../core/format'
+import { formatPeriodEnd, formatShortDate } from '../core/format'
 import type { CancelFlowMachine } from '../core/machine'
-import { type CancelFlowMessages, formatMessage, selectTiming } from '../core/messages'
+import { type CancelFlowMessages, formatMessage, type SavedOfferCopy, selectTiming } from '../core/messages'
 import type {
+  AcceptedOffer,
   CancelFlowProps,
   ComponentOverrides,
   ConfirmStep,
@@ -297,18 +298,23 @@ function StepRenderer({
       const Success = components?.Success ?? DefaultSuccess
       const config = stepConfig as SuccessStep | undefined
       const isSaved = state.outcome === 'saved'
+      const perOffer = isSaved ? savedOfferCopy(messages, state.acceptedOffer) : undefined
       return (
         <Success
           outcome={state.outcome ?? 'cancelled'}
           offer={machine.currentOffer ?? undefined}
+          acceptedOffer={state.acceptedOffer ?? undefined}
           title={
             isSaved
-              ? (config?.savedTitle ?? messages.success.saved.title)
+              ? (config?.savedTitle ?? perOffer?.title ?? messages.success.saved.title)
               : (config?.cancelledTitle ?? selectTiming(messages.success.cancelled.title, state.cancelAtPeriodEnd))
           }
           description={
             isSaved
-              ? (config?.savedDescription ?? messages.success.saved.description)
+              ? (config?.savedDescription ??
+                pauseResumeDescription(messages, state.acceptedOffer) ??
+                perOffer?.description ??
+                messages.success.saved.description)
               : (config?.cancelledDescription ??
                 selectTiming(messages.success.cancelled.description, state.cancelAtPeriodEnd))
           }
@@ -346,6 +352,32 @@ function StepRenderer({
       )
     }
   }
+}
+
+// Offer types with their own success copy. Others (contact, redirect,
+// custom types) fall back to the generic saved copy.
+const SAVED_OFFER_COPY_TYPES = ['discount', 'pause', 'trial_extension', 'plan_change', 'rebate'] as const
+
+function savedOfferCopy(messages: CancelFlowMessages, offer: AcceptedOffer | null): SavedOfferCopy | undefined {
+  if (!offer) return undefined
+  if (!(SAVED_OFFER_COPY_TYPES as readonly string[]).includes(offer.type)) return undefined
+  return messages.success.saved[offer.type as (typeof SAVED_OFFER_COPY_TYPES)[number]]
+}
+
+// The built-in pause UI always passes the selected duration on accept;
+// without it there's no resume date to promise, so the plain description
+// renders instead.
+function pauseResumeDescription(messages: CancelFlowMessages, offer: AcceptedOffer | null): string | undefined {
+  if (offer?.type !== 'pause') return undefined
+  const months = offer.result?.months
+  if (typeof months !== 'number' || months < 1) return undefined
+  const resume = new Date()
+  if ((offer as { interval?: 'month' | 'week' }).interval === 'week') {
+    resume.setDate(resume.getDate() + months * 7)
+  } else {
+    resume.setMonth(resume.getMonth() + months)
+  }
+  return formatMessage(messages.success.saved.pause.resumeDescription, { resumeDate: formatShortDate(resume) })
 }
 
 // The notice makes a factual claim about billing behavior, so it requires the

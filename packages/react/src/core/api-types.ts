@@ -3,6 +3,7 @@
 // as input, so consumers see one consistent type. Steps and offers arrive
 // fully resolved — coupon ids already hydrated, plan ids already inlined.
 
+import type { MessagesPatch } from './messages'
 import type { DirectCustomer, DirectSubscription, PlanOption } from './types'
 
 export interface SdkConfig {
@@ -11,6 +12,13 @@ export interface SdkConfig {
   customer: DirectCustomer
   subscriptions: DirectSubscription[]
   settings: SdkSettings
+  /**
+   * Org-level message overrides configured in the dashboard, keyed by
+   * language. All configured languages ship; the client picks via its locale
+   * chain. Merged between the built-in defaults and the developer's
+   * `i18n.messages`.
+   */
+  translations?: Record<string, MessagesPatch>
   /** Bandit key used for auto-optimization, if it ran. */
   autoOptimizationKey?: string
 }
