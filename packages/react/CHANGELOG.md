@@ -2,6 +2,22 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.7.0 — 2026-07-13
+
+### Added
+
+- `i18n` prop on `CancelFlow` / `useCancelFlow`: locale selection (browser default, exact → base-language → `en` fallback chain) and deep-partial overrides for every built-in string via a typed message catalog (`CancelFlowMessages`), with `{token}` interpolation.
+- Timing-aware messages: `confirm.cta`, `confirm.periodEndNotice`, and `success.cancelled.*` accept `{ immediate, atPeriodEnd }` pairs, resolved against the flow's effective cancel timing (server-resolved in connected mode).
+- `cancelAtPeriodEnd` prop: local-mode declaration of billing behavior driving timing-aware copy; ignored in connected mode.
+- Per-offer success copy: accepting a discount, pause, trial extension, plan change, or rebate shows outcome-specific confirmation (widget-parity defaults); pause supports `{resumeDate}` from the accepted duration. Contact, redirect, and custom types keep the generic copy.
+- Org-level overrides: dashboard-configured `sdkTranslations` arrive on the connected-mode config and merge between built-in defaults and the developer's `i18n.messages`.
+- `acceptedOffer` on flow state and `SuccessStepProps`; `messages` and `cancelAtPeriodEnd` returned from `useCancelFlow`; `defaultMessages`, `buildMessages`, `selectTiming`, `formatMessage` exported from `@churnkey/react/core`.
+
+### Changed
+
+- Connected-mode flows with end-of-period timing now render an access-until notice on the confirm step ("Your access continues until …"). Previously documented but never rendered; local mode shows it only with an explicit `cancelAtPeriodEnd={true}`.
+- Accepting a built-in offer shows type-specific success copy by default (e.g. "Discount applied." instead of "Welcome back!"). Override per type via `i18n` or restore the old copy with `savedTitle` / `savedDescription`.
+
 ## 0.6.5 — 2026-07-09
 
 ### Added
