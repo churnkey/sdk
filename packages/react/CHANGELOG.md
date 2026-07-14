@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.7.1 — 2026-07-14
+
+### Added
+
+- `i18n` additional props
+
 ## 0.7.0 — 2026-07-13
 
 ### Added
