@@ -1,8 +1,10 @@
+import { defaultMessages } from '../../../core/messages'
 import type { OfferDecision, OfferStepProps } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { RichText } from '../../rich-text'
 
-export function DefaultRedirectOffer({ title, description, offer, onDecline, classNames }: OfferStepProps) {
+export function DefaultRedirectOffer({ title, description, offer, onDecline, classNames, messages }: OfferStepProps) {
+  const msg = messages ?? defaultMessages
   const url = (offer as OfferDecision & { url: string }).url
   const headline = title ?? offer.copy.headline
   const body = description ?? offer.copy.body
@@ -15,12 +17,12 @@ export function DefaultRedirectOffer({ title, description, offer, onDecline, cla
       <div className={cn('ck-offer-card', classNames?.card)}>
         <div className="ck-offer-details">
           <a href={url} target="_blank" rel="noopener noreferrer" className="ck-redirect-link">
-            <span>{offer.copy.cta}</span>
+            <span>{msg.offer.acceptCta.redirect || offer.copy.cta}</span>
             <ExternalIcon />
           </a>
         </div>
         <button type="button" className={cn('ck-button-link', classNames?.declineButton)} onClick={onDecline}>
-          {offer.copy.declineCta}
+          {msg.offer.declineCta || offer.copy.declineCta}
         </button>
       </div>
     </div>

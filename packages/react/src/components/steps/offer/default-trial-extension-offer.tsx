@@ -44,10 +44,10 @@ export function DefaultTrialExtensionOffer({
           onClick={() => onAccept()}
           disabled={isProcessing}
         >
-          {isProcessing ? msg.common.processing : offer.copy.cta}
+          {isProcessing ? msg.common.processing : msg.offer.acceptCta.trial_extension || offer.copy.cta}
         </button>
         <button type="button" className={cn('ck-button-link', classNames?.declineButton)} onClick={onDecline}>
-          {offer.copy.declineCta}
+          {msg.offer.declineCta || offer.copy.declineCta}
         </button>
       </div>
     </div>
