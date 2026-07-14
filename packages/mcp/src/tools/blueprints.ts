@@ -159,6 +159,7 @@ const rebateFixedAmounts = z
         currency: z
           .string()
           .regex(/^[A-Za-z]{3}$/)
+          .transform((currency) => currency.toLowerCase())
           .describe('Three-letter invoice currency code.'),
         amountMinor: z.number().int().min(0).describe("Fixed rebate in that currency's smallest unit."),
       })

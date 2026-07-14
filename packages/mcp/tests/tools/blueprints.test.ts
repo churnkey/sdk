@@ -238,13 +238,19 @@ describe('blueprintTools', () => {
       },
     }
 
-    expect(() => tool.inputSchema.parse(input)).not.toThrow()
-    await tool.handler(input)
+    const parsed = tool.inputSchema.parse(input)
+    await tool.handler(parsed)
     expect(post).toHaveBeenCalledWith('/data/blueprints/bp_123/offer', {
       body: {
         stepGuid: 'step_1',
         offerType: 'REBATE',
-        config: input.config,
+        config: {
+          ...input.config,
+          fixedAmounts: [
+            { currency: 'usd', amountMinor: 5000 },
+            { currency: 'eur', amountMinor: 4500 },
+          ],
+        },
       },
     })
     expect(() =>
