@@ -644,3 +644,43 @@ describe('per-offer success copy', () => {
     expect(screen.getByText("We're so happy you're still here.")).toBeInTheDocument()
   })
 })
+
+describe('offer CTA catalog overrides', () => {
+  const rebateSteps: Step[] = [
+    {
+      type: 'survey',
+      reasons: [
+        {
+          id: 'guarantee',
+          label: 'Money-back window',
+          offer: { type: 'rebate', amountMinor: 500, currency: 'USD' },
+        },
+      ],
+    },
+    { type: 'confirm' },
+  ]
+
+  it('acceptCta and declineCta override the offer copy when set', async () => {
+    const user = userEvent.setup()
+    renderFlow({
+      steps: rebateSteps,
+      i18n: {
+        messages: { en: { offer: { acceptCta: { rebate: 'Claim my refund' }, declineCta: 'Keep my plan' } } },
+      },
+    })
+    await user.click(screen.getByText('Money-back window'))
+    await user.click(screen.getByText('Continue'))
+    expect(await screen.findByText('Claim my refund')).toBeInTheDocument()
+    expect(screen.getByText('Keep my plan')).toBeInTheDocument()
+    expect(screen.queryByText('Accept refund')).not.toBeInTheDocument()
+  })
+
+  it('unset keys fall through to the offer copy', async () => {
+    const user = userEvent.setup()
+    renderFlow({ steps: rebateSteps })
+    await user.click(screen.getByText('Money-back window'))
+    await user.click(screen.getByText('Continue'))
+    expect(await screen.findByText('Accept refund')).toBeInTheDocument()
+    expect(screen.getByText('No thanks')).toBeInTheDocument()
+  })
+})

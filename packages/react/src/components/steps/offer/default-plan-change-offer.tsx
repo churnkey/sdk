@@ -33,7 +33,7 @@ export function DefaultPlanChangeOffer({
     ? msg.common.processing
     : selectedPlan?.name
       ? formatMessage(msg.offer.switchToCta, { planName: selectedPlan.name })
-      : offer.copy.cta
+      : msg.offer.acceptCta.plan_change || offer.copy.cta
 
   return (
     <div className={cn('ck-step ck-step-offer', classNames?.root)}>
@@ -98,7 +98,7 @@ export function DefaultPlanChangeOffer({
           {ctaLabel}
         </button>
         <button type="button" className={cn('ck-button-link', classNames?.declineButton)} onClick={onDecline}>
-          {offer.copy.declineCta}
+          {msg.offer.declineCta || offer.copy.declineCta}
         </button>
       </div>
     </div>

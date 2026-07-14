@@ -93,6 +93,24 @@ export interface CancelFlowMessages {
     currentPlanBadge: string
     /** CTA when a plan is selected in a plan-change offer. Supports `{planName}`. */
     switchToCta: string
+    /**
+     * Accept-button override per offer type. Defaults are empty: an unset
+     * key falls through to the offer's own `copy.cta` (today a
+     * server-synthesized default like "Accept refund"; authored per-offer
+     * copy, when it exists, keeps winning over an unset key).
+     */
+    acceptCta: {
+      discount: string
+      pause: string
+      trial_extension: string
+      plan_change: string
+      contact: string
+      redirect: string
+      rebate: string
+    }
+    /** Decline-link override for every offer type. Empty default falls
+     *  through to the offer's own `copy.declineCta`. */
+    declineCta: string
     rebate: {
       paidLabel: string
       moneyBackLabel: string
@@ -186,6 +204,16 @@ export const defaultMessages: CancelFlowMessages = {
     newEndDateLabel: 'New end date',
     currentPlanBadge: 'Current',
     switchToCta: 'Switch to {planName}',
+    acceptCta: {
+      discount: '',
+      pause: '',
+      trial_extension: '',
+      plan_change: '',
+      contact: '',
+      redirect: '',
+      rebate: '',
+    },
+    declineCta: '',
     rebate: {
       paidLabel: 'You paid this period',
       moneyBackLabel: 'Money back',
