@@ -1,13 +1,23 @@
 # Changelog
 
-Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## 1.0.0 — Unreleased
+## 1.1.0 — 2026-07-15
 
 ### Added
 
-- Restored blueprint/segment tools dropped during the MCP reslice (their Data API endpoints have been live on the server the whole time): `create_blueprint` (default org flow with `empty`/`BASIC`/`B2B`/`MERGEFIELDS` templates), `create_segment_flow` (segment + editable draft in one call — the preferred isolated/test-flow path), `archive_segment` (soft-delete disposable segments), and `list_segment_attributes` (targetable audience attributes with their `valueType`, valid `operands`, and fixed-enum `values`). `update_segment_filter` regains `confirmLiveChange` — editing a live (enabled + published) segment's audience requires `confirmLiveChange: true` (enforced by the API), which the tool previously could not send.
-- Segment audience operands corrected to match the Data API: only `INCLUDES`/`NOT_INCLUDES` (STRING/BOOLEAN) and `GTE`/`LTE`/`BETWEEN`/`NOT_BETWEEN` (NUMBER/DATE). `GT`/`LT` are removed — the API rejects them as unrecognized operands, so advertising them produced guaranteed-fail calls.
+- Rebate offers in `update_blueprint_offer`, with fixed or percentage amounts, currency-specific `fixedAmounts`, money-back guarantee windows, and invoice scope. Fixed rebate amounts are validated as non-negative minor units with unique three-letter currency codes.
+- Restored blueprint and segment tools dropped during the MCP reslice: `create_blueprint` (default organization flow with `empty`/`BASIC`/`B2B`/`MERGEFIELDS` templates), `create_segment_flow` (segment plus editable draft), `archive_segment`, and `list_segment_attributes` (targetable attributes with value types, valid operands, and fixed-enum values).
+
+### Changed
+
+- `update_segment_filter` accepts the API-required `confirmLiveChange` acknowledgement when editing the audience of a live segment.
+- Segment audience operands now match the Data API. String and boolean attributes use `INCLUDES`/`NOT_INCLUDES`; number and date attributes use `GTE`/`LTE`/`BETWEEN`/`NOT_BETWEEN`. Removed `GT`/`LT`, which the API rejects.
+
+## 1.0.0 — 2026-07-02
+
+### Added
+
 - `get_account` tool (no scope required): identity & session-context preflight — the acting workspace (org), authenticated user, coarse entitlements (active subscription, Intelligence access), granted OAuth scopes, and the **effective live/test mode**. Agents are nudged to call it first to confirm which org and mode they're operating in (and to read their scopes before hitting a guaranteed 403). Backed by the new `GET /v1/data/account`.
 - Effective-mode visibility: `list_sessions` / `aggregate_sessions` now append the active mode (`Mode: LIVE|TEST`) to their results and carry a mode-sensitivity note in their descriptions — they're the only mode-partitioned surface, so an agent never has to infer live-vs-test from empty data. Configuration, payment-recovery analytics, flow metrics, and DSR are mode-independent and are documented as such.
 
@@ -34,7 +44,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect 
 - A user must have MCP access enabled by a workspace admin (Churnkey → Team) before `auth login` will issue tokens.
 - 401 handling distinguishes auth schemes: descriptive server messages (e.g. "this operation requires OAuth") surface verbatim; bare unauthorized bodies map to a sign-in hint for the active scheme.
 
-## 0.3.0 — Unreleased
+## 0.3.0 — 2026-05-07
 
 ### Added
 
