@@ -152,6 +152,23 @@ function requireOneStepSelector(args: { stepGuid?: unknown; stepIndex?: unknown 
 // update_blueprint_offer (G3). Config fields span all offer types; the server validates them against
 // the offer's own offerType. Kept as one strict object (not a discriminated union) so offerType can be
 // omitted for config-only edits and the tool schema stays a plain object.
+const rebateFixedAmounts = z
+  .array(
+    z
+      .object({
+        currency: z
+          .string()
+          .regex(/^[A-Za-z]{3}$/)
+          .transform((currency) => currency.toLowerCase())
+          .describe('Three-letter invoice currency code.'),
+        amountMinor: z.number().int().min(0).describe("Fixed rebate in that currency's smallest unit."),
+      })
+      .strict(),
+  )
+  .refine((amounts) => new Set(amounts.map((amount) => amount.currency.toLowerCase())).size === amounts.length, {
+    message: 'Fixed rebate currencies must be unique.',
+  })
+
 const offerConfig = z
   .object({
     couponId: z
@@ -171,6 +188,11 @@ const offerConfig = z
     redirectUrl: z.string().optional().describe('REDIRECT: URL to send the customer to.'),
     redirectLabel: z.string().optional().describe('REDIRECT: button label.'),
     options: z.array(z.string()).optional().describe('PLAN_CHANGE: plan/price IDs the customer can switch to.'),
+    amountType: z.enum(['FIXED', 'PERCENT']).optional().describe('REBATE: fixed or percentage amount.'),
+    fixedAmounts: rebateFixedAmounts.optional().describe('REBATE: fixed rebate amounts by invoice currency.'),
+    percentAmount: z.number().int().min(0).max(100).optional().describe('REBATE: percentage of the paid invoice.'),
+    mbgWindowDays: z.number().int().min(0).optional().describe('REBATE: money-back guarantee window in days.'),
+    invoiceScope: z.enum(['FIRST_PAID', 'LATEST_PAID']).optional().describe('REBATE: which paid invoice is eligible.'),
   })
   .strict()
   .describe("Offer-type-specific config. The server validates which fields are allowed against the offer's offerType.")
@@ -188,7 +210,7 @@ const updateOfferInput = blueprintIdInput.extend({
     .optional()
     .describe('Edit the offer attached to this structured follow-up option. Requires choiceGuid.'),
   offerType: z
-    .enum(['PAUSE', 'DISCOUNT', 'CONTACT', 'PLAN_CHANGE', 'REDIRECT', 'TRIAL_EXTENSION'])
+    .enum(['PAUSE', 'DISCOUNT', 'CONTACT', 'PLAN_CHANGE', 'REDIRECT', 'TRIAL_EXTENSION', 'REBATE'])
     .optional()
     .describe('Change the offer type. Switching type seeds default config for the new type.'),
   header: z.string().optional().describe('Offer headline. Clears stale offer translations.'),
@@ -322,7 +344,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Patch the type and functional config of a single offer on a draft blueprint, without sending the full steps array. Offers attach in three places: an offer step (pass stepGuid only), a survey choice (pass stepGuid + choiceGuid), or a structured follow-up option (pass stepGuid + choiceGuid + optionGuid). The offer must already exist at that location. If you pass a published blueprint ID, the API resolves it to the working copy.',
         '',
-        "Change offerType and/or its config: DISCOUNT (couponId, or customAmount in cents + customDuration, or autoOptimize), PAUSE (maxPauseLength + pauseInterval, datePicker), TRIAL_EXTENSION (trialExtensionDays), REDIRECT (redirectUrl, redirectLabel), PLAN_CHANGE (options), CONTACT (no config). You may also set header/description. Config is validated against the offer's offerType; switching type seeds default config.",
+        "Change offerType and/or its config: DISCOUNT (couponId, or customAmount in cents + customDuration, or autoOptimize), PAUSE (maxPauseLength + pauseInterval, datePicker), TRIAL_EXTENSION (trialExtensionDays), REDIRECT (redirectUrl, redirectLabel), PLAN_CHANGE (options), REBATE (fixedAmounts or percentAmount, mbgWindowDays, invoiceScope), CONTACT (no config). You may also set header/description. Config is validated against the offer's offerType; switching type seeds default config.",
         '',
         'Config changes do not affect translations; header/description changes clear stale offer translations (refreshed on publish).',
         '',

@@ -221,6 +221,57 @@ describe('blueprintTools', () => {
     ).rejects.toThrow('optionGuid requires choiceGuid.')
   })
 
+  it('accepts currency-specific rebate configuration', async () => {
+    const { tool, post } = findTool('update_blueprint_offer')
+    const input = {
+      blueprintId: 'bp_123',
+      stepGuid: 'step_1',
+      offerType: 'REBATE' as const,
+      config: {
+        amountType: 'FIXED' as const,
+        fixedAmounts: [
+          { currency: 'USD', amountMinor: 5000 },
+          { currency: 'eur', amountMinor: 4500 },
+        ],
+        mbgWindowDays: 30,
+        invoiceScope: 'LATEST_PAID' as const,
+      },
+    }
+
+    const parsed = tool.inputSchema.parse(input)
+    await tool.handler(parsed)
+    expect(post).toHaveBeenCalledWith('/data/blueprints/bp_123/offer', {
+      body: {
+        stepGuid: 'step_1',
+        offerType: 'REBATE',
+        config: {
+          ...input.config,
+          fixedAmounts: [
+            { currency: 'usd', amountMinor: 5000 },
+            { currency: 'eur', amountMinor: 4500 },
+          ],
+        },
+      },
+    })
+    expect(() =>
+      tool.inputSchema.parse({
+        ...input,
+        config: { fixedAmounts: [{ currency: 'US', amountMinor: 5000 }] },
+      }),
+    ).toThrow()
+    expect(() =>
+      tool.inputSchema.parse({
+        ...input,
+        config: {
+          fixedAmounts: [
+            { currency: 'usd', amountMinor: 5000 },
+            { currency: 'USD', amountMinor: 4500 },
+          ],
+        },
+      }),
+    ).toThrow()
+  })
+
   it('routes edit_survey_structure with the op body', async () => {
     const { tool, post } = findTool('edit_survey_structure')
 
