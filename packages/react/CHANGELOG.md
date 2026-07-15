@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.7.2 — 2026-07-15
+
+### Fixed
+
+- Dashboard-authored rich text now preserves bold, italic, unordered and ordered lists, links, responsive images, and video in the default step components. Previously, the SDK's scoped CSS reset flattened text emphasis and list markers; the restored styles match the flow builder's compact content rhythm.
+
 ## 0.7.1 — 2026-07-14
 
 ### Added
