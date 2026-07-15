@@ -36,6 +36,23 @@ describe('blueprintTools', () => {
     expect(get).toHaveBeenCalledWith('/data/blueprints/bp_123')
   })
 
+  it('routes create_blueprint with template and confirmation', async () => {
+    const { tool, post } = findTool('create_blueprint')
+    const args = {
+      template: 'BASIC' as const,
+      name: 'Test default flow',
+      primaryColor: '#123456',
+      confirm: 'create_blueprint' as const,
+    }
+
+    await tool.handler(args)
+
+    expect(post).toHaveBeenCalledWith('/data/blueprints', { body: args })
+    expect(() => tool.inputSchema.parse(args)).not.toThrow()
+    expect(() => tool.inputSchema.parse({ ...args, template: 'UNKNOWN' })).toThrow()
+    expect(() => tool.inputSchema.parse({ ...args, confirm: 'yes' })).toThrow()
+  })
+
   it('routes update_blueprint_draft with only the updates payload in the body', async () => {
     const { tool, post } = findTool('update_blueprint_draft')
     const updates = {
