@@ -275,17 +275,75 @@
   margin: 0 0 20px;
 }
 
-/* Embedded video (YouTube/Vimeo/Wistia/Brightcove iframes) authored into a
-   step description. Overrides the inline height="480" the TipTap YouTube node
-   emits and makes the player fill the width at a 16:9 box. */
-.ck-cancel-flow .ck-step-description :is(iframe, video),
-.ck-cancel-flow .ck-step-description [data-youtube-video] {
+/* --- Dashboard-authored rich text ---
+   The scoped reset above keeps host-app element styles out of the flow, but
+   it also neutralizes semantic HTML defaults. Restore those semantics only
+   inside RichText so SDK chrome remains fully normalized. :where() keeps the
+   selectors easy for consumers to override while .ck-rich-text provides
+   enough specificity to beat the reset. */
+.ck-cancel-flow .ck-rich-text :where(strong, b) {
+  font-weight: 700;
+}
+
+.ck-cancel-flow .ck-rich-text :where(em, i) {
+  font-style: italic;
+}
+
+.ck-cancel-flow .ck-rich-text :where(u) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ck-cancel-flow .ck-rich-text :where(s, del) {
+  text-decoration: line-through;
+}
+
+.ck-cancel-flow .ck-rich-text :where(a) {
+  color: var(--ck-color-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ck-cancel-flow .ck-rich-text :where(a:hover) {
+  color: var(--ck-color-primary-hover);
+}
+
+.ck-cancel-flow .ck-rich-text :where(ul, ol) {
+  /* Match the TipTap builder preview. The SDK reset already supplies the
+     compact zero-margin rhythm used by both the builder and embed. */
+  padding-inline-start: 1.1em;
+}
+
+.ck-cancel-flow .ck-rich-text :where(ul) {
+  list-style: disc outside;
+}
+
+.ck-cancel-flow .ck-rich-text :where(ol) {
+  list-style: decimal outside;
+}
+
+.ck-cancel-flow .ck-rich-text :where(li > p) {
+  margin: 0;
+}
+
+.ck-cancel-flow .ck-rich-text :where(img) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Embedded video (YouTube/Vimeo/Wistia/Brightcove). Overrides the inline
+   height="480" the TipTap YouTube node emits and makes the player fill the
+   available width at a 16:9 ratio. */
+.ck-cancel-flow .ck-rich-text :where(iframe, video),
+.ck-cancel-flow .ck-rich-text :where([data-youtube-video]) {
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;
   border: 0;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 /* --- Buttons --- */

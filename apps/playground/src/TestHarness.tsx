@@ -23,6 +23,7 @@ type Scenario =
   | 'custom-steps'
   | 'all-offers'
   | 'standalone-offer'
+  | 'rich-text'
   | 'color-scheme'
   | 'i18n'
 
@@ -68,6 +69,11 @@ const SCENARIOS: { id: Scenario; label: string; description: string }[] = [
     id: 'standalone-offer',
     label: 'Standalone Offer (No Survey)',
     description: 'Flow starts on an OFFER step — proactive save offer before any survey.',
+  },
+  {
+    id: 'rich-text',
+    label: 'Rich Text Parity',
+    description: 'Builder-shaped bold, italic, list, and link HTML rendered through the SDK reset.',
   },
   {
     id: 'color-scheme',
@@ -296,6 +302,37 @@ const standaloneOfferSteps: Step[] = [
         cta: 'Claim 30% off',
         declineCta: 'No thanks, continue',
       },
+    },
+  },
+  { type: 'confirm' },
+  successStep,
+]
+
+// Mirrors the TipTap HTML shape emitted by the dashboard flow builder. Keep
+// this as a manual visual fixture alongside the computed-style regression test
+// so changes to the SDK reset can be checked in a real modal.
+const richTextSteps: Step[] = [
+  {
+    type: 'offer',
+    title: 'Want to go month-to-month instead?',
+    description: `
+      <ul>
+        <li><p><em>2 new stock recommendations every month</em></p></li>
+        <li><p>Monthly Top 10 Rankings from our analysts</p></li>
+        <li><p><strong>Ongoing commentary and updates</strong></p></li>
+      </ul>
+      <p><a href="https://example.com">See plan details</a></p>
+    `,
+    offer: {
+      type: 'plan_change',
+      plans: [
+        {
+          id: 'stock-advisor',
+          name: 'Stock Advisor',
+          amount: { value: 3900, currency: 'USD' },
+          duration: { interval: 'month' },
+        },
+      ],
     },
   },
   { type: 'confirm' },
@@ -695,8 +732,10 @@ export function TestHarness() {
     }
   }, [log])
 
-  const customer: DirectCustomer | undefined =
-    scenario !== 'open-source' ? { id: customerId || 'cus_test', email: customerEmail || undefined } : undefined
+  const isLocalOnly = scenario === 'open-source' || scenario === 'rich-text'
+  const customer: DirectCustomer | undefined = !isLocalOnly
+    ? { id: customerId || 'cus_test', email: customerEmail || undefined }
+    : undefined
 
   // Half-typed JSON shouldn't take down the harness — invalid input just
   // means no attributes are passed.
@@ -762,6 +801,8 @@ export function TestHarness() {
         return allOffersSteps
       case 'standalone-offer':
         return standaloneOfferSteps
+      case 'rich-text':
+        return richTextSteps
       case 'i18n':
         return i18nSteps
       case 'token':
@@ -787,9 +828,9 @@ export function TestHarness() {
     log(`step: ${prevStep} → ${step}`)
   }
 
-  const needsAppId = scenario !== 'open-source'
+  const needsAppId = !isLocalOnly
   const needsApiKey = needsToken
-  const needsCustomer = scenario !== 'open-source' && scenario !== 'color-scheme'
+  const needsCustomer = !isLocalOnly && scenario !== 'color-scheme'
 
   const missing: string[] = []
   if (needsAppId && !appId) missing.push('App ID')
@@ -901,8 +942,8 @@ export function TestHarness() {
         </div>
       </fieldset>
 
-      {/* Mode (does not apply to open-source — no session is recorded) */}
-      {scenario !== 'open-source' && (
+      {/* Local-only scenarios do not record a session. */}
+      {!isLocalOnly && (
         <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginBottom: 16 }}>
           <legend style={{ fontSize: 13, fontWeight: 600, color: '#374151', padding: '0 4px' }}>Session mode</legend>
           <div style={{ display: 'flex', gap: 6 }}>

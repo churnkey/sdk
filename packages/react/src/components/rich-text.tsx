@@ -5,6 +5,8 @@
 // reaches this component. If we ever need stricter hardening, sanitization
 // (e.g. DOMPurify) should go here, not at every call site.
 
+import { cn } from '../core/utils'
+
 type RichTextTag = 'p' | 'div' | 'span'
 
 interface RichTextProps {
@@ -18,7 +20,10 @@ export function RichText({ html, as = 'p', className }: RichTextProps) {
   const Tag = as
   return (
     <Tag
-      className={className}
+      // The SDK's scoped reset intentionally neutralizes bare HTML elements
+      // so host-app styles cannot leak into the flow. This class opts authored
+      // content back into the semantic prose rules in cancel-flow.css.
+      className={cn('ck-rich-text', className)}
       // biome-ignore lint/security/noDangerouslySetInnerHtml: see file-level comment
       dangerouslySetInnerHTML={{ __html: html }}
     />
