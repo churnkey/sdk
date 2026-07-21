@@ -56,6 +56,42 @@ describe('transformSdkConfig', () => {
     expect(steps[2].type).toBe('confirm')
   })
 
+  it('keeps server copy and decisionId on survey-attached offers', () => {
+    const config = {
+      blueprintId: 'bp_1',
+      steps: [
+        {
+          type: 'survey',
+          guid: 's1',
+          reasons: [
+            {
+              id: 'r1',
+              label: 'Billing timing',
+              offer: {
+                type: 'annual_term_extension',
+                data: { days: 23 },
+                decisionId: 'dec_1',
+                copy: { headline: 'Extend your term!', body: 'Take it', cta: 'Accept', declineCta: 'No thanks' },
+              },
+            },
+          ],
+        },
+      ],
+      customer: { id: 'cus_1' },
+      subscriptions: [],
+      settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false },
+    } as unknown as SdkConfig
+
+    const { steps } = transformSdkConfig(config)
+    const reason = (steps[0] as { reasons: { offer?: Record<string, unknown> }[] }).reasons[0]
+    expect(reason.offer).toMatchObject({
+      type: 'annual_term_extension',
+      data: { days: 23 },
+      decisionId: 'dec_1',
+      copy: { headline: 'Extend your term!' },
+    })
+  })
+
   it('preserves resolved discount fields on the step-attached offer', () => {
     const config: SdkConfig = {
       blueprintId: 'bp_1',

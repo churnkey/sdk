@@ -138,6 +138,31 @@ The step system is open. Use any string as a step type, then register a componen
 
 Custom steps navigate like built-in ones. Custom offers appear when a matching reason is selected. Whatever you pass to `onNext(result)` or `onAccept(result)` shows up on `offer.result` in your `onAccept` handler, and is recorded with the session for analytics (as `customStepResults[stepType]` for steps, `acceptedOffer.customOfferResult` for offers).
 
+## Prebuilt custom-offer components
+
+If you'd rather not build a custom offer's UI yourself, import a prebuilt one from `@churnkey/react/recipes`. They render with the same styling system as the built-in offers and pass their result through `onAccept`, so you only implement the billing side.
+
+```tsx
+import { TermExtensionOffer, PassthroughOffer } from '@churnkey/react/recipes'
+
+<CancelFlow
+  customComponents={{
+    // "Delay your next charge by N days". Reads offer.data.days, shows the
+    // new renewal date, passes { days } through onAccept.
+    annual_term_extension: TermExtensionOffer,
+    // Copy + accept/decline, nothing else. Register it for any offer type
+    // whose substance lives entirely in the flow-authored copy; offer.data
+    // passes through as the result.
+    scheduled_transfer: PassthroughOffer,
+    immediate_transfer: PassthroughOffer,
+  }}
+  onAccept={handleOffer}
+  onCancel={handleCancel}
+/>
+```
+
+The components live behind a subpath export, so they add nothing to your bundle unless imported. For full presentation control, copy a template from `packages/react/examples/` into your codebase instead and own it from there.
+
 ## Go headless
 
 Use the hook directly if you want full control over the UI.
@@ -319,6 +344,7 @@ Local steps override by type. Steps not in the server config are appended.
 import { CancelFlow } from '@churnkey/react'              // drop-in component
 import { useCancelFlow } from '@churnkey/react/headless'   // headless hook
 import { CancelFlowMachine } from '@churnkey/react/core'   // state machine, no React
+import { TermExtensionOffer } from '@churnkey/react/recipes' // prebuilt custom-offer components
 ```
 
 ## License
