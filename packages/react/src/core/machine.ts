@@ -249,7 +249,8 @@ export class CancelFlowMachine {
     if (config.mode) this.configMode = config.mode
     if (config.customerAttributes) this.customerAttributes = config.customerAttributes
     // Customer/subscription data seeds component props and merge fields in
-    // every local mode; analytics additionally needs an appId.
+    // local modes, and enriches the session payload in token mode (see
+    // resolveSessionCustomer); analytics additionally needs an appId.
     this.directCustomer = config.customer ?? null
     this.directSubscriptions = config.subscriptions ?? null
     if (config.appId && config.customer) {
