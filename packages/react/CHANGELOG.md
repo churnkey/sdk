@@ -2,6 +2,20 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.8.0 — 2026-07-22
+
+### Added
+
+- `@churnkey/react/recipes` subpath export with prebuilt custom-offer components, registered via `customComponents` like any custom offer:
+  - `TermExtensionOffer` — merchant-executed "delay your next charge by N days". Reads `offer.data.days`, shows the extension badge and the new renewal date computed from the first subscription's current period end (date omitted when unavailable), and passes `{ days }` through `onAccept`.
+  - `PassthroughOffer` — renders the flow-authored copy with accept/decline and passes `offer.data` through `onAccept` verbatim. Register one component under any number of copy-only offer types and tell them apart by `offer.type` in your handler.
+- `ReasonConfig.offer` now accepts an `OfferDecision`, so survey-attached offers can carry inline `copy` in local mode the same way standalone offer steps do.
+
+### Fixed
+
+- Local mode without an `appId` now seeds `customer` and `subscriptions` props into flow state; previously they were silently dropped, so components (including the confirm step's period-end notice) never saw subscription data.
+- Connected mode no longer loses server-resolved `copy` and `decisionId` on survey-attached offers. Flows rendered synthesized default copy ("Before you go...") instead of the dashboard's for every offer type reached through a survey reason, and the presented/accepted analytics join on `decisionId` was broken.
+
 ## 0.7.2 — 2026-07-15
 
 ### Fixed
