@@ -12,6 +12,7 @@ export default defineConfig({
       // Vite handles the TypeScript natively.
       '@churnkey/react/headless': path.resolve(reactSrc, 'headless/index.ts'),
       '@churnkey/react/core': path.resolve(reactSrc, 'core/index.ts'),
+      '@churnkey/react/recipes': path.resolve(reactSrc, 'recipes/index.ts'),
       '@churnkey/react/styles.css': path.resolve(reactSrc, 'styles/cancel-flow.css'),
       '@churnkey/react': path.resolve(reactSrc, 'index.ts'),
     },

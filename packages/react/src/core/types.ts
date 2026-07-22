@@ -228,7 +228,12 @@ export interface ReasonConfig {
    * static `label`, so analytics groupings stay stable.
    */
   freeform?: boolean
-  offer?: OfferConfig
+  /**
+   * Offer revealed when this reason is picked. `copy` is optional — the SDK
+   * synthesizes default copy from the offer config when none is provided,
+   * same as standalone offer steps.
+   */
+  offer?: OfferConfig | OfferDecision
 }
 
 // ─── Steps ───────────────────────────────────────────────────────────────────

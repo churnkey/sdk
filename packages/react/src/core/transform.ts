@@ -69,7 +69,10 @@ function transformReason(r: SdkReason): ReasonConfig {
     label: r.label,
   }
   if (r.freeform) out.freeform = true
-  if (r.offer) out.offer = transformOfferConfig(r.offer)
+  // Keep the full decision — server-resolved copy and decisionId — so
+  // survey-attached offers render dashboard copy instead of the synthesized
+  // defaults, and presented/accepted analytics join on decisionId.
+  if (r.offer) out.offer = transformOfferDecision(r.offer)
   return out
 }
 

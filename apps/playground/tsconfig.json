@@ -5,5 +5,5 @@
     "noEmit": true,
     "types": ["vite/client"]
   },
-  "include": ["src", "../../packages/react/recipes"]
+  "include": ["src", "../../packages/react/examples"]
 }

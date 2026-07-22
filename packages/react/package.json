@@ -52,6 +52,16 @@
         "default": "./dist/core.cjs"
       }
     },
+    "./recipes": {
+      "import": {
+        "types": "./dist/recipes.d.ts",
+        "default": "./dist/recipes.js"
+      },
+      "require": {
+        "types": "./dist/recipes.d.cts",
+        "default": "./dist/recipes.cjs"
+      }
+    },
     "./styles.css": {
       "types": "./dist/styles.css.d.ts",
       "default": "./dist/styles.css"

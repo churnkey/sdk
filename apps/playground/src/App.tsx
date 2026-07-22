@@ -1,6 +1,13 @@
 import { CancelFlow } from '@churnkey/react'
-import type { CustomOfferProps, CustomStepProps, ReasonButtonProps, Step } from '@churnkey/react/core'
+import type {
+  CustomOfferProps,
+  CustomStepProps,
+  DirectSubscription,
+  ReasonButtonProps,
+  Step,
+} from '@churnkey/react/core'
 import { useCancelFlow } from '@churnkey/react/headless'
+import { PassthroughOffer, TermExtensionOffer } from '@churnkey/react/recipes'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import '@churnkey/react/styles.css'
@@ -439,6 +446,100 @@ function CustomStepDemo() {
   )
 }
 
+// --- 5b. Prebuilt recipes (@churnkey/react/recipes) ---
+
+const recipeSubscriptions: DirectSubscription[] = [
+  {
+    id: 'sub_demo',
+    start: '2026-01-01T00:00:00Z',
+    status: {
+      name: 'active',
+      currentPeriod: { start: '2026-07-01T00:00:00Z', end: '2026-08-01T00:00:00Z' },
+    },
+    items: [],
+  },
+]
+
+const recipeDemoSteps: Step[] = [
+  {
+    type: 'survey',
+    title: 'Why are you cancelling?',
+    reasons: [
+      {
+        id: 'term',
+        label: 'Billing timing (→ term extension)',
+        offer: {
+          type: 'annual_term_extension',
+          data: { days: 30 },
+          copy: {
+            headline: 'Push your next charge back a month',
+            body: 'Keep full access — your renewal just moves 30 days out.',
+            cta: 'Extend my term',
+            declineCta: 'No thanks',
+          },
+        },
+      },
+      {
+        id: 'scheduled',
+        label: 'Wrong plan (→ scheduled transfer)',
+        offer: {
+          type: 'scheduled_transfer',
+          copy: {
+            headline: 'Switch plans at renewal',
+            body: 'We will move you to the annual plan when this period ends.',
+            cta: 'Schedule the switch',
+            declineCta: 'No thanks',
+          },
+        },
+      },
+      {
+        id: 'immediate',
+        label: 'Switch now (→ immediate transfer)',
+        offer: {
+          type: 'immediate_transfer',
+          copy: {
+            headline: 'Switch plans today',
+            body: 'We will move you to the annual plan right away, prorated.',
+            cta: 'Switch now',
+            declineCta: 'No thanks',
+          },
+        },
+      },
+    ],
+  },
+  { type: 'confirm' },
+]
+
+function RecipesDemo() {
+  const [open, setOpen] = useState(false)
+  return (
+    <section>
+      <h2 style={{ marginBottom: 4 }}>5b. Prebuilt Recipes</h2>
+      <p style={descStyle}>
+        <code>TermExtensionOffer</code> and <code>PassthroughOffer</code> imported from{' '}
+        <code>@churnkey/react/recipes</code> — accepted payloads land in the console.
+      </p>
+      <button type="button" onClick={() => setOpen(true)} style={btnStyle}>
+        Open
+      </button>
+      {open && (
+        <CancelFlow
+          steps={recipeDemoSteps}
+          subscriptions={recipeSubscriptions}
+          customComponents={{
+            annual_term_extension: TermExtensionOffer,
+            scheduled_transfer: PassthroughOffer,
+            immediate_transfer: PassthroughOffer,
+          }}
+          onAccept={handleAccept}
+          onCancel={handleCancel}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </section>
+  )
+}
+
 // --- 6. Headless ---
 
 function HeadlessDemo() {
@@ -557,6 +658,14 @@ function TokenModeDemo() {
         <CancelFlow
           session={activeToken}
           apiBaseUrl={apiBaseUrl}
+          // Attribute layer for server-side segment matching — the API picks
+          // the blueprint whose segment filter matches these values.
+          customerAttributes={{ plan_tier: 'legacy' }}
+          customComponents={{
+            annual_term_extension: TermExtensionOffer,
+            scheduled_transfer: PassthroughOffer,
+            immediate_transfer: PassthroughOffer,
+          }}
           onAccept={async (offer) => console.log('Accepted:', offer)}
           onCancel={async () => console.log('Cancelled')}
           onClose={() => setOpen(false)}
@@ -584,6 +693,7 @@ export function App() {
         <AllOfferTypesDemo />
         <ComponentOverrideDemo />
         <CustomStepDemo />
+        <RecipesDemo />
         <HeadlessDemo />
         <TokenModeDemo />
       </div>

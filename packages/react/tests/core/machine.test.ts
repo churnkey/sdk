@@ -59,6 +59,27 @@ describe('CancelFlowMachine', () => {
       const machine = new CancelFlowMachine(baseConfig)
       expect(machine.currentOffer).toBeNull()
     })
+
+    // Regression: these props used to be stored only when appId was set, so
+    // pure local-mode components never saw customer or subscription data.
+    it('seeds customer and subscriptions into state in local mode without appId', () => {
+      const machine = new CancelFlowMachine({
+        ...baseConfig,
+        customer: { id: 'cus_1', email: 'c@example.com' },
+        subscriptions: [
+          {
+            id: 'sub_1',
+            start: '2026-01-01T00:00:00Z',
+            status: { name: 'active', currentPeriod: { start: '2026-07-01T00:00:00Z', end: '2026-08-01T00:00:00Z' } },
+            items: [],
+          },
+        ],
+      })
+      const state = machine.getSnapshot()
+      expect(state.customer?.id).toBe('cus_1')
+      expect(state.subscriptions).toHaveLength(1)
+      expect(state.subscriptions[0].id).toBe('sub_1')
+    })
   })
 
   describe('selectReason', () => {

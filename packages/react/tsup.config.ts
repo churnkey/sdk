@@ -6,6 +6,7 @@ export default defineConfig({
     'index': 'src/index.ts',
     'headless': 'src/headless/index.ts',
     'core': 'src/core/index.ts',
+    'recipes': 'src/recipes/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,
