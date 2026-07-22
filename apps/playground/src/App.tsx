@@ -658,7 +658,9 @@ function TokenModeDemo() {
         <CancelFlow
           session={activeToken}
           apiBaseUrl={apiBaseUrl}
-          customerAttributes={{ license_plate: 'kekis' }}
+          // Attribute layer for server-side segment matching — the API picks
+          // the blueprint whose segment filter matches these values.
+          customerAttributes={{ plan_tier: 'legacy' }}
           customComponents={{
             annual_term_extension: TermExtensionOffer,
             scheduled_transfer: PassthroughOffer,
