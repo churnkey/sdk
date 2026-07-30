@@ -174,6 +174,21 @@ describe('ChurnkeyClient — mapErrorMessage per auth kind', () => {
     await expect(dataClient().get('/data/x')).rejects.toThrow(/CHURNKEY_APP_ID/)
   })
 
+  it('401 bare body for a hosted bearer token → connector hint, never the CLI command', async () => {
+    // The hosted transport has no local token store, so `auth login` is not a
+    // thing the caller can do — surfacing it is what pushed connector users into
+    // re-authorizing by hand (XDEV-2487).
+    fetchOnce('unauthorized', 401)
+    const client = new ChurnkeyClient({
+      baseUrl: 'https://api.example.com/v1',
+      auth: { kind: 'bearer', token: 'ck_oat_x' },
+    })
+    const err = await client.get('/data/x').catch((e: Error) => e)
+    expect(err).toBeInstanceOf(Error)
+    expect((err as Error).message).toMatch(/reconnect the Churnkey connector/i)
+    expect((err as Error).message).not.toMatch(/auth login/)
+  })
+
   it('401 with a short (<25 char) message falls back to the hint', async () => {
     fetchOnce('nope', 401)
     await expect(dataClient().get('/data/x')).rejects.toThrow(/credentials/i)

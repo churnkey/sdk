@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto'
 import { createServer as createNodeServer, type IncomingHttpHeaders, type ServerResponse } from 'node:http'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { DEFAULT_SCOPES } from './auth/oauth'
@@ -7,11 +6,15 @@ import { createServer } from './server'
 
 type HttpServer = ReturnType<typeof createNodeServer>
 
-interface HttpSession {
-  transport: StreamableHTTPServerTransport
-}
-
 const PROTECTED_RESOURCE_PATH = '/.well-known/oauth-protected-resource'
+
+/**
+ * Thrown when a request carries no usable Churnkey credentials. Distinguished
+ * from every other failure so only a genuine auth problem answers with 401 +
+ * WWW-Authenticate — an unrelated crash answering 401 tells an OAuth client its
+ * token is dead and sends the user back through the consent screen for nothing.
+ */
+class MissingCredentialsError extends Error {}
 
 // The canonical public URL of THIS MCP server (e.g. https://mcp.churnkey.co),
 // advertised as the OAuth resource identifier. Defaults to the local bind
@@ -32,7 +35,6 @@ function resolveAuthorizationServer(env: NodeJS.ProcessEnv): string {
 
 export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Promise<HttpServer> {
   const config = loadHttpServerConfig(env)
-  const sessions = new Map<string, HttpSession>()
   // Recomputed once the server is listening so an ephemeral (port 0) bind
   // advertises its real port; the request handler reads these by reference.
   let publicUrl = resolvePublicUrl(config, env)
@@ -85,46 +87,55 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
         return
       }
 
-      const sessionId = getHeader(req.headers, 'mcp-session-id')
-      const existing = sessionId ? sessions.get(sessionId) : undefined
-
-      if (existing) {
-        await existing.transport.handleRequest(req, res)
-        return
-      }
-
-      if (sessionId) {
-        res.writeHead(404, { 'content-type': 'text/plain' }).end('MCP session not found')
-        return
-      }
-
       if (req.method !== 'POST') {
-        // A GET/DELETE with no session is a transport probe, not a stream. MCP
-        // clients (notably Claude.ai) expect 405 + Allow here; a 400 breaks
-        // their transport detection.
+        // Stateless mode has no standalone SSE stream and no session to delete,
+        // so GET/DELETE are transport probes. MCP clients (notably Claude.ai)
+        // expect 405 + Allow here; a 400 breaks their transport detection, and
+        // 405 is the spec's sanctioned "session termination not supported".
         res.writeHead(405, { 'content-type': 'text/plain', allow: 'POST' }).end('Method Not Allowed')
         return
       }
 
-      const requestConfig = loadHttpRequestConfig(toFetchHeaders(req.headers), env)
-      const server = createServer(requestConfig)
-      const transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: randomUUID,
-        onsessioninitialized: (initializedSessionId) => {
-          sessions.set(initializedSessionId, { transport })
-        },
-      })
-
-      transport.onclose = () => {
-        const initializedSessionId = transport.sessionId
-        if (initializedSessionId) sessions.delete(initializedSessionId)
+      // Credentials are read from THIS request, every request — the transport is
+      // stateless (`sessionIdGenerator: undefined`), so a fresh server+client
+      // pair is built per request and nothing carries over between them.
+      //
+      // Load-bearing, not stylistic. While the transport was stateful the bearer
+      // token was captured once on `initialize` and reused for the life of the
+      // session, so a hosted OAuth session died as soon as its 1-hour access
+      // token expired: the client refreshed correctly, the new token arrived on
+      // later requests, and we ignored it (XDEV-2487). Reading the header per
+      // request is what lets a refreshed token take effect. It also drops the
+      // sticky-routing requirement, and matches where the protocol is going —
+      // SEP-2575 removes Mcp-Session-Id and requires every request to be
+      // authenticated on its own. A stale session id from a client that
+      // connected before this change is simply ignored, so live sessions
+      // migrate without a reconnect.
+      let requestConfig: ReturnType<typeof loadHttpRequestConfig>
+      try {
+        requestConfig = loadHttpRequestConfig(toFetchHeaders(req.headers), env)
+      } catch (err) {
+        throw new MissingCredentialsError(err instanceof Error ? err.message : String(err))
       }
+
+      const server = createServer(requestConfig)
+      const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
+      // Per-request lifetime: tear both down once the response is done, or the
+      // per-request servers would accumulate exactly like the sessions did.
+      res.once('close', () => {
+        void transport.close()
+        void server.close()
+      })
 
       await server.connect(transport)
       await transport.handleRequest(req, res)
     } catch (err) {
-      if (!res.headersSent) {
-        const message = err instanceof Error ? err.message : String(err)
+      if (res.headersSent) {
+        res.end()
+        return
+      }
+      const message = err instanceof Error ? err.message : String(err)
+      if (err instanceof MissingCredentialsError) {
         // Point OAuth-capable MCP clients at the resource metadata (MCP auth spec).
         res
           .writeHead(401, {
@@ -132,9 +143,11 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
             'www-authenticate': `Bearer resource_metadata="${resourceMetadataUrl}"`,
           })
           .end(message)
-      } else {
-        res.end()
+        return
       }
+      // Anything else is our fault, not the caller's credentials. Answering 401
+      // here would make an OAuth client discard a perfectly good token.
+      res.writeHead(500, { 'content-type': 'text/plain' }).end(message)
     }
   })
 
@@ -152,14 +165,6 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
   const boundPort = typeof address === 'object' && address !== null ? address.port : config.port
   publicUrl = resolvePublicUrl(config, env, boundPort)
   resourceMetadataUrl = `${publicUrl}${PROTECTED_RESOURCE_PATH}`
-
-  const closeSessions = async () => {
-    await Promise.all([...sessions.values()].map(({ transport }) => transport.close()))
-    sessions.clear()
-  }
-  httpServer.once('close', () => {
-    void closeSessions()
-  })
 
   console.error(`Churnkey MCP HTTP server listening at http://${config.host}:${boundPort}${config.path}`)
   return httpServer

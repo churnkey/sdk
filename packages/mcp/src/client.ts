@@ -128,6 +128,12 @@ function unauthorizedHint(authKind: ChurnkeyAuth['kind']): string {
   if (authKind === 'data-api-key') {
     return 'Churnkey API rejected the credentials. Check CHURNKEY_APP_ID and CHURNKEY_API_KEY in your MCP server config — or switch to OAuth with `npx @churnkey/mcp auth login`.'
   }
+  if (authKind === 'bearer') {
+    // Hosted transport: the MCP client owns the token and its refresh, so there
+    // is no CLI to run. Telling a connector user to run `auth login` sent them
+    // to re-authorize by hand — the one instruction that must NOT appear here.
+    return 'Churnkey rejected the OAuth access token (expired or revoked). Your MCP client should refresh it automatically; if this persists, reconnect the Churnkey connector.'
+  }
   return 'Churnkey API rejected the OAuth session (expired or revoked). Run `npx @churnkey/mcp auth login` to sign in again.'
 }
 
