@@ -2,6 +2,16 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 1.1.1 — 2026-07-30
+
+### Fixed
+
+- Hosted HTTP transport: the OAuth bearer token is now read from every request instead of being captured once on `initialize` and reused for the life of the session. A session pinned to an expired access token kept failing even after the client sent a refreshed one, so hosted connectors stopped working an hour after connecting and only recovered when the user re-authorized. The transport is now stateless (no `Mcp-Session-Id`), which also removes the per-session server accumulation and the sticky-routing requirement. Clients connected before the upgrade migrate without reconnecting — an unrecognized session id is ignored rather than rejected.
+- Only a genuine missing-credentials failure answers `401` with `WWW-Authenticate`; other errors now answer `500`. The previous catch-all returned `401` for any thrown error, which told OAuth clients their token was invalid when it was fine.
+- The `401` hint for hosted bearer tokens no longer suggests running `npx @churnkey/mcp auth login`. That path has no local token store, so the advice was not actionable and pushed connector users into re-authorizing by hand.
+
+Local stdio users were unaffected by all three — that path refreshes its own token and retries on `401`.
+
 ## 1.1.0 — 2026-07-15
 
 ### Added

@@ -80,7 +80,7 @@ afterEach(() => {
 describe('server metadata', () => {
   it('exposes a stable name + version', () => {
     expect(SERVER_NAME).toBe('churnkey-mcp')
-    expect(SERVER_VERSION).toBe('1.1.0')
+    expect(SERVER_VERSION).toBe('1.1.1')
   })
 
   it('builds without throwing for each auth kind', () => {
