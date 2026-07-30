@@ -1,4 +1,4 @@
-import { request as httpRequest, type Server } from 'node:http'
+import { createServer as createNodeServer, request as httpRequest, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { afterEach, describe, expect, it } from 'vitest'
 import { startHttpServer } from '../src/http'
@@ -69,7 +69,7 @@ describe('http — routing', () => {
     expect(res.status).toBe(405)
   })
 
-  it('GET to /mcp with no session id → 405 Method Not Allowed + Allow: POST', async () => {
+  it('GET to /mcp → 405 Method Not Allowed + Allow: POST', async () => {
     const { base } = await start()
     const res = await fetch(`${base}/mcp`, { method: 'GET' })
     expect(res.status).toBe(405)
@@ -77,15 +77,20 @@ describe('http — routing', () => {
     expect(await res.text()).toBe('Method Not Allowed')
   })
 
-  it('request with an unknown mcp-session-id → 404 session not found', async () => {
+  it('ignores an unrecognized mcp-session-id instead of 404ing (stateless: clients that connected before the change keep working)', async () => {
     const { base } = await start()
     const res = await fetch(`${base}/mcp`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'mcp-session-id': 'does-not-exist' },
-      body: '{}',
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json, text/event-stream',
+        'x-ck-app': 'app_test',
+        'x-ck-api-key': 'key_test',
+        'mcp-session-id': 'session-from-a-previous-deploy',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
     })
-    expect(res.status).toBe(404)
-    expect(await res.text()).toBe('MCP session not found')
+    expect(res.status).toBe(200)
   })
 })
 
@@ -204,7 +209,7 @@ describe('http — auth error → 401 with WWW-Authenticate', () => {
     expect(await res.text()).toMatch(/App ID|credentials/i)
   })
 
-  it('a Data API key request (valid headers) connects a session and returns a session id', async () => {
+  it('a Data API key request (valid headers) reaches the MCP transport', async () => {
     const { base } = await start()
     const res = await fetch(`${base}/mcp`, {
       method: 'POST',
@@ -225,80 +230,95 @@ describe('http — auth error → 401 with WWW-Authenticate', () => {
         },
       }),
     })
-    // The MCP transport handled it and assigned a session — proves the create/connect path runs.
+    // The transport handled it — proves the create/connect path runs.
     expect(res.status).toBe(200)
-    expect(res.headers.get('mcp-session-id')).toBeTruthy()
+    // Stateless: no session is minted, so no session id comes back.
+    expect(res.headers.get('mcp-session-id')).toBeNull()
+  })
+
+  it('a non-auth failure answers 500, NOT 401 — a 401 would make an OAuth client discard a good token', async () => {
+    const { base } = await start()
+    // A body that is not valid JSON fails inside the transport, well past the
+    // credential check. Before this was narrowed, every such failure came back
+    // as 401 + WWW-Authenticate.
+    const res = await fetch(`${base}/mcp`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json, text/event-stream',
+        'x-ck-app': 'app_test',
+        'x-ck-api-key': 'key_test',
+      },
+      body: 'not json at all',
+    })
+    expect(res.status).not.toBe(401)
+    expect(res.headers.get('www-authenticate')).toBeNull()
   })
 })
 
-describe('http — session lifecycle (create, reuse, cleanup)', () => {
-  it('reuses a session on the second request and tears it down on DELETE', async () => {
-    const { port } = await start()
-    const headers = {
-      'content-type': 'application/json',
-      accept: 'application/json, text/event-stream',
-      'x-ck-app': 'app_test',
-      'x-ck-api-key': 'key_test',
+describe('http — the bearer token is read from every request', () => {
+  /**
+   * The regression guard for XDEV-2487.
+   *
+   * A hosted OAuth access token lives one hour. MCP clients refresh it and send
+   * the new one on subsequent requests. When the transport was stateful, the
+   * token captured on `initialize` was reused for the life of the session, so
+   * every hosted connector broke exactly one hour after connecting and stayed
+   * broken until the user re-authorized by hand.
+   *
+   * Asserted against a stub API that records the Authorization header it is
+   * handed, because the only thing that actually matters is which token reaches
+   * Churnkey — not what the transport was told.
+   */
+  it('forwards the token from the CURRENT request, not the one that opened the connection', async () => {
+    const received: string[] = []
+    const api = createNodeServer((req, res) => {
+      received.push(req.headers.authorization ?? '(none)')
+      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ ok: true }))
+    })
+    await new Promise<void>((resolve) => api.listen(0, '127.0.0.1', resolve))
+    const apiPort = (api.address() as AddressInfo).port
+
+    try {
+      const { base } = await start({ CHURNKEY_API_URL: `http://127.0.0.1:${apiPort}` })
+      const first = `ck_oat_${'a'.repeat(64)}`
+      const refreshed = `ck_oat_${'b'.repeat(64)}`
+
+      // The response is an SSE stream, so it must be drained to completion —
+      // fetch resolves on headers alone, before the tool has actually run.
+      const callTool = async (token: string) => {
+        const res = await fetch(`${base}/mcp`, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            accept: 'application/json, text/event-stream',
+            authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'tools/call',
+            params: { name: 'get_account', arguments: {} },
+          }),
+        })
+        return { status: res.status, body: await res.text() }
+      }
+
+      const firstCall = await callTool(first)
+      expect(firstCall.status).toBe(200)
+      // No isError — the call actually reached the stub and succeeded.
+      expect(firstCall.body).not.toContain('isError')
+
+      const refreshedCall = await callTool(refreshed)
+      expect(refreshedCall.status).toBe(200)
+      expect(refreshedCall.body).not.toContain('isError')
+
+      expect(received).toEqual([`Bearer ${first}`, `Bearer ${refreshed}`])
+    } finally {
+      await new Promise((resolve) => api.close(resolve))
     }
-    const initRes = await rawRequest(port, {
-      method: 'POST',
-      host: '127.0.0.1',
-      headers,
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'initialize',
-        params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 't', version: '1' } },
-      }),
-    })
-    expect(initRes.status).toBe(200)
-    // Grab the session id from the response headers via a fetch (rawRequest doesn't expose them).
-    const sid = await getSessionId(port, headers)
-    expect(sid).toBeTruthy()
-
-    // Second request WITH the session id → routed to the existing transport (handleRequest path).
-    const reuse = await rawRequest(port, {
-      method: 'POST',
-      host: '127.0.0.1',
-      headers: { ...headers, 'mcp-session-id': sid! },
-      body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }),
-    })
-    // The existing transport handled it (202 Accepted for a notification, or 200) — not a 404.
-    expect(reuse.status).not.toBe(404)
-
-    // DELETE with the session id → transport closes → onclose deletes the session.
-    const del = await rawRequest(port, {
-      method: 'DELETE',
-      host: '127.0.0.1',
-      headers: { ...headers, 'mcp-session-id': sid! },
-    })
-    expect(del.status).not.toBe(404)
-
-    // After close, the session id is no longer known → 404.
-    const afterClose = await rawRequest(port, {
-      method: 'POST',
-      host: '127.0.0.1',
-      headers: { ...headers, 'mcp-session-id': sid! },
-      body: '{}',
-    })
-    expect(afterClose.status).toBe(404)
   })
 })
-
-/** Helper: initialize a session and return its mcp-session-id (fetch exposes response headers). */
-async function getSessionId(port: number, headers: Record<string, string>): Promise<string | null> {
-  const res = await fetch(`http://127.0.0.1:${port}/mcp`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'initialize',
-      params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 't', version: '1' } },
-    }),
-  })
-  return res.headers.get('mcp-session-id')
-}
 
 describe('http — protected-resource metadata default URL', () => {
   it('builds the default public URL from the CONFIGURED host:port (an explicit port)', async () => {
