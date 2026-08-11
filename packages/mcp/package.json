@@ -1,6 +1,6 @@
 {
   "name": "@churnkey/mcp",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Model Context Protocol server for Churnkey. Lets agents query sessions, payment-recovery analytics, and DSR endpoints with a Data API key.",
   "license": "MIT",
   "repository": {

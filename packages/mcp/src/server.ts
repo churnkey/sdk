@@ -5,7 +5,7 @@ import { allTools } from './tools'
 import { MODE_DATA_NOTE, MODE_TRAFFIC_NOTE } from './tools/shared'
 
 export const SERVER_NAME = 'churnkey-mcp'
-export const SERVER_VERSION = '1.1.1'
+export const SERVER_VERSION = '1.1.2'
 
 export function createServer(config: ChurnkeyMcpConfig): McpServer {
   const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION })

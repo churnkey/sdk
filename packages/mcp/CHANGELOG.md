@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 1.1.2 — 2026-08-11
+
+### Changed
+
+- `create_ab_test` now rejects an `enrollmentDays` below 7 instead of accepting values down to 1, and states the accepted 7 to 120 day range in the field description. The API used to raise anything under 7 to 7 silently and now answers `422`, so an agent got a server error where the schema can catch it and correct itself. The upper bound is unchanged.
+
 ## 1.1.1 — 2026-07-30
 
 ### Fixed
