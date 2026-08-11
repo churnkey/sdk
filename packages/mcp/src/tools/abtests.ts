@@ -40,7 +40,13 @@ export function abTestTools(client: ChurnkeyClient): ToolDefinition[] {
           ])
           .optional()
           .describe('The metric the decision should hinge on. Default revenue_per_exposure.'),
-        enrollmentDays: z.number().int().min(1).max(120).optional().describe('Enrollment window (default 7 days).'),
+        enrollmentDays: z
+          .number()
+          .int()
+          .min(7)
+          .max(120)
+          .optional()
+          .describe('Enrollment window in days, 7 to 120 (default 7).'),
         trackingDays: z
           .number()
           .int()

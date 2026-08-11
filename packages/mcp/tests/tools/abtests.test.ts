@@ -20,6 +20,17 @@ describe('A/B test tools', () => {
     expect(() => byName.pick_ab_test_winner.inputSchema.parse({ abTestId: 'a', winnerSegmentId: 's' })).toThrow()
   })
 
+  it('accepts only enrollment windows the API allows', () => {
+    const byName = Object.fromEntries(abTestTools(makeClient()).map((t) => [t.name, t]))
+    const create = (enrollmentDays: number) =>
+      byName.create_ab_test.inputSchema.parse({ confirm: 'create_ab_test', segmentId: 'seg1', enrollmentDays })
+
+    expect(create(7).enrollmentDays).toBe(7)
+    expect(create(120).enrollmentDays).toBe(120)
+    expect(() => create(6)).toThrow()
+    expect(() => create(121)).toThrow()
+  })
+
   it('routes winner picks with id in path and decision fields in body', async () => {
     const client = makeClient()
     const byName = Object.fromEntries(abTestTools(client).map((t) => [t.name, t]))
