@@ -44,6 +44,7 @@ vi.mock('../src/tools', () => ({
   },
 }))
 
+import { readFileSync } from 'node:fs'
 import type { ChurnkeyClient } from '../src/client'
 import { createServer, SERVER_NAME, SERVER_VERSION } from '../src/server'
 import { MODE_DATA_NOTE, MODE_TRAFFIC_NOTE } from '../src/tools/shared'
@@ -78,9 +79,21 @@ afterEach(() => {
 })
 
 describe('server metadata', () => {
-  it('exposes a stable name + version', () => {
+  it('exposes a stable name', () => {
     expect(SERVER_NAME).toBe('churnkey-mcp')
-    expect(SERVER_VERSION).toBe('1.1.2')
+  })
+
+  // The version is written down in three places that a release has to move
+  // together: package.json (npm), SERVER_VERSION (what the server reports over
+  // MCP), and server.json (the record in the official MCP registry). Registry
+  // aggregators cache, so a stale server.json misreports our version across
+  // every directory that ingests it, and nothing else would catch it.
+  it('keeps npm, the MCP handshake, and the registry record on one version', () => {
+    const read = (name: string) =>
+      JSON.parse(readFileSync(new URL(`../${name}`, import.meta.url), 'utf8')) as { version: string }
+
+    expect(SERVER_VERSION).toBe(read('package.json').version)
+    expect(read('server.json').version).toBe(read('package.json').version)
   })
 
   it('builds without throwing for each auth kind', () => {

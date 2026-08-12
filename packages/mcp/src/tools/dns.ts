@@ -17,7 +17,7 @@ export function dnsTools(client: ChurnkeyClient): ToolDefinition[] {
         BOUNDARY,
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async () => client.get('/data/dns'),
     },
     {
@@ -65,7 +65,7 @@ export function dnsTools(client: ChurnkeyClient): ToolDefinition[] {
       inputSchema: z.object({
         domainId: z.string().describe('Domain registration id (from get_dns_config or add_custom_domain).'),
       }),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) => {
         const { domainId } = args as { domainId: string }
         return client.get(`/data/dns/domains/${encodeURIComponent(domainId)}/status`)

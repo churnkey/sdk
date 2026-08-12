@@ -7,6 +7,7 @@ import { createServer } from './server'
 type HttpServer = ReturnType<typeof createNodeServer>
 
 const PROTECTED_RESOURCE_PATH = '/.well-known/oauth-protected-resource'
+const OPENAI_CHALLENGE_PATH = '/.well-known/openai-apps-challenge'
 
 /**
  * Thrown when a request carries no usable Churnkey credentials. Distinguished
@@ -74,6 +75,23 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
             resource_documentation: 'https://docs.churnkey.co/data-integrations/mcp',
           }),
         )
+        return
+      }
+
+      // OpenAI's plugin directory verifies domain ownership by fetching a token
+      // it issued. It matches on scheme + host only (paths are ignored), so the
+      // parent origin would also satisfy it — serving it here keeps the listing
+      // artifacts next to the OAuth well-knowns instead of stranding a file with
+      // no obvious owner in the marketing site. The body must be the bare token:
+      // no JSON, no trailing content. Sourced from the environment so re-issuing
+      // a token is a config change rather than a deploy.
+      if (requestUrl.pathname === OPENAI_CHALLENGE_PATH) {
+        const token = env.CHURNKEY_MCP_OPENAI_CHALLENGE_TOKEN
+        if (!token) {
+          res.writeHead(404, { 'content-type': 'text/plain' }).end('Not found')
+          return
+        }
+        res.writeHead(200, { 'content-type': 'text/plain' }).end(token)
         return
       }
 

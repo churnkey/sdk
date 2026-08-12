@@ -13,7 +13,7 @@ export function abTestTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         "All cancel-flow A/B tests with lifecycle state (draft / enrolling / tracking / awaiting_decision / paused / completed / abandoned), hypothesis, primary metric, the two arm segment ids, winner + rationale, and cached final metrics for completed tests. Tests are two-arm with an implicit 50/50 split — traffic-split configuration and multivariate tests aren't supported.",
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async () => client.get('/data/ab-tests'),
     },
     {
@@ -111,7 +111,7 @@ export function abTestTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Per-arm performance (sessions, saves, save rate, revenue per exposure, offer breakdown) with statistical significance (confidence, p-value) for the primary metric. Significance needs >= 30 sessions per arm — below that confidence reads 0. ALWAYS read this before pick_ab_test_winner and quote the confidence + sample sizes to the user. Warehouse-backed (~3h lag).',
       inputSchema: z.object({ abTestId }),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) =>
         client.get(`/data/ab-tests/${encodeURIComponent((args as { abTestId: string }).abTestId)}/metrics`),
     },

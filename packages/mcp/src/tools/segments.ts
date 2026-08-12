@@ -159,7 +159,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
         'A/B test variant segments appear as separate top-level entries here (the dashboard folds them under their parent test). Unfinished A/B test segments cannot be archived, enabled/disabled, or have their audience edited, and reorder_segments must keep test pairs together.',
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async () => client.get('/data/segments'),
     },
     {
@@ -173,7 +173,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
         'Use this before update_segment_filter so you target real attributes with valid operands. STRING/BOOLEAN use INCLUDES/NOT_INCLUDES; NUMBER/DATE use GTE/LTE/BETWEEN/NOT_BETWEEN (GT/LT are NOT supported). Numeric money attributes (PRICE) are compared in major currency units (e.g. dollars, not cents); dates are ISO-8601 strings.',
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async () => client.get('/data/segments/attributes'),
     },
     {

@@ -1,0 +1,45 @@
+name: Publish MCP registry record
+
+# The official MCP registry is the upstream feed for Glama, PulseMCP, and
+# mcp.so, and they cache — so a stale record propagates slowly and corrects
+# slowly. Publishing on the release tag keeps it in step with npm instead of
+# relying on someone remembering.
+on:
+  push:
+    tags: ['@churnkey/mcp@*']
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The com.churnkey namespace is DNS-verified, which authenticates with the
+      # Ed25519 private key rather than Actions OIDC (OIDC covers io.github.*
+      # namespaces only). MCP_PRIVATE_KEY is the 64-character hex seed.
+      - name: Install mcp-publisher
+        env:
+          MCP_PUBLISHER_VERSION: 1.8.1
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/v${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" \
+            | tar -xz mcp-publisher
+          sudo install -m 755 mcp-publisher /usr/local/bin/mcp-publisher
+
+      - name: Check the tag matches server.json
+        working-directory: packages/mcp
+        run: |
+          tagged="${GITHUB_REF_NAME##*@}"
+          declared=$(python3 -c 'import json;print(json.load(open("server.json"))["version"])')
+          if [ "$tagged" != "$declared" ]; then
+            echo "Tag $GITHUB_REF_NAME says $tagged, server.json says $declared." >&2
+            exit 1
+          fi
+
+      - name: Publish
+        working-directory: packages/mcp
+        env:
+          MCP_PRIVATE_KEY: ${{ secrets.MCP_PRIVATE_KEY }}
+        run: |
+          mcp-publisher login dns --domain churnkey.co --private-key "$MCP_PRIVATE_KEY"
+          mcp-publisher publish

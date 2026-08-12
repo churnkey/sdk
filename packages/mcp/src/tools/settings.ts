@@ -60,7 +60,7 @@ export function settingsTools(client: ChurnkeyClient): ToolDefinition[] {
         'Each setting comes with its current value, default, an explanation of what it does, and a recommendation — read and relay these to the user BEFORE proposing changes. Great for a read-only audit ("show me my settings and flag anything unusual").',
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async () => client.get('/data/stripe-settings'),
     },
     {
@@ -91,7 +91,7 @@ export function settingsTools(client: ChurnkeyClient): ToolDefinition[] {
         'Per-session explainability: sessions record autoOptimizationKey (which optimizer bucket served the offer) — read it via list_sessions.',
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async () => client.get('/data/adaptive-offers'),
     },
     {

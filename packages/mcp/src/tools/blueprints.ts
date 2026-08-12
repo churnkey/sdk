@@ -304,7 +304,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         'Use `editableBlueprintId` for draft updates and `publishedBlueprintId` to reference the live version. Blueprint configuration is shared across live and test mode, so this is not affected by the API key prefix.',
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async () => client.get('/data/blueprints'),
     },
     {
@@ -316,7 +316,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         'Each step includes its `guid`, `enabled`, copy, an optional `offer` (with `offerType`), and an optional `survey` whose `choices` each carry a `guid` and `value`. Use these `guid`s with update_blueprint_step to patch a specific step or survey choice without resending the whole steps array. Note the response can be large for translated blueprints (every step/offer/choice carries its translations).',
       ].join('\n'),
       inputSchema: blueprintIdInput,
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) => client.get(`/data/blueprints/${args.blueprintId}`),
     },
     {

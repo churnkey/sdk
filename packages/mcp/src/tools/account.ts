@@ -15,7 +15,7 @@ export function accountTools(client: ChurnkeyClient): ToolDefinition[] {
         'Mode note: configuration (blueprints, segments, surveys, settings) is shared across live and test mode; only runtime data (sessions, metrics, recoveries, campaigns) and live traffic/sends are mode-scoped. Mode defaults to live.',
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async () => client.get('/data/account'),
     },
   ]

@@ -23,7 +23,7 @@ export function dsrTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Fetch every record Churnkey holds for a customer email — sessions, surveys, feedback, accepted offers. Read-only. Use to fulfill GDPR Article 15 / CCPA right-to-know requests.',
       inputSchema: accessInput,
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) => client.post('/data/dsr/access', { body: args }),
     },
     {

@@ -128,7 +128,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       inputSchema: z.object({
         campaignType: z.enum(['DELINQUENCY', 'RENEWAL', 'EXPIRATION']).optional().describe('Defaults to DELINQUENCY.'),
       }),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) =>
         client.get('/data/payment-recovery/blueprints', { query: args as Record<string, unknown> }),
     },
@@ -138,7 +138,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Full campaign configuration: the email sequence (each with guid, subject, content, cadence sendOnDay/timeToSend, sender identity, autoRetry), SMS sequence, and audience filters. Use the email guids with update_recovery_email.',
       inputSchema: z.object({ blueprintId }),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) =>
         client.get(
           `/data/payment-recovery/blueprints/${encodeURIComponent((args as { blueprintId: string }).blueprintId)}`,
@@ -290,7 +290,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'The attribute palette for payment recovery audience filters (dunning-scoped: decline type/reason, payment method category, invoice amount/currency, customer country/contactability, plus subscription basics and org custom attributes). Each entry lists its valueType, allowed operands, and fixed values (or suggestedValues where free entry is legal, e.g. decline reason). Call before update_recovery_audience.',
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async () => client.get('/data/payment-recovery/audience-attributes'),
     },
     {
@@ -361,7 +361,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Open/click/bounce/recovery counts and rates per email in the sequence (operational store, no warehouse lag). Use this to decide which email to rewrite; use aggregate_payment_recoveries for dollar amounts.',
       inputSchema: z.object({ blueprintId }),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) =>
         client.get(
           `/data/payment-recovery/blueprints/${encodeURIComponent((args as { blueprintId: string }).blueprintId)}/engagement`,
@@ -385,7 +385,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         limit: z.number().int().min(1).max(500).optional().describe('Default 100, max 500.'),
         skip: z.number().int().min(0).optional().describe('Pagination offset.'),
       }),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) =>
         client.get('/data/payment-recovery/campaigns', { query: args as Record<string, unknown> }),
     },
@@ -395,7 +395,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Every email of one running/finished sequence: what was sent, delivered, opened (with dates), clicked, bounced, whether it recovered the payment, and the auto-retry status. emailTo requires read_pii.',
       inputSchema: z.object({ campaignId }),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) =>
         client.get(
           `/data/payment-recovery/campaigns/${encodeURIComponent((args as { campaignId: string }).campaignId)}/messages`,

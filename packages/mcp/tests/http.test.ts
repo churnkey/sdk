@@ -35,6 +35,32 @@ describe('HTTP transport OAuth discovery', () => {
     expect(body.authorization_servers).toEqual(['https://api.churnkey.co'])
   })
 
+  // OpenAI's reviewer fetches this unauthenticated from their own egress, so it
+  // has to answer before the credential check — and the body has to be the bare
+  // token. Anything else (JSON, a trailing newline from an echo, a second token)
+  // fails their domain verification.
+  it('serves the OpenAI domain-verification token verbatim, without auth', async () => {
+    const base = await start({ CHURNKEY_MCP_OPENAI_CHALLENGE_TOKEN: 'openai-challenge-abc123' })
+    const res = await fetch(`${base}/.well-known/openai-apps-challenge`)
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('openai-challenge-abc123')
+  })
+
+  it('404s the challenge path when no token is configured', async () => {
+    const base = await start()
+    const res = await fetch(`${base}/.well-known/openai-apps-challenge`)
+    expect(res.status).toBe(404)
+  })
+
+  it('serves the challenge even when a host allowlist is set', async () => {
+    const base = await start({
+      CHURNKEY_MCP_OPENAI_CHALLENGE_TOKEN: 'tok',
+      CHURNKEY_MCP_ALLOWED_HOSTS: 'mcp.churnkey.co',
+    })
+    const res = await fetch(`${base}/.well-known/openai-apps-challenge`)
+    expect(res.status).toBe(200)
+  })
+
   it('returns WWW-Authenticate with the resource metadata URL on unauthenticated requests', async () => {
     const base = await start({ CHURNKEY_MCP_PUBLIC_URL: 'https://mcp.churnkey.co' })
     const res = await fetch(`${base}/mcp`, {
