@@ -2,6 +2,21 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2.1.0 — 2026-08-12
+
+### Changed
+
+- Remote clients connecting to the hosted endpoint are no longer asked to approve `cancel_flows.sessions.read_pii` or `payment_recovery.campaigns.read_pii`. Sessions and recovery campaigns come back with customer identity fields redacted until one of those scopes is granted; every tool still works. Existing grants keep the scopes they were issued.
+
+  To read identity fields from a remote session, reauthorize with `npx @churnkey/mcp auth login --scopes` naming the scope. The consent screen cannot add scopes the client did not request.
+
+- `DEFAULT_SCOPES` is renamed `SUPPORTED_SCOPES` — it is the full catalog, and the new `BASELINE_SCOPES` is what a remote client requests. Breaking for anyone importing the old name.
+
+### Added
+
+- `scope` on the `WWW-Authenticate` challenge, so clients that never fetch the protected-resource metadata still request the right set.
+- Missing-scope tool errors now say how to obtain the scope, not just which one is missing.
+
 ## 2.0.0 — 2026-08-12
 
 ### Removed
