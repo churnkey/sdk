@@ -66,8 +66,12 @@ describe('oauth — buildAuthorizeUrl', () => {
 
   it('DEFAULT_SCOPES is the documented catalog', () => {
     expect(DEFAULT_SCOPES).toContain('cancel_flows.blueprints.write')
-    expect(DEFAULT_SCOPES).toContain('dsr.write')
+    expect(DEFAULT_SCOPES).toContain('dsr.read')
     expect(DEFAULT_SCOPES.length).toBeGreaterThan(20)
+  })
+
+  it('does not request erasure authority it ships no tool for', () => {
+    expect(DEFAULT_SCOPES).not.toContain('dsr.write')
   })
 })
 
