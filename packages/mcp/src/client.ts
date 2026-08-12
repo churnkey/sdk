@@ -150,6 +150,13 @@ function mapErrorMessage(status: number, body: unknown, authKind: ChurnkeyAuth['
   if (status >= 500) {
     return apiMessage ?? `Churnkey API returned ${status}. Try again or check status.churnkey.co.`
   }
+  // A grant that predates the tool being called is the expected case now that
+  // remote clients start from a read-only baseline, so say what to do about it.
+  // The API names the scope ("Missing required scope: x.write"); on its own that
+  // reads like a dead end rather than one reauthorization away.
+  if (status === 403 && apiMessage?.startsWith('Missing required scope:')) {
+    return `${apiMessage}. Your session was authorized without it. Reconnect the Churnkey connector and approve that scope, or run \`npx @churnkey/mcp auth login --scopes <scopes>\` for a local server.`
+  }
   // The Data API sends error bodies as plain text (res.send(error.message)), not JSON, so the
   // actionable validation/authorization message lives in the raw string body — surface it verbatim.
   if (apiMessage) {

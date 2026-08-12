@@ -1,6 +1,6 @@
 import { createServer as createNodeServer, type IncomingHttpHeaders, type ServerResponse } from 'node:http'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { DEFAULT_SCOPES } from './auth/oauth'
+import { BASELINE_SCOPES } from './auth/oauth'
 import { type ChurnkeyMcpHttpConfig, loadHttpRequestConfig, loadHttpServerConfig, resolveBaseUrl } from './config'
 import { createServer } from './server'
 
@@ -66,12 +66,15 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
             resource: publicUrl,
             authorization_servers: [resolveAuthorizationServer(env)],
             bearer_methods_supported: ['header'],
-            // Advertise the supported scopes (RFC 9728 `scopes_supported`) so
-            // generic clients (Claude.ai, ChatGPT, Claude Code) know what to
-            // request. Without it they start the authorization request with an
-            // empty scope set, which the authorization server rejects with
-            // "At least one scope is required" — blocking login entirely.
-            scopes_supported: DEFAULT_SCOPES,
+            // Generic clients (Claude.ai, ChatGPT, Claude Code) take their
+            // initial scope set from here when the 401 carries no `scope`, and
+            // without the field at all they send an empty scope set, which the
+            // authorization server rejects outright. The spec asks this to be
+            // the minimal set for basic functionality rather than the whole
+            // catalog — advertising everything is what puts writes and PII on
+            // the first consent screen. The catalog itself is unchanged and
+            // still advertised by the authorization server.
+            scopes_supported: BASELINE_SCOPES,
             resource_documentation: 'https://docs.churnkey.co/data-integrations/mcp',
           }),
         )
@@ -152,11 +155,15 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
       }
       const message = err instanceof Error ? err.message : String(err)
       if (err instanceof MissingCredentialsError) {
-        // Point OAuth-capable MCP clients at the resource metadata (MCP auth spec).
+        // Point OAuth-capable MCP clients at the resource metadata, and state the
+        // scopes we actually want. A client that reads `scope` here never has to
+        // fall back to `scopes_supported`, so this is what keeps writes and PII
+        // off the first consent screen even for clients that ignore the metadata
+        // document. RFC 6750 §3 for the parameter, MCP auth spec for the priority.
         res
           .writeHead(401, {
             'content-type': 'text/plain',
-            'www-authenticate': `Bearer resource_metadata="${resourceMetadataUrl}"`,
+            'www-authenticate': `Bearer resource_metadata="${resourceMetadataUrl}", scope="${BASELINE_SCOPES.join(' ')}"`,
           })
           .end(message)
         return

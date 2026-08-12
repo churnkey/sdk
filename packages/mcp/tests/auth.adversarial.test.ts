@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  BASELINE_SCOPES,
   buildAuthorizeUrl,
   DEFAULT_SCOPES,
   exchangeCode,
@@ -72,6 +73,30 @@ describe('oauth — buildAuthorizeUrl', () => {
 
   it('does not request erasure authority it ships no tool for', () => {
     expect(DEFAULT_SCOPES).not.toContain('dsr.write')
+  })
+})
+
+// What a remote client is asked to approve before it has read anything. Getting
+// this wrong is not a broken feature — it is a consent screen offering write
+// access to live cancel flows to someone who just clicked "connect".
+describe('oauth — BASELINE_SCOPES', () => {
+  it('grants no write, PII, erasure, or audit-trail access', () => {
+    for (const scope of BASELINE_SCOPES) {
+      expect(scope, `${scope} is a write scope`).not.toMatch(/\.write$/)
+      expect(scope, `${scope} exposes personal data`).not.toMatch(/read_pii$/)
+      expect(scope, `${scope} is a DSR scope`).not.toMatch(/^dsr\./)
+      expect(scope, `${scope} exposes the audit trail`).not.toBe('account.audit_log.read')
+    }
+  })
+
+  it('stays a subset of the catalog, so every baseline scope is grantable', () => {
+    for (const scope of BASELINE_SCOPES) expect(DEFAULT_SCOPES).toContain(scope)
+  })
+
+  it('is narrower than the catalog but still useful', () => {
+    expect(BASELINE_SCOPES.length).toBeLessThan(DEFAULT_SCOPES.length)
+    expect(BASELINE_SCOPES).toContain('cancel_flows.sessions.read')
+    expect(BASELINE_SCOPES).toContain('cancel_flows.metrics.read')
   })
 })
 

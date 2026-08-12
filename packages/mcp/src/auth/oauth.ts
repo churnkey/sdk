@@ -3,9 +3,9 @@ import { createHash, randomBytes } from 'node:crypto'
 export const OAUTH_CLIENT_ID = 'churnkey-mcp'
 
 // Mirrors the server-side scope catalog (churnkey-api src/api/oauth/oauth.scopes.js).
-// The consent screen narrows this to the user's role ceiling and whatever they
-// choose to approve, so requesting everything is the right default for a
-// general-purpose MCP client.
+// This is what `auth login` requests: running it is a deliberate act by someone
+// setting up their own workstation, who then reviews and unchecks on the consent
+// screen. Remote clients get BASELINE_SCOPES instead — see below.
 export const DEFAULT_SCOPES = [
   'cancel_flows.blueprints.read',
   'cancel_flows.blueprints.write',
@@ -31,6 +31,34 @@ export const DEFAULT_SCOPES = [
   // No dsr.write — no tool here can exercise it, and asking for a grant we
   // never use is what a directory review reads as over-scoping.
   'dsr.read',
+]
+
+/**
+ * What a remote client asks for on first connect.
+ *
+ * A client with no configured scopes takes the `scope` from our 401 challenge,
+ * or failing that everything in the protected-resource `scopes_supported`
+ * (MCP authorization spec, Scope Selection Strategy). Advertising the full
+ * catalog there is why Claude and ChatGPT arrive at a consent screen with every
+ * write and both PII scopes pre-checked — the user is asked to approve the
+ * ability to edit live flows before they have read anything.
+ *
+ * So this is the "minimal set necessary for basic functionality" the spec asks
+ * for: orientation and analytics. `get_account` needs no scope at all, so a
+ * client can always work out which workspace and mode it is in.
+ *
+ * Everything omitted is still grantable — the authorization server's catalog is
+ * unchanged. A tool that needs more fails with the exact scope name, and the
+ * user reauthorizes with it.
+ */
+export const BASELINE_SCOPES = [
+  'cancel_flows.blueprints.read',
+  'cancel_flows.metrics.read',
+  'cancel_flows.sessions.read',
+  'payment_recovery.metrics.read',
+  'payment_recovery.blueprints.read',
+  'payment_recovery.campaigns.read',
+  'ab_test.read',
 ]
 
 export interface PkcePair {
