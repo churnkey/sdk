@@ -3,14 +3,15 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  BASELINE_SCOPES,
   buildAuthorizeUrl,
-  DEFAULT_SCOPES,
   exchangeCode,
   generatePkce,
   OAUTH_CLIENT_ID,
   OAuthRequestError,
   refreshTokens,
   revokeToken,
+  SUPPORTED_SCOPES,
 } from '../src/auth/oauth'
 import { authFilePath, clearStoredAuth, loadStoredAuth, type StoredAuth, saveStoredAuth } from '../src/auth/storage'
 import { NotAuthenticatedError, OAuthTokenProvider, storedAuthFromTokenResponse } from '../src/auth/tokens'
@@ -63,15 +64,49 @@ describe('oauth — buildAuthorizeUrl', () => {
     expect(url.searchParams.get('state')).toBe('st')
     expect(url.searchParams.get('client_id')).toBe(OAUTH_CLIENT_ID)
   })
+})
 
-  it('DEFAULT_SCOPES is the documented catalog', () => {
-    expect(DEFAULT_SCOPES).toContain('cancel_flows.blueprints.write')
-    expect(DEFAULT_SCOPES).toContain('dsr.read')
-    expect(DEFAULT_SCOPES.length).toBeGreaterThan(20)
+describe('oauth — SUPPORTED_SCOPES', () => {
+  it('is the documented catalog', () => {
+    expect(SUPPORTED_SCOPES).toContain('cancel_flows.blueprints.write')
+    expect(SUPPORTED_SCOPES).toContain('dsr.read')
+    expect(SUPPORTED_SCOPES.length).toBeGreaterThan(20)
   })
 
   it('does not request erasure authority it ships no tool for', () => {
-    expect(DEFAULT_SCOPES).not.toContain('dsr.write')
+    expect(SUPPORTED_SCOPES).not.toContain('dsr.write')
+  })
+})
+
+// This set is what a remote user is asked to approve before they have read
+// anything, so widening it by accident is a consent-screen regression rather
+// than a test failure anyone would notice.
+describe('oauth — BASELINE_SCOPES', () => {
+  it('withholds every scope that exposes customer personal data', () => {
+    for (const scope of BASELINE_SCOPES) {
+      expect(scope, `${scope} exposes personal data`).not.toMatch(/read_pii$/)
+    }
+    expect(SUPPORTED_SCOPES.filter((s) => s.endsWith('read_pii')).length).toBeGreaterThan(0)
+  })
+
+  // Anything else withheld would delete tools outright: those scopes gate routes,
+  // and nothing can widen a grant after the fact. Until an escalation path
+  // exists, holding a route-gating scope back is a functional regression rather
+  // than a security improvement.
+  it('withholds nothing that gates a route', () => {
+    const missing = SUPPORTED_SCOPES.filter((s) => !BASELINE_SCOPES.includes(s))
+    expect(missing.every((s) => s.endsWith('read_pii'))).toBe(true)
+  })
+
+  it('stays a subset of the catalog, so every baseline scope is grantable', () => {
+    for (const scope of BASELINE_SCOPES) expect(SUPPORTED_SCOPES).toContain(scope)
+  })
+
+  // Empty is the one value that breaks login outright: clients would send no
+  // scope at all and the authorization server rejects that.
+  it('is non-empty and narrower than the catalog', () => {
+    expect(BASELINE_SCOPES.length).toBeGreaterThan(0)
+    expect(BASELINE_SCOPES.length).toBeLessThan(SUPPORTED_SCOPES.length)
   })
 })
 

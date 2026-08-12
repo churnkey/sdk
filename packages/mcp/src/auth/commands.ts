@@ -1,6 +1,6 @@
 import { resolveBaseUrl } from '../config'
 import { runLoginFlow } from './login'
-import { DEFAULT_SCOPES, revokeToken } from './oauth'
+import { revokeToken, SUPPORTED_SCOPES } from './oauth'
 import { authFilePath, clearStoredAuth, loadStoredAuth, saveStoredAuth } from './storage'
 import { storedAuthFromTokenResponse } from './tokens'
 
@@ -21,7 +21,7 @@ function parseScopesFlag(args: string[]): string[] | null {
 
 export async function authLogin(args: string[], env: NodeJS.ProcessEnv = process.env): Promise<void> {
   const baseUrl = resolveBaseUrl(env)
-  const scopes = parseScopesFlag(args) ?? DEFAULT_SCOPES
+  const scopes = parseScopesFlag(args) ?? SUPPORTED_SCOPES
   const tokens = await runLoginFlow({ baseUrl, scopes })
   saveStoredAuth(storedAuthFromTokenResponse(baseUrl, tokens), env)
   const granted = tokens.scope ? tokens.scope.split(' ') : []

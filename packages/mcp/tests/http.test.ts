@@ -1,6 +1,7 @@
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { afterEach, describe, expect, it } from 'vitest'
+import { BASELINE_SCOPES } from '../src/auth/oauth'
 import { startHttpServer } from '../src/http'
 
 let server: Server | undefined
@@ -43,9 +44,37 @@ describe('HTTP transport OAuth discovery', () => {
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} }),
     })
     expect(res.status).toBe(401)
+    // Exact match, not a substring: RFC 6750 §3 auth-param parsing is strict
+    // about the comma and the quoting, and a malformed header fails on the
+    // client where we would never see it.
     expect(res.headers.get('www-authenticate')).toBe(
-      'Bearer resource_metadata="https://mcp.churnkey.co/.well-known/oauth-protected-resource"',
+      `Bearer resource_metadata="https://mcp.churnkey.co/.well-known/oauth-protected-resource", scope="${BASELINE_SCOPES.join(' ')}"`,
     )
+  })
+
+  // Clients read either the challenge or the metadata document, never reliably
+  // both, so each has to name the baseline on its own.
+  it('leaves PII scopes out of the challenge', async () => {
+    const base = await start({ CHURNKEY_MCP_PUBLIC_URL: 'https://mcp.churnkey.co' })
+    const res = await fetch(`${base}/mcp`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} }),
+    })
+    const challenge = res.headers.get('www-authenticate') ?? ''
+    const scope = /scope="([^"]+)"/.exec(challenge)?.[1] ?? ''
+
+    expect(scope).toContain('cancel_flows.sessions.read')
+    expect(scope).not.toContain('read_pii')
+  })
+
+  it('advertises the same baseline in scopes_supported', async () => {
+    const base = await start()
+    const res = await fetch(`${base}/.well-known/oauth-protected-resource`)
+    const { scopes_supported } = (await res.json()) as { scopes_supported: string[] }
+
+    expect(scopes_supported).toEqual(BASELINE_SCOPES)
+    expect(scopes_supported.some((s) => s.endsWith('read_pii'))).toBe(false)
   })
 })
 

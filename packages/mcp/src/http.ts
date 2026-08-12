@@ -1,6 +1,6 @@
 import { createServer as createNodeServer, type IncomingHttpHeaders, type ServerResponse } from 'node:http'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { DEFAULT_SCOPES } from './auth/oauth'
+import { BASELINE_SCOPES } from './auth/oauth'
 import { type ChurnkeyMcpHttpConfig, loadHttpRequestConfig, loadHttpServerConfig, resolveBaseUrl } from './config'
 import { createServer } from './server'
 
@@ -66,12 +66,10 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
             resource: publicUrl,
             authorization_servers: [resolveAuthorizationServer(env)],
             bearer_methods_supported: ['header'],
-            // Advertise the supported scopes (RFC 9728 `scopes_supported`) so
-            // generic clients (Claude.ai, ChatGPT, Claude Code) know what to
-            // request. Without it they start the authorization request with an
-            // empty scope set, which the authorization server rejects with
-            // "At least one scope is required" — blocking login entirely.
-            scopes_supported: DEFAULT_SCOPES,
+            // Where a client looks when the 401 challenge carries no `scope`.
+            // Omitting the field entirely makes clients send an empty scope set,
+            // which the authorization server rejects outright.
+            scopes_supported: BASELINE_SCOPES,
             resource_documentation: 'https://docs.churnkey.co/data-integrations/mcp',
           }),
         )
@@ -152,11 +150,13 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
       }
       const message = err instanceof Error ? err.message : String(err)
       if (err instanceof MissingCredentialsError) {
-        // Point OAuth-capable MCP clients at the resource metadata (MCP auth spec).
+        // Point OAuth-capable clients at the resource metadata, and name the
+        // scopes we want (RFC 6750 §3). Clients prefer this over the metadata
+        // document, so it covers the ones that never fetch it.
         res
           .writeHead(401, {
             'content-type': 'text/plain',
-            'www-authenticate': `Bearer resource_metadata="${resourceMetadataUrl}"`,
+            'www-authenticate': `Bearer resource_metadata="${resourceMetadataUrl}", scope="${BASELINE_SCOPES.join(' ')}"`,
           })
           .end(message)
         return
