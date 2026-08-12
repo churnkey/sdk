@@ -1,6 +1,6 @@
 # @churnkey/mcp
 
-Model Context Protocol server for [Churnkey](https://churnkey.co). Lets AI agents (Claude Code, Cursor, Claude Desktop, etc.) read your sessions, run analytics queries, and handle GDPR requests.
+Model Context Protocol server for [Churnkey](https://churnkey.co). Lets an AI assistant (Claude Code, Cursor, Claude Desktop, ChatGPT, etc.) read your retention data and manage cancel flows, offers, segments, and recovery campaigns.
 
 ## Tools
 
@@ -36,10 +36,11 @@ Model Context Protocol server for [Churnkey](https://churnkey.co). Lets AI agent
 | `get_dns_config` / `set_hosted_subdomain` / `add_custom_domain` / `check_domain_status` / `remove_custom_domain` | Hosted-page domain setup: read current state, set the churnkey.co subdomain (live instantly), register custom domains idempotently with the exact DNS records the customer must add on their side, poll propagation/SSL status, and deregister. Scopes `dns.read` / `dns.write`. |
 | `list_ab_tests` / `create_ab_test` / `start_ab_test` / `pause_ab_test` / `complete_ab_test` / `get_ab_test_metrics` / `pick_ab_test_winner` | Full A/B test lifecycle: clone a segment flow as the variant, edit it with the blueprint tools, start/pause, read per-arm metrics with statistical significance (n≥30 per arm), and pick the winner (commits the variant to 100% of matched traffic; early decisions need an explicit acknowledgement). Two-arm, implicit 50/50 split. Scopes `ab_test.read` / `ab_test.write`. |
 | `get_audit_log` | The workspace audit trail: every config change, publish, A/B decision, consent and MCP session read — attributed to user/source/client/scopes, with quotable summaries and before/after values. Filter by source (`mcp-oauth` = agent actions), event name, date range. Scope `account.audit_log.read` (owner/admin). |
-| `dsr_access` | GDPR/CCPA data access by email. |
-| `dsr_delete` | GDPR/CCPA data delete by email. *Destructive.* |
+| `dsr_access` | GDPR/CCPA data access by email. Erasure is not exposed as a tool — see below. |
 
-Session and recovery tools read from the Churnkey analytics warehouse — sessions refresh every ~3 hours, recoveries every ~20 minutes. DSR tools read/write the operational store directly (no lag).
+Session and recovery tools read from the Churnkey analytics warehouse — sessions refresh every ~3 hours, recoveries every ~20 minutes. `dsr_access` reads the operational store directly (no lag).
+
+**Right-to-erasure is deliberately not a tool.** The `confirm` literal that gates the other destructive tools is supplied by the model itself, so it catches a malformed call but not an unwanted one — enough for a write you can undo by declining to publish it, not enough for deleting a customer's records. Use the Churnkey dashboard or `POST /v1/data/dsr/delete` on the Data API.
 
 Blueprint edits are **granular and draft-only**: each tool mutates the unlocked working copy and sends only the targeted fields (never the full `steps` array with translations). `update_blueprint_step` handles copy + behavioral flags, `update_blueprint_offer` handles offer config, `edit_survey_structure` handles survey choices/follow-ups, and `add_blueprint_step`/`remove_blueprint_step` handle step structure. Copy edits clear stale translations for the affected content; `publish_blueprint` refreshes translations before making the draft live and is the only live-impacting blueprint action (so it's the one that requires a `confirm`).
 
