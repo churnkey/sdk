@@ -12,7 +12,9 @@ permissions:
   contents: read
 
 env:
+  # Both move together. Checksum is from the release's registry_<version>_checksums.txt.
   MCP_PUBLISHER_VERSION: 1.8.1
+  MCP_PUBLISHER_SHA256: a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc
 
 jobs:
   publish:
@@ -23,10 +25,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Checksum first, extract second. This job holds the key that signs our
+      # registry records, so it should not run a binary it fetched over the
+      # network without checking what it got.
       - name: Install mcp-publisher
         run: |
-          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/v${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" \
-            | tar -xz mcp-publisher
+          curl -fsSL -o mcp-publisher.tar.gz \
+            "https://github.com/modelcontextprotocol/registry/releases/download/v${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          echo "${MCP_PUBLISHER_SHA256}  mcp-publisher.tar.gz" | sha256sum -c -
+          tar -xzf mcp-publisher.tar.gz mcp-publisher
 
       # A tag naming one version while server.json names another would publish a
       # record that disagrees with the package it points at. Only meaningful on a
@@ -45,9 +52,17 @@ jobs:
       # Ed25519 private key published at churnkey.co/.well-known/mcp-registry-auth.
       # Actions OIDC is not an option here — it only covers io.github.* namespaces.
       # MCP_PRIVATE_KEY is the 64-character hex seed.
+      # Skips rather than fails when the key is absent, so tagging a release
+      # before the DNS namespace is set up doesn't leave a red check on the tag.
+      # The check has to be on the env var: the secrets context is not available
+      # in a step-level `if`.
       - name: Publish
         env:
           MCP_PRIVATE_KEY: ${{ secrets.MCP_PRIVATE_KEY }}
         run: |
+          if [ -z "$MCP_PRIVATE_KEY" ]; then
+            echo "::notice::MCP_PRIVATE_KEY is not set — skipping. Set it once the com.churnkey namespace is verified."
+            exit 0
+          fi
           ./mcp-publisher login dns --domain churnkey.co --private-key "$MCP_PRIVATE_KEY"
           ./mcp-publisher publish
