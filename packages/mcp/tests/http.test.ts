@@ -49,10 +49,8 @@ describe('HTTP transport OAuth discovery', () => {
     )
   })
 
-  // The two places a client can learn what to ask for. Both have to name the
-  // baseline, because clients read one or the other depending on whether they
-  // follow the challenge or the metadata document — and whichever they read
-  // decides what the user is asked to approve on first connect.
+  // Clients read either the challenge or the metadata document, never reliably
+  // both, so each has to name the baseline on its own.
   it('asks for the read-only baseline in the challenge, not the whole catalog', async () => {
     const base = await start({ CHURNKEY_MCP_PUBLIC_URL: 'https://mcp.churnkey.co' })
     const res = await fetch(`${base}/mcp`, {

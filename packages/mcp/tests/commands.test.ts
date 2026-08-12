@@ -201,7 +201,7 @@ describe('runAuthCommand — routing', () => {
     await flowDone
   })
 
-  it('login --scopes with an empty value falls back to DEFAULT_SCOPES', async () => {
+  it('login --scopes with an empty value falls back to SUPPORTED_SCOPES', async () => {
     const env = tempEnv()
     captureStderr()
     const realFetch = globalThis.fetch.bind(globalThis)
@@ -222,7 +222,7 @@ describe('runAuthCommand — routing', () => {
         )
       return realFetch(input, init)
     })
-    // "--scopes" with empty trailing value → parseScopesFlag returns null → DEFAULT_SCOPES used.
+    // "--scopes" with empty trailing value → parseScopesFlag returns null → SUPPORTED_SCOPES used.
     const flowDone = runAuthCommand(['login', '--scopes', ''], env)
     await vi.waitFor(() => expect(stderr.join('').includes('/oauth/authorize')).toBe(true))
     const authUrl = new URL(

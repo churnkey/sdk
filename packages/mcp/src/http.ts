@@ -66,14 +66,9 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
             resource: publicUrl,
             authorization_servers: [resolveAuthorizationServer(env)],
             bearer_methods_supported: ['header'],
-            // Generic clients (Claude.ai, ChatGPT, Claude Code) take their
-            // initial scope set from here when the 401 carries no `scope`, and
-            // without the field at all they send an empty scope set, which the
-            // authorization server rejects outright. The spec asks this to be
-            // the minimal set for basic functionality rather than the whole
-            // catalog — advertising everything is what puts writes and PII on
-            // the first consent screen. The catalog itself is unchanged and
-            // still advertised by the authorization server.
+            // Where a client looks when the 401 challenge carries no `scope`.
+            // Omitting the field entirely makes clients send an empty scope set,
+            // which the authorization server rejects outright.
             scopes_supported: BASELINE_SCOPES,
             resource_documentation: 'https://docs.churnkey.co/data-integrations/mcp',
           }),
@@ -155,11 +150,9 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
       }
       const message = err instanceof Error ? err.message : String(err)
       if (err instanceof MissingCredentialsError) {
-        // Point OAuth-capable MCP clients at the resource metadata, and state the
-        // scopes we actually want. A client that reads `scope` here never has to
-        // fall back to `scopes_supported`, so this is what keeps writes and PII
-        // off the first consent screen even for clients that ignore the metadata
-        // document. RFC 6750 §3 for the parameter, MCP auth spec for the priority.
+        // Point OAuth-capable clients at the resource metadata, and name the
+        // scopes we want (RFC 6750 §3). Clients prefer this over the metadata
+        // document, so it covers the ones that never fetch it.
         res
           .writeHead(401, {
             'content-type': 'text/plain',

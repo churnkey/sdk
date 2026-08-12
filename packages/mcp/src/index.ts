@@ -1,5 +1,5 @@
 export { authLogin, authLogout, authStatus, runAuthCommand } from './auth/commands'
-export { BASELINE_SCOPES, DEFAULT_SCOPES, OAUTH_CLIENT_ID } from './auth/oauth'
+export { BASELINE_SCOPES, OAUTH_CLIENT_ID, SUPPORTED_SCOPES } from './auth/oauth'
 export type { StoredAuth } from './auth/storage'
 export { authFilePath, clearStoredAuth, loadStoredAuth } from './auth/storage'
 export { NotAuthenticatedError, OAuthTokenProvider } from './auth/tokens'

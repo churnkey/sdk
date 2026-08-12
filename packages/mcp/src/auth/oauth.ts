@@ -2,11 +2,11 @@ import { createHash, randomBytes } from 'node:crypto'
 
 export const OAUTH_CLIENT_ID = 'churnkey-mcp'
 
-// Mirrors the server-side scope catalog (churnkey-api src/api/oauth/oauth.scopes.js).
-// This is what `auth login` requests: running it is a deliberate act by someone
-// setting up their own workstation, who then reviews and unchecks on the consent
-// screen. Remote clients get BASELINE_SCOPES instead — see below.
-export const DEFAULT_SCOPES = [
+// Every scope the server can exercise; mirrors the catalog in churnkey-api
+// src/api/oauth/oauth.scopes.js. `auth login` requests all of it — running that
+// is a deliberate act by someone setting up their own machine, who then reviews
+// the consent screen. Remote clients get BASELINE_SCOPES.
+export const SUPPORTED_SCOPES = [
   'cancel_flows.blueprints.read',
   'cancel_flows.blueprints.write',
   'cancel_flows.metrics.read',
@@ -33,24 +33,12 @@ export const DEFAULT_SCOPES = [
   'dsr.read',
 ]
 
-/**
- * What a remote client asks for on first connect.
- *
- * A client with no configured scopes takes the `scope` from our 401 challenge,
- * or failing that everything in the protected-resource `scopes_supported`
- * (MCP authorization spec, Scope Selection Strategy). Advertising the full
- * catalog there is why Claude and ChatGPT arrive at a consent screen with every
- * write and both PII scopes pre-checked — the user is asked to approve the
- * ability to edit live flows before they have read anything.
- *
- * So this is the "minimal set necessary for basic functionality" the spec asks
- * for: orientation and analytics. `get_account` needs no scope at all, so a
- * client can always work out which workspace and mode it is in.
- *
- * Everything omitted is still grantable — the authorization server's catalog is
- * unchanged. A tool that needs more fails with the exact scope name, and the
- * user reauthorizes with it.
- */
+// What a remote client asks for on first connect, and the only thing the user
+// is asked to approve before they have read anything. A client with no
+// configured scopes takes these from our 401 challenge, or failing that from
+// the protected-resource `scopes_supported` — so both must name this set, not
+// the catalog above. Nothing here is a write, PII, DSR, or audit scope; the
+// rest stays grantable and is reached by reauthorizing.
 export const BASELINE_SCOPES = [
   'cancel_flows.blueprints.read',
   'cancel_flows.metrics.read',

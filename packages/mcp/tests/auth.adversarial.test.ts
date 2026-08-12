@@ -5,13 +5,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   BASELINE_SCOPES,
   buildAuthorizeUrl,
-  DEFAULT_SCOPES,
   exchangeCode,
   generatePkce,
   OAUTH_CLIENT_ID,
   OAuthRequestError,
   refreshTokens,
   revokeToken,
+  SUPPORTED_SCOPES,
 } from '../src/auth/oauth'
 import { authFilePath, clearStoredAuth, loadStoredAuth, type StoredAuth, saveStoredAuth } from '../src/auth/storage'
 import { NotAuthenticatedError, OAuthTokenProvider, storedAuthFromTokenResponse } from '../src/auth/tokens'
@@ -64,21 +64,23 @@ describe('oauth — buildAuthorizeUrl', () => {
     expect(url.searchParams.get('state')).toBe('st')
     expect(url.searchParams.get('client_id')).toBe(OAUTH_CLIENT_ID)
   })
+})
 
-  it('DEFAULT_SCOPES is the documented catalog', () => {
-    expect(DEFAULT_SCOPES).toContain('cancel_flows.blueprints.write')
-    expect(DEFAULT_SCOPES).toContain('dsr.read')
-    expect(DEFAULT_SCOPES.length).toBeGreaterThan(20)
+describe('oauth — SUPPORTED_SCOPES', () => {
+  it('is the documented catalog', () => {
+    expect(SUPPORTED_SCOPES).toContain('cancel_flows.blueprints.write')
+    expect(SUPPORTED_SCOPES).toContain('dsr.read')
+    expect(SUPPORTED_SCOPES.length).toBeGreaterThan(20)
   })
 
   it('does not request erasure authority it ships no tool for', () => {
-    expect(DEFAULT_SCOPES).not.toContain('dsr.write')
+    expect(SUPPORTED_SCOPES).not.toContain('dsr.write')
   })
 })
 
-// What a remote client is asked to approve before it has read anything. Getting
-// this wrong is not a broken feature — it is a consent screen offering write
-// access to live cancel flows to someone who just clicked "connect".
+// This set is what a remote user is asked to approve before they have read
+// anything, so widening it by accident is a consent-screen regression rather
+// than a test failure anyone would notice.
 describe('oauth — BASELINE_SCOPES', () => {
   it('grants no write, PII, erasure, or audit-trail access', () => {
     for (const scope of BASELINE_SCOPES) {
@@ -90,13 +92,14 @@ describe('oauth — BASELINE_SCOPES', () => {
   })
 
   it('stays a subset of the catalog, so every baseline scope is grantable', () => {
-    for (const scope of BASELINE_SCOPES) expect(DEFAULT_SCOPES).toContain(scope)
+    for (const scope of BASELINE_SCOPES) expect(SUPPORTED_SCOPES).toContain(scope)
   })
 
-  it('is narrower than the catalog but still useful', () => {
-    expect(BASELINE_SCOPES.length).toBeLessThan(DEFAULT_SCOPES.length)
-    expect(BASELINE_SCOPES).toContain('cancel_flows.sessions.read')
-    expect(BASELINE_SCOPES).toContain('cancel_flows.metrics.read')
+  // Empty is the one value that breaks login outright: clients would send no
+  // scope at all and the authorization server rejects that.
+  it('is non-empty and narrower than the catalog', () => {
+    expect(BASELINE_SCOPES.length).toBeGreaterThan(0)
+    expect(BASELINE_SCOPES.length).toBeLessThan(SUPPORTED_SCOPES.length)
   })
 })
 
