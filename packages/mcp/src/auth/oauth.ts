@@ -28,8 +28,9 @@ export const DEFAULT_SCOPES = [
   'payment_recovery.campaigns.write',
   'account.api_usage.read',
   'account.audit_log.read',
+  // No dsr.write — no tool here can exercise it, and asking for a grant we
+  // never use is what a directory review reads as over-scoping.
   'dsr.read',
-  'dsr.write',
 ]
 
 export interface PkcePair {

@@ -2,6 +2,18 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2.0.0 — 2026-08-12
+
+### Removed
+
+- **`dsr_delete`.** Erasing every record Churnkey holds for a customer is irreversible, takes effect immediately, and usually runs against a legal deadline. The confirmation literal the other destructive tools use is not a real gate here: the model writes the token itself, so it catches a malformed call but not an unwanted one. That trade is fine for a write you can undo by declining to publish it, and wrong for deleting a person's records. Right-to-erasure now runs through the Churnkey dashboard or `POST /v1/data/dsr/delete` on the Data API, where a human or a script that meant it drives the call.
+
+  `dsr_access` is unchanged. Right-to-know is a read, it is reversible, and fulfilling an Article 15 request by asking an assistant is worth keeping.
+
+- **`dsr.write` from the scopes this client requests.** With no tool that can exercise it, requesting the grant asked for authority the server would never use.
+
+  Existing grants keep the scope until the user reauthorizes; nothing in this package acts on it. Revoke and reconnect from Your MCP Sessions in account settings to drop it.
+
 ## 1.1.2 — 2026-08-11
 
 ### Changed
