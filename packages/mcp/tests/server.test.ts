@@ -83,11 +83,10 @@ describe('server metadata', () => {
     expect(SERVER_NAME).toBe('churnkey-mcp')
   })
 
-  // The version is written down in three places that a release has to move
-  // together: package.json (npm), SERVER_VERSION (what the server reports over
-  // MCP), and server.json (the record in the official MCP registry). Registry
-  // aggregators cache, so a stale server.json misreports our version across
-  // every directory that ingests it, and nothing else would catch it.
+  // A release has to move three version records together: npm, what the server
+  // reports over MCP, and the registry record the directories ingest. Registry
+  // aggregators cache what they read, so a stale server.json is both invisible
+  // and slow to correct.
   it('keeps npm, the MCP handshake, and the registry record on one version', () => {
     const read = (name: string) =>
       JSON.parse(readFileSync(new URL(`../${name}`, import.meta.url), 'utf8')) as { version: string }

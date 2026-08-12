@@ -6,6 +6,7 @@
     "url": "https://github.com/churnkey/sdk",
     "source": "github"
   },
+  "websiteUrl": "https://churnkey.co/feature/mcp",
   "version": "1.1.2",
   "remotes": [
     {

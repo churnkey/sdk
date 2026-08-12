@@ -9,11 +9,9 @@ function makeClient() {
   } as unknown as ChurnkeyClient
 }
 
-// Directory reviewers read annotations as the contract for what a tool does.
-// Anthropic accepts a title plus readOnlyHint or destructiveHint; OpenAI wants
-// all three hints on every tool and snapshots them at submission time, so a
-// tool added without the full set fails their scan rather than ours. These
-// assertions cover the whole registry so that lands here instead.
+// OpenAI's directory requires all three hints on every tool and snapshots them
+// at submission time, so a tool added without the full set is caught by their
+// scan and costs a resubmission. Assert it across the registry instead.
 describe('tool annotations', () => {
   const tools = allTools(makeClient())
 

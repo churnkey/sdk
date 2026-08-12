@@ -78,14 +78,11 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
         return
       }
 
-      // OpenAI's plugin directory verifies domain ownership by fetching a token
-      // it issued. It derives the URL from the MCP server URL, so a server at
-      // https://host/mcp is checked at https://host/.well-known/openai-apps-challenge
-      // — this endpoint is the default they look for, with nothing to configure.
-      // (Their optional Challenge Base URL can redirect the check to a parent
-      // host instead; we don't need it.) The body must be the bare token: no
-      // JSON, no list, no trailing content. Sourced from the environment so
-      // re-issuing a token is a config change rather than a deploy.
+      // OpenAI's plugin directory derives this path from the MCP server URL, so
+      // a server at https://host/mcp is verified here by default. Their reviewer
+      // fetches it unauthenticated, and the body has to be the bare token — JSON
+      // or a list fails verification. Read from the environment so re-issuing a
+      // token is a config change rather than a deploy.
       if (requestUrl.pathname === OPENAI_CHALLENGE_PATH) {
         const token = env.CHURNKEY_MCP_OPENAI_CHALLENGE_TOKEN
         if (!token) {
