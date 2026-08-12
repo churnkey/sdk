@@ -48,21 +48,22 @@ jobs:
             exit 1
           fi
 
-      # The com.churnkey namespace is DNS-verified, so this authenticates with the
-      # Ed25519 private key published at churnkey.co/.well-known/mcp-registry-auth.
-      # Actions OIDC is not an option here — it only covers io.github.* namespaces.
+      # `login http` proves we own churnkey.co by fetching the Ed25519 public key
+      # from /.well-known/mcp-registry-auth and checking our signature against it.
+      # Not `login dns` — despite being the obvious-sounding fit, that one wants a
+      # TXT record and fails with "no MCP public key found in DNS TXT records".
+      # Actions OIDC is not an option: it only covers io.github.* namespaces.
       # MCP_PRIVATE_KEY is the 64-character hex seed.
-      # Skips rather than fails when the key is absent, so tagging a release
-      # before the DNS namespace is set up doesn't leave a red check on the tag.
-      # The check has to be on the env var: the secrets context is not available
-      # in a step-level `if`.
+      # Skips rather than fails when the key is absent, so a release tagged before
+      # the namespace is set up doesn't leave a red check on the tag. The check has
+      # to be on the env var: the secrets context is not available in a step-level `if`.
       - name: Publish
         env:
           MCP_PRIVATE_KEY: ${{ secrets.MCP_PRIVATE_KEY }}
         run: |
           if [ -z "$MCP_PRIVATE_KEY" ]; then
-            echo "::notice::MCP_PRIVATE_KEY is not set — skipping. Set it once the com.churnkey namespace is verified."
+            echo "::notice::MCP_PRIVATE_KEY is not set — skipping."
             exit 0
           fi
-          ./mcp-publisher login dns --domain churnkey.co --private-key "$MCP_PRIVATE_KEY"
+          ./mcp-publisher login http --domain churnkey.co --private-key "$MCP_PRIVATE_KEY"
           ./mcp-publisher publish
