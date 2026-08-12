@@ -118,7 +118,7 @@ export function recoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         WAREHOUSE_NOTE,
       ].join('\n'),
       inputSchema: listInput,
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) => client.get('/data/warehouse/recoveries', { query: buildQuery(args) }),
     },
     {
@@ -140,7 +140,7 @@ export function recoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         WAREHOUSE_NOTE,
       ].join('\n'),
       inputSchema: aggregateInput,
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) => client.get('/data/warehouse/recovery-aggregation', { query: buildQuery(args) }),
     },
   ]

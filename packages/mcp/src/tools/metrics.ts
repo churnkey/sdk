@@ -35,7 +35,7 @@ export function metricsTools(client: ChurnkeyClient): ToolDefinition[] {
         'Data source: the Churnkey analytics warehouse (~3-hour refresh). Boosted revenue covers live mode only.',
       ].join('\n'),
       inputSchema: flowMetricsInput,
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) => {
         const { abtestId, ...rest } = args as { abtestId?: string } & Record<string, unknown>
         return client.get('/data/flow-metrics', { query: { ...rest, abtest: abtestId } })

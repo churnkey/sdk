@@ -23,7 +23,7 @@ export function auditTools(client: ChurnkeyClient): ToolDefinition[] {
         limit: z.number().int().min(1).max(200).optional().describe('Default 50, max 200.'),
         skip: z.number().int().min(0).optional().describe('Pagination offset.'),
       }),
-      annotations: { readOnlyHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) => client.get('/data/audit-log', { query: args as Record<string, unknown> }),
     },
   ]

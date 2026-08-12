@@ -48,3 +48,29 @@ describe('HTTP transport OAuth discovery', () => {
     )
   })
 })
+
+describe('OpenAI domain verification', () => {
+  it('serves the token verbatim, without auth', async () => {
+    const base = await start({ CHURNKEY_MCP_OPENAI_CHALLENGE_TOKEN: 'openai-challenge-abc123' })
+    const res = await fetch(`${base}/.well-known/openai-apps-challenge`)
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('openai-challenge-abc123')
+  })
+
+  it('404s when no token is configured', async () => {
+    const base = await start()
+    const res = await fetch(`${base}/.well-known/openai-apps-challenge`)
+    expect(res.status).toBe(404)
+  })
+
+  // Their reviewer arrives from OpenAI's egress, not through whatever Host the
+  // allowlist was written for, so gating this on it would fail verification.
+  it('answers regardless of the host allowlist', async () => {
+    const base = await start({
+      CHURNKEY_MCP_OPENAI_CHALLENGE_TOKEN: 'tok',
+      CHURNKEY_MCP_ALLOWED_HOSTS: 'mcp.churnkey.co',
+    })
+    const res = await fetch(`${base}/.well-known/openai-apps-challenge`)
+    expect(res.status).toBe(200)
+  })
+})
