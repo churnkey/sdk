@@ -33,21 +33,25 @@ export const SUPPORTED_SCOPES = [
   'dsr.read',
 ]
 
-// What a remote client asks for on first connect, and the only thing the user
-// is asked to approve before they have read anything. A client with no
-// configured scopes takes these from our 401 challenge, or failing that from
-// the protected-resource `scopes_supported` — so both must name this set, not
-// the catalog above. Nothing here is a write, PII, DSR, or audit scope; the
-// rest stays grantable and is reached by reauthorizing.
-export const BASELINE_SCOPES = [
-  'cancel_flows.blueprints.read',
-  'cancel_flows.metrics.read',
-  'cancel_flows.sessions.read',
-  'payment_recovery.metrics.read',
-  'payment_recovery.blueprints.read',
-  'payment_recovery.campaigns.read',
-  'ab_test.read',
-]
+// What a remote client asks for on first connect: everything except the scopes
+// that expose customer personal data. A client with no configured scopes takes
+// these from our 401 challenge, or failing that from the protected-resource
+// `scopes_supported`, so both must name this set rather than the catalog.
+//
+// Only the `read_pii` scopes can be withheld safely today, and it is worth being
+// precise about why. They are not route guards — the API checks them inside the
+// handler (shouldRedactSessionPii, redactCampaignPii) and returns the same rows
+// with identity fields stripped. Withholding one degrades a response; it never
+// removes a tool.
+//
+// Every other scope does gate a route, and there is currently no way to widen a
+// grant after the fact: a reconnect re-derives the same set from us, the consent
+// screen rejects approvals beyond what was requested, and a tool-level scope
+// failure returns a JSON-RPC error inside a 200 rather than a challenge the
+// client could step up from. So dropping anything else here would strand its
+// tools with no route back. Narrowing further depends on that escalation path
+// existing first.
+export const BASELINE_SCOPES = SUPPORTED_SCOPES.filter((scope) => !scope.endsWith('read_pii'))
 
 export interface PkcePair {
   verifier: string

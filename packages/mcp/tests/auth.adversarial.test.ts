@@ -82,13 +82,20 @@ describe('oauth — SUPPORTED_SCOPES', () => {
 // anything, so widening it by accident is a consent-screen regression rather
 // than a test failure anyone would notice.
 describe('oauth — BASELINE_SCOPES', () => {
-  it('grants no write, PII, erasure, or audit-trail access', () => {
+  it('withholds every scope that exposes customer personal data', () => {
     for (const scope of BASELINE_SCOPES) {
-      expect(scope, `${scope} is a write scope`).not.toMatch(/\.write$/)
       expect(scope, `${scope} exposes personal data`).not.toMatch(/read_pii$/)
-      expect(scope, `${scope} is a DSR scope`).not.toMatch(/^dsr\./)
-      expect(scope, `${scope} exposes the audit trail`).not.toBe('account.audit_log.read')
     }
+    expect(SUPPORTED_SCOPES.filter((s) => s.endsWith('read_pii')).length).toBeGreaterThan(0)
+  })
+
+  // Anything else withheld would delete tools outright: those scopes gate routes,
+  // and nothing can widen a grant after the fact. Until an escalation path
+  // exists, holding a route-gating scope back is a functional regression rather
+  // than a security improvement.
+  it('withholds nothing that gates a route', () => {
+    const missing = SUPPORTED_SCOPES.filter((s) => !BASELINE_SCOPES.includes(s))
+    expect(missing.every((s) => s.endsWith('read_pii'))).toBe(true)
   })
 
   it('stays a subset of the catalog, so every baseline scope is grantable', () => {

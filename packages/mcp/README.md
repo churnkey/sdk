@@ -64,7 +64,9 @@ npx @churnkey/mcp auth logout    # revokes the session server-side and deletes l
 
 Tokens are stored in `~/.churnkey/mcp-auth.json` (override the directory with `CHURNKEY_CONFIG_DIR`), chmod 600. Access tokens last ~1 hour and refresh automatically; refresh tokens rotate on every use.
 
-The consent screen lets you narrow the granted scopes: every scope within your role's ceiling is pre-checked, PII scopes carry an explicit warning, and you can uncheck anything before approving. Request a custom subset up front with `npx @churnkey/mcp auth login --scopes cancel_flows.blueprints.read,cancel_flows.metrics.read`.
+The consent screen lets you narrow the granted scopes: everything requested and within your role's ceiling is pre-checked, PII scopes carry an explicit warning, and you can uncheck anything before approving. Request a custom subset up front with `npx @churnkey/mcp auth login --scopes cancel_flows.blueprints.read,cancel_flows.metrics.read`.
+
+`auth login` requests the full catalog. Remote clients connecting to the hosted endpoint are asked for the same set minus the two PII scopes, so sessions and recovery campaigns come back with customer identity fields redacted until you grant those explicitly. The consent screen cannot approve scopes beyond the ones requested, so widening a remote grant means a local `auth login` with the scope named.
 
 ### Data API keys (deprecated for MCP)
 
