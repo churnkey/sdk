@@ -2,6 +2,14 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2.2.0 — 2026-08-13
+
+### Added
+
+- The `initialize` response now carries `title`, `description` and `websiteUrl` alongside name and version. Directories build their listing from these, and sending only name and version is why Smithery rendered the server as a lowercase "churnkey" with no description. Every crawler that scans the endpoint reads the same fields, so this fixes the listing everywhere rather than in each directory's own form.
+
+  No icon yet — a broken `src` would be worse than an absent field.
+
 ## 2.1.0 — 2026-08-12
 
 ### Changed
