@@ -7,8 +7,24 @@ import { MODE_DATA_NOTE, MODE_TRAFFIC_NOTE } from './tools/shared'
 export const SERVER_NAME = 'churnkey-mcp'
 export const SERVER_VERSION = '2.1.0'
 
+// Directories build their listing from whatever `initialize` returns. Sending
+// only name and version is why Smithery rendered us as a lowercase "churnkey"
+// with an empty description — there was nothing else to read. Every crawler
+// that scans the endpoint reads the same fields, so this is the one place to
+// fix it rather than per-directory.
+const SERVER_TITLE = 'Churnkey'
+const SERVER_DESCRIPTION =
+  'Read Churnkey retention data and manage cancel flows, offers, segments, and payment recovery campaigns.'
+const SERVER_WEBSITE = 'https://churnkey.co/feature/mcp'
+
 export function createServer(config: ChurnkeyMcpConfig): McpServer {
-  const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION })
+  const server = new McpServer({
+    name: SERVER_NAME,
+    title: SERVER_TITLE,
+    version: SERVER_VERSION,
+    description: SERVER_DESCRIPTION,
+    websiteUrl: SERVER_WEBSITE,
+  })
   const client = new ChurnkeyClient(config)
 
   for (const tool of allTools(client)) {
