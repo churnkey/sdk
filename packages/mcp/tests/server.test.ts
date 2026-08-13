@@ -45,6 +45,8 @@ vi.mock('../src/tools', () => ({
 }))
 
 import { readFileSync } from 'node:fs'
+import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import type { ChurnkeyClient } from '../src/client'
 import { createServer, SERVER_NAME, SERVER_VERSION } from '../src/server'
 import { MODE_DATA_NOTE, MODE_TRAFFIC_NOTE } from '../src/tools/shared'
@@ -81,6 +83,23 @@ afterEach(() => {
 describe('server metadata', () => {
   it('exposes a stable name', () => {
     expect(SERVER_NAME).toBe('churnkey-mcp')
+  })
+
+  // Directories build their listing from what `initialize` returns. Losing a
+  // field breaks nothing we can see — it surfaces as a blank description on
+  // someone else's site, which is how Smithery first rendered us. Asserted
+  // through a real handshake rather than the server's internals, since what
+  // matters is what a client receives.
+  it('sends the identity fields a directory renders', async () => {
+    const [clientSide, serverSide] = InMemoryTransport.createLinkedPair()
+    const client = new Client({ name: 'test', version: '0' }, { capabilities: {} })
+    await Promise.all([createServer(config).connect(serverSide), client.connect(clientSide)])
+
+    const info = client.getServerVersion()
+    expect(info?.title).toBe('Churnkey')
+    expect(info?.description).toBeTruthy()
+    expect(info?.websiteUrl).toMatch(/^https:\/\//)
+    await client.close()
   })
 
   // A release has to move three version records together: npm, what the server
