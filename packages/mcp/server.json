@@ -7,7 +7,7 @@
     "source": "github"
   },
   "websiteUrl": "https://churnkey.co/feature/mcp",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "remotes": [
     {
       "type": "streamable-http",
