@@ -27,6 +27,15 @@ describe('payment recovery tools', () => {
     expect(() => byName.stop_recovery_campaign.inputSchema.parse({ campaignId: 'c1' })).toThrow()
   })
 
+  it('lists blueprints with no arguments', async () => {
+    const client = makeClient()
+    const byName = Object.fromEntries(paymentRecoveryTools(client).map((t) => [t.name, t]))
+
+    expect(Object.keys(byName.list_recovery_blueprints.inputSchema.shape)).toEqual([])
+    await byName.list_recovery_blueprints.handler({})
+    expect(client.get).toHaveBeenCalledWith('/data/payment-recovery/blueprints')
+  })
+
   it('routes email edits with ids in the path and updates in the body', async () => {
     const client = makeClient()
     const byName = Object.fromEntries(paymentRecoveryTools(client).map((t) => [t.name, t]))
