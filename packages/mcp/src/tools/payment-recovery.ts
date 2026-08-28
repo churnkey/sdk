@@ -124,13 +124,10 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'list_recovery_blueprints',
       title: 'List payment recovery campaign configs',
       description:
-        "List the org's payment recovery (dunning) campaign configurations: name, type (DELINQUENCY/RENEWAL/EXPIRATION), schedule, enabled state, email/SMS counts. These are the templates that spawn per-customer sequences — also the template library: clone one as a starting point.",
-      inputSchema: z.object({
-        campaignType: z.enum(['DELINQUENCY', 'RENEWAL', 'EXPIRATION']).optional().describe('Defaults to DELINQUENCY.'),
-      }),
+        "List the org's payment recovery (dunning) campaign configurations: name, schedule, enabled state, email/SMS counts. These are the templates that spawn per-customer sequences — also the template library: clone one as a starting point.",
+      inputSchema: z.object({}),
       annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
-      handler: async (args) =>
-        client.get('/data/payment-recovery/blueprints', { query: args as Record<string, unknown> }),
+      handler: async () => client.get('/data/payment-recovery/blueprints'),
     },
     {
       name: 'get_recovery_blueprint',
