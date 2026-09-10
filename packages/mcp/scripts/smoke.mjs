@@ -122,6 +122,79 @@ try {
     bad.text,
   )
 
+  // --- offer detail resolution: coupons/plans inlined next to their ids ---
+  // Reads every flow in the inventory until it finds offers that reference a provider object, then
+  // asserts the resolved shape arrived over the wire. Orgs whose coupons/prices were deleted at the
+  // provider resolve nothing, so the assertions only fire when there was something to resolve.
+  {
+    const flows = bp.json?.flows ?? []
+    const ids = [...new Set(flows.flatMap((f) => [f.publishedBlueprintId, f.editableBlueprintId]).filter(Boolean))]
+
+    const offersOf = (steps = []) => {
+      const out = []
+      for (const step of steps) {
+        if (step?.offer) out.push(step.offer)
+        for (const choice of step?.survey?.choices ?? []) {
+          if (choice?.offer) out.push(choice.offer)
+          for (const option of choice?.followup?.structured?.options ?? []) {
+            if (option?.offer) out.push(option.offer)
+          }
+        }
+      }
+      return out
+    }
+
+    const discounts = []
+    const planChanges = []
+    for (const id of ids) {
+      const res = await call(client, 'get_blueprint', { blueprintId: id })
+      if (res.isError) continue
+      for (const offer of offersOf(res.json?.steps)) {
+        if (offer.offerType === 'DISCOUNT' && offer.discountConfig?.couponId) discounts.push(offer.discountConfig)
+        if (offer.offerType === 'PLAN_CHANGE' && offer.planChangeConfig?.options?.length) planChanges.push(offer.planChangeConfig)
+      }
+      if (discounts.length && planChanges.length) break
+    }
+
+    const resolvedCoupons = discounts.filter((c) => c.coupon)
+    const resolvedPlans = planChanges.filter((c) => c.plans?.length)
+
+    check(
+      'get_blueprint describes the resolved offer fields',
+      /discountConfig\.coupon/.test(tools.tools.find((t) => t.name === 'get_blueprint')?.description ?? '') &&
+        /planChangeConfig\.plans/.test(tools.tools.find((t) => t.name === 'get_blueprint')?.description ?? ''),
+    )
+
+    if (!discounts.length) {
+      console.log('   (no DISCOUNT offer with a couponId on this org — coupon resolution skipped)')
+    } else {
+      check(
+        'DISCOUNT: coupon resolved with a discount value',
+        resolvedCoupons.length > 0 &&
+          resolvedCoupons.every((c) => c.coupon.id && (typeof c.coupon.percentOff === 'number' || typeof c.coupon.amountOff === 'number')),
+        `${resolvedCoupons.length}/${discounts.length} resolved: ${JSON.stringify(resolvedCoupons.map((c) => c.coupon))}`,
+      )
+      check(
+        'DISCOUNT: raw couponId still present',
+        discounts.every((c) => typeof c.couponId === 'string' && c.couponId.length > 0),
+      )
+    }
+
+    if (!planChanges.length) {
+      console.log('   (no PLAN_CHANGE offer with options on this org — plan resolution skipped)')
+    } else {
+      check(
+        'PLAN_CHANGE: plans resolved with customer-facing names',
+        resolvedPlans.length > 0 && resolvedPlans.every((c) => c.plans.every((p) => p.id && p.name)),
+        `${resolvedPlans.length}/${planChanges.length} resolved: ${JSON.stringify(resolvedPlans[0]?.plans?.map((p) => `${p.name} ${(p.amount ?? 0) / 100} ${p.currency}/${p.interval}`))}`,
+      )
+      check(
+        'PLAN_CHANGE: resolved plans are a subset of options (unresolved ids stay in options only)',
+        resolvedPlans.every((c) => c.plans.length <= c.options.length && c.plans.every((p) => c.options.includes(p.id))),
+      )
+    }
+  }
+
   // --- opt-in, fully reversible end-to-end WRITE round-trip (--mutate) ---
   // Picks a side-effect-free reversible field on the org draft (a behavioral flag, or a numeric
   // pause/trial config field), writes a changed value, RE-READS to observe it persisted, then restores

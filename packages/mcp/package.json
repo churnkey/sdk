@@ -1,6 +1,6 @@
 {
   "name": "@churnkey/mcp",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Model Context Protocol server for Churnkey. Lets an AI assistant read your retention data and manage cancel flows, offers, and recovery campaigns.",
   "license": "MIT",
   "repository": {
@@ -40,6 +40,7 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "local-run": "pnpm build >/dev/null && node scripts/local-run.mjs",
+    "smoke": "pnpm build >/dev/null && node scripts/smoke.mjs",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "start": "node dist/bin.js",

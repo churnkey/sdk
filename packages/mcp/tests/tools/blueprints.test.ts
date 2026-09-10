@@ -36,6 +36,14 @@ describe('blueprintTools', () => {
     expect(get).toHaveBeenCalledWith('/data/blueprints/bp_123')
   })
 
+  it('tells the agent where resolved coupon and plan details arrive', () => {
+    const { tool } = findTool('get_blueprint')
+
+    expect(tool.description).toContain('discountConfig.coupon')
+    expect(tool.description).toContain('planChangeConfig.plans')
+    expect(tool.description).toContain('smallest currency unit')
+  })
+
   it('routes create_blueprint with template and confirmation', async () => {
     const { tool, post } = findTool('create_blueprint')
     const args = {
