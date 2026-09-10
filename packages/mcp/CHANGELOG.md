@@ -6,7 +6,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- `get_blueprint` now returns each offer's payment-provider objects resolved, not just their ids. A DISCOUNT offer carries `discountConfig.coupon` (`name`, `percentOff` or `amountOff` in the currency's smallest unit, `currency`, `duration`, `durationInMonths`); a PLAN_CHANGE offer carries `planChangeConfig.plans`, one entry per id in `options`, with the customer-facing plan name (the workspace's plan nickname, else the provider product name) plus amount, currency and billing interval.
+- `get_blueprint` now returns each offer's payment-provider objects resolved, not just their ids. A DISCOUNT offer carries `discountConfig.coupon` (`name`, `percentOff` or `amountOff` in the currency's smallest unit, `currency`, `duration`, `durationInMonths`); a PLAN_CHANGE offer carries `planChangeConfig.plans`, one entry per id in `options`, with the customer-facing plan name (the workspace's plan nickname, else the provider product name, else the price nickname) plus amount, currency and billing interval.
 
   An agent asked what a flow offers could previously only answer with a coupon id and a list of price ids, which is unusable in an explanation to a human and gave the model nothing to reason about when comparing offers. The raw `couponId` and `options` are unchanged, so nothing that read them breaks.
 
