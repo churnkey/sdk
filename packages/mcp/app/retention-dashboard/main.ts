@@ -236,6 +236,10 @@ async function reload(args: { window?: DashboardWindow; segmentId?: string | nul
   } finally {
     loading = false
     root.style.opacity = ''
+    if (deepLinkQueued) {
+      deepLinkQueued = false
+      applyDeepLink()
+    }
   }
 }
 
@@ -310,9 +314,23 @@ root.addEventListener('click', (event) => {
 })
 
 // Deep links: /segments/<id>?window=30d opens the dashboard on that segment.
-function applyDeepLink(): void {
+// Each link is applied once, when it arrives (at initialize or in a later
+// host-context-changed). The host context keeps the last link, so re-reading it
+// on every change would undo the user's own navigation whenever anything else
+// in the context changed (display mode, size, model context).
+let appliedDeepLink: string | undefined
+let deepLinkQueued = false
+
+/** Returns true when it started a reload to reach the link's view. */
+function applyDeepLink(): boolean {
   const link = openai.deepLink.getCurrent()
-  if (!link || !data) return
+  if (!link || !data || link.url === appliedDeepLink) return false
+  if (loading) {
+    // reload() ignores calls while one is in flight; retry when it lands.
+    deepLinkQueued = true
+    return false
+  }
+  appliedDeepLink = link.url
   const url = new URL(link.url, 'https://app.invalid')
   const segment = url.pathname.match(/^\/segments\/([^/]+)$/)?.[1]
   const window = url.searchParams.get('window') as DashboardWindow | null
@@ -320,7 +338,9 @@ function applyDeepLink(): void {
     segmentId: segment ? decodeURIComponent(segment) : null,
     window: window && WINDOWS.includes(window) ? window : data.window,
   }
-  if (next.segmentId !== data.segmentId || next.window !== data.window) void reload(next)
+  if (next.segmentId === data.segmentId && next.window === data.window) return false
+  void reload(next)
+  return true
 }
 
 function applyHostContext(): void {
@@ -336,14 +356,17 @@ app.ontoolresult = (result) => {
     return
   }
   data = result.structuredContent as unknown as DashboardData
+  // A deep link to another view replaces this first one: render once the
+  // scoped data lands, so the unscoped view doesn't flash first.
+  if (applyDeepLink()) return
   render()
   void shareContext(data)
-  applyDeepLink()
 }
 
 app.addEventListener('hostcontextchanged', () => {
   applyHostContext()
-  applyDeepLink()
+  // An in-flight reload renders with the latest host context when it lands.
+  if (applyDeepLink() || loading) return
   render()
 })
 
