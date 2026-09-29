@@ -26,6 +26,11 @@ export const MCP_APP_MIME_TYPE = 'text/html;profile=mcp-app'
 
 const WINDOW_DAYS: Record<DashboardWindow, number> = { '30d': 30, '90d': 90, '12m': 365 }
 
+// A trend month with less data than this at the start of the window is a stub
+// (a 30-day window ending on the 29th opens with two days of the previous
+// month) and reads as a misleading bar, so the chart leaves it out.
+const MIN_TREND_MONTH_DAYS = 7
+
 // Segment rows are fetched in one aggregation, but the table only renders the
 // busiest ones; past this the panel stops being readable.
 const MAX_SEGMENT_ROWS = 12
@@ -74,6 +79,22 @@ function bucket(saveType: string | null | undefined): keyof OutcomeCounts {
   return saveType === 'ABANDON' ? 'abandoned' : 'saved'
 }
 
+// Days of `month` (YYYY-MM) that fall on or after the window's start date.
+function daysInWindow(month: string, startDate: string): number {
+  const [y, m] = month.split('-').map(Number)
+  const monthEnd = Date.UTC(y, m, 1)
+  const from = Math.max(Date.UTC(y, m - 1, 1), Date.parse(`${startDate}T00:00:00Z`))
+  return Math.max(0, Math.round((monthEnd - from) / 86_400_000))
+}
+
+// Leading months with under a week inside the window come off the chart, but never
+// the last one: a chart with one short bar beats an empty one.
+function dropLeadingStubs<T>(months: Array<[string, T]>, startDate: string): Array<[string, T]> {
+  let i = 0
+  while (i < months.length - 1 && daysInWindow(months[i][0], startDate) < MIN_TREND_MONTH_DAYS) i++
+  return months.slice(i)
+}
+
 function emptyCounts(): OutcomeCounts {
   return { saved: 0, canceled: 0, abandoned: 0 }
 }
@@ -89,7 +110,14 @@ export async function loadDashboard(
 ): Promise<DashboardData> {
   const window = args.window ?? '90d'
   const start = new Date(now)
-  start.setUTCDate(start.getUTCDate() - WINDOW_DAYS[window])
+  if (window === '12m') {
+    // Twelve calendar months including the current one, so the chart has no
+    // two-day stub in front.
+    start.setUTCDate(1)
+    start.setUTCMonth(start.getUTCMonth() - 11)
+  } else {
+    start.setUTCDate(start.getUTCDate() - WINDOW_DAYS[window])
+  }
   const startDate = isoDate(start)
   const endDate = isoDate(now)
   const range = { startDate, endDate }
@@ -145,9 +173,10 @@ export async function loadDashboard(
     endDate,
     segmentId: args.segmentId ?? null,
     metrics,
-    trend: [...byMonth.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, counts]) => ({ month, ...counts })),
+    trend: dropLeadingStubs(
+      [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b)),
+      startDate,
+    ).map(([month, counts]) => ({ month, ...counts })),
     segments: segmentTable,
   }
 }

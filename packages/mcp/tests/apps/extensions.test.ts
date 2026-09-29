@@ -198,6 +198,46 @@ describe('loadDashboard', () => {
   })
 })
 
+describe('trend window edges', () => {
+  function stubClient(): ChurnkeyClient {
+    return {
+      mode: 'live',
+      get: vi.fn(async (path: string, options?: { query?: Record<string, unknown> }) => {
+        const query = new URLSearchParams()
+        for (const [k, v] of Object.entries(options?.query ?? {})) if (v != null) query.set(k, String(v))
+        return route(`/v1${path}`, query)
+      }),
+    } as unknown as ChurnkeyClient
+  }
+
+  it('starts 12 months on a calendar month so the trend has no stub bar', async () => {
+    const client = stubClient()
+    const data = await loadDashboard(client, { window: '12m' }, new Date('2026-09-29T12:00:00Z'))
+    expect(data.startDate).toBe('2025-10-01')
+  })
+
+  it('drops a leading trend month with under a week of data, and keeps the rest', async () => {
+    // 30 days back from 2026-09-29 is 2026-08-30, so August holds two days of data.
+    const client = {
+      mode: 'live',
+      get: vi.fn(async (path: string, options?: { query?: Record<string, unknown> }) =>
+        path === '/data/warehouse/session-aggregation' && options?.query?.breakdown === 'month-saveType'
+          ? [
+              { month: '2026-08', saveType: 'PAUSE', count: 3 },
+              { month: '2026-09', saveType: 'PAUSE', count: 40 },
+              { month: '2026-09', saveType: null, count: 60 },
+            ]
+          : route(`/v1${path}`, new URLSearchParams()),
+      ),
+    } as unknown as ChurnkeyClient
+    const data = await loadDashboard(client, { window: '30d' }, new Date('2026-09-29T12:00:00Z'))
+    expect(data.trend).toEqual([{ month: '2026-09', saved: 40, canceled: 60, abandoned: 0 }])
+    // A window that opens on the 1st keeps its first month.
+    const wide = await loadDashboard(stubClient(), { window: '90d' }, new Date('2026-09-29T12:00:00Z'))
+    expect(wide.trend.map((r) => r.month)).toEqual(['2026-07', '2026-08'])
+  })
+})
+
 describe('composer at-mentions', () => {
   it('registers an app-only mention search tool', async () => {
     const client = await connect()
