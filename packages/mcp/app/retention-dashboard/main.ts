@@ -65,7 +65,7 @@ function render(): void {
           ).join('')}
         </div>
         ${d.segmentId ? '<button type="button" class="btn btn-ghost" data-action="clear">All flows</button>' : ''}
-        ${openai.message ? '<button type="button" class="btn btn-primary" data-action="ask-view">Ask about this view</button>' : ''}
+        ${canAsk() ? '<button type="button" class="btn btn-primary" data-action="ask-view">Ask about this view</button>' : ''}
         ${canFullscreen && !isFullscreen ? '<button type="button" class="btn btn-ghost" data-action="fullscreen" aria-label="Open fullscreen">⤢</button>' : ''}
       </div>
     </header>
@@ -167,7 +167,7 @@ function segmentTable(d: DashboardData): string {
         <td class="num">${int(s.total)}</td>
         <td class="num">${int(s.saved)}</td>
         <td class="num"><span class="rate">${pct(s.saveRate)}<span class="mini"><span style="width:${(s.saveRate ?? 0) * 100}%"></span></span></span></td>
-        <td class="num">${openai.message ? `<button type="button" class="btn btn-ghost ask" data-ask="${esc(s.id)}">Ask</button>` : ''}</td>
+        <td class="num">${canAsk() ? `<button type="button" class="btn btn-ghost ask" data-ask="${esc(s.id)}">Ask</button>` : ''}</td>
       </tr>`,
     )
     .join('')
@@ -190,11 +190,18 @@ function viewSummary(d: DashboardData): string {
   ].join(' ')
 }
 
+// The OpenAI extensions are preferred where the host advertises them (titled
+// composer chips, hidden background context). Any other MCP Apps host that
+// supports the standard ui/update-model-context and ui/message (Claude, for
+// one) gets the same content through the base App API instead.
+const hostCaps = () => app.getHostCapabilities()
+const canAsk = () => openai.message != null || hostCaps()?.message != null
+
 async function shareContext(d: DashboardData): Promise<void> {
   const modelContext = openai.modelContext
-  if (!modelContext) return
+  if (!modelContext && hostCaps()?.updateModelContext == null) return
   const selected = d.segmentId ? d.segments.find((s) => s.id === d.segmentId) : undefined
-  const content: Parameters<typeof modelContext.update>[0]['content'] = [
+  const content: Parameters<typeof app.updateModelContext>[0]['content'] = [
     // What's on screen, for the model only — no composer chip.
     { type: 'text', text: viewSummary(d), annotations: { audience: ['assistant'] } },
   ]
@@ -206,9 +213,8 @@ async function shareContext(d: DashboardData): Promise<void> {
       _meta: { 'openai/title': `Segment: ${selected.name}` },
     })
   }
-  await modelContext
-    .update({ content, structuredContent: { window: d.window, segmentId: d.segmentId, startDate: d.startDate } })
-    .catch(() => undefined)
+  const params = { content, structuredContent: { window: d.window, segmentId: d.segmentId, startDate: d.startDate } }
+  await (modelContext ? modelContext.update(params) : app.updateModelContext(params)).catch(() => undefined)
 }
 
 async function reload(args: { window?: DashboardWindow; segmentId?: string | null }): Promise<void> {
@@ -244,10 +250,17 @@ function textOf(content: unknown): string {
 
 async function ask(text: string, attachment?: { title: string; text: string }): Promise<void> {
   const message = openai.message
-  if (!message) return
-  const content: Parameters<typeof message.send>[0]['content'] = [{ type: 'text', text }]
-  if (attachment) content.push({ type: 'text', text: attachment.text, _meta: { 'openai/title': attachment.title } })
-  await message.send({ role: 'user', content }).catch(() => undefined)
+  if (message) {
+    const content: Parameters<typeof message.send>[0]['content'] = [{ type: 'text', text }]
+    if (attachment) content.push({ type: 'text', text: attachment.text, _meta: { 'openai/title': attachment.title } })
+    await message.send({ role: 'user', content }).catch(() => undefined)
+    return
+  }
+  if (hostCaps()?.message == null) return
+  // Without titled attachments the numbers go inline, so the message still
+  // reads as one question.
+  const body = attachment ? `${text}\n\n${attachment.text}` : text
+  await app.sendMessage({ role: 'user', content: [{ type: 'text', text: body }] }).catch(() => undefined)
 }
 
 // ---------- events ----------

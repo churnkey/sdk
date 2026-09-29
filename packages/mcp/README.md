@@ -68,6 +68,8 @@ The server also carries the metadata for OpenAI's [plugin extensions](https://gi
 | Composer @-mentions (`search_mentions`) | Typing `@` lists the workspace's segments and A/B tests. A picked item resolves through `churnkey://segments/<id>` or `churnkey://ab-tests/<id>`. |
 | Display modes / deep links | Renders inline by default and can go fullscreen. The deep link `/segments/<id>?window=30d` opens the dashboard on that segment. |
 
+Hosts without the OpenAI extensions but with the standard MCP Apps `ui/update-model-context` and `ui/message` (Claude, for one) still get the context sharing and Ask buttons, minus the titled composer chips.
+
 The view is one self-contained HTML file, built into `dist/retention-dashboard.html` by `pnpm build`, and it is served with an empty CSP allowlist because every piece of data arrives through tool calls.
 
 ## Authentication
