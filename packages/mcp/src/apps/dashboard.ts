@@ -103,6 +103,13 @@ function asRows(value: unknown): CountRow[] {
   return Array.isArray(value) ? (value as CountRow[]) : []
 }
 
+// ChatGPT deep links address a plugin by the id OpenAI assigns at publish time
+// (https://chatgpt.com/plugins/<id>/app/<tool>?path=…), so sharing waits for it.
+export function shareBase(env: NodeJS.ProcessEnv = process.env): string | null {
+  const id = env.CHURNKEY_MCP_CHATGPT_PLUGIN_ID?.trim()
+  return id ? `https://chatgpt.com/plugins/${encodeURIComponent(id)}/app/${DASHBOARD_TOOL}` : null
+}
+
 export async function loadDashboard(
   client: ChurnkeyClient,
   args: DashboardInput,
@@ -178,6 +185,7 @@ export async function loadDashboard(
       startDate,
     ).map(([month, counts]) => ({ month, ...counts })),
     segments: segmentTable,
+    shareBase: shareBase(),
   }
 }
 

@@ -427,3 +427,22 @@ tbody tr[aria-selected="true"] td:first-child {
   font-size: 0.75rem;
   color: var(--ink-faint);
 }
+
+.share-fallback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.share-fallback input {
+  flex: 1;
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: 2px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+}

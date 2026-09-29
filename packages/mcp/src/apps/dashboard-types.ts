@@ -34,6 +34,12 @@ export interface DashboardData {
   segmentId: string | null
   metrics: FlowMetrics
   trend: Array<{ month: string } & OutcomeCounts>
+  /**
+   * Base of a ChatGPT deep link to this tool (`…/app/open_retention_dashboard`). The app appends
+   * `?path=/segments/<id>?window=30d` to share the current view. Null until the server knows its
+   * ChatGPT plugin id (CHURNKEY_MCP_CHATGPT_PLUGIN_ID), so no half-working link is offered.
+   */
+  shareBase: string | null
   segments: Array<
     {
       id: string

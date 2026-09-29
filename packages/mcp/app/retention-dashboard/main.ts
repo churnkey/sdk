@@ -16,6 +16,10 @@ const openai = new OpenAIExtensions(app)
 const root = document.getElementById('root') as HTMLElement
 
 let data: DashboardData | null = null
+// Share state: `copied` flips the button label for a moment; `sharedUrl` shows the link inline
+// when the host's sandbox refuses clipboard access, so it can still be copied by hand.
+let copied = false
+let sharedUrl: string | null = null
 let loading = false
 
 // ---------- formatting ----------
@@ -63,10 +67,12 @@ function render(): void {
           ).join('')}
         </div>
         ${d.segmentId ? '<button type="button" class="btn btn-ghost" data-action="clear">All flows</button>' : ''}
+        ${d.shareBase ? `<button type="button" class="btn btn-ghost" data-action="share">${copied ? 'Link copied' : 'Copy link'}</button>` : ''}
         ${canAsk() ? '<button type="button" class="btn btn-primary" data-action="ask-view">Ask about this view</button>' : ''}
       </div>
     </header>
 
+    ${sharedUrl ? `<div class="share-fallback"><span>Link to this view</span><input readonly value="${esc(sharedUrl)}" /></div>` : ''}
     ${m.sampleSizeWarning ? `<div class="warning">${esc(m.sampleSizeWarning)}</div>` : ''}
 
     <section class="kpis">
@@ -301,6 +307,7 @@ root.addEventListener('click', (event) => {
   }
 
   const action = target.closest<HTMLElement>('[data-action]')?.dataset.action
+  if (action === 'share') void shareView(d)
   if (action === 'clear') void reload({ segmentId: null })
   if (action === 'fullscreen') void app.requestDisplayMode({ mode: 'fullscreen' }).catch(() => undefined)
   if (action === 'ask-view') {
@@ -310,6 +317,49 @@ root.addEventListener('click', (event) => {
     })
   }
 })
+
+// The deep link for the current view, in ChatGPT's web form:
+// <shareBase>?path=%2Fsegments%2F<id>%3Fwindow%3D30d
+export function viewLink(d: DashboardData): string | null {
+  if (!d.shareBase) return null
+  const path = d.segmentId ? `/segments/${encodeURIComponent(d.segmentId)}?window=${d.window}` : `/?window=${d.window}`
+  return `${d.shareBase}?path=${encodeURIComponent(path)}`
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    const field = document.createElement('textarea')
+    field.value = text
+    field.style.position = 'fixed'
+    field.style.opacity = '0'
+    document.body.append(field)
+    field.select()
+    const ok = document.execCommand('copy')
+    field.remove()
+    return ok
+  }
+}
+
+async function shareView(d: DashboardData): Promise<void> {
+  const url = viewLink(d)
+  if (!url) return
+  if (await copyText(url)) {
+    copied = true
+    sharedUrl = null
+    render()
+    setTimeout(() => {
+      copied = false
+      render()
+    }, 1800)
+  } else {
+    sharedUrl = url
+    render()
+    root.querySelector<HTMLInputElement>('.share-fallback input')?.select()
+  }
+}
 
 // Deep links: /segments/<id>?window=30d opens the dashboard on that segment.
 // Each link is applied once, when it arrives (at initialize or in a later

@@ -1,7 +1,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { DASHBOARD_TOOL, DASHBOARD_URI, loadDashboard, MCP_APP_MIME_TYPE } from '../../src/apps/dashboard'
+import { DASHBOARD_TOOL, DASHBOARD_URI, loadDashboard, MCP_APP_MIME_TYPE, shareBase } from '../../src/apps/dashboard'
 import { MENTIONS_TOOL } from '../../src/apps/mentions'
 import type { ChurnkeyClient } from '../../src/client'
 import { createServer } from '../../src/server'
@@ -235,6 +235,26 @@ describe('trend window edges', () => {
     // A window that opens on the 1st keeps its first month.
     const wide = await loadDashboard(stubClient(), { window: '90d' }, new Date('2026-09-29T12:00:00Z'))
     expect(wide.trend.map((r) => r.month)).toEqual(['2026-07', '2026-08'])
+  })
+})
+
+describe('share links', () => {
+  it('offers no share link until the ChatGPT plugin id is configured', () => {
+    expect(shareBase({})).toBeNull()
+    expect(shareBase({ CHURNKEY_MCP_CHATGPT_PLUGIN_ID: '  ' })).toBeNull()
+  })
+
+  it('builds the ChatGPT web deep-link base for the dashboard tool', () => {
+    expect(shareBase({ CHURNKEY_MCP_CHATGPT_PLUGIN_ID: 'plugin_asdk_app_123' })).toBe(
+      'https://chatgpt.com/plugins/plugin_asdk_app_123/app/open_retention_dashboard',
+    )
+  })
+
+  it('carries the share base in the tool result', async () => {
+    const client = await connect()
+    const result = await client.callTool({ name: DASHBOARD_TOOL, arguments: {} })
+    expect((result.structuredContent as { shareBase: unknown }).shareBase).toBeNull()
+    await client.close()
   })
 })
 
