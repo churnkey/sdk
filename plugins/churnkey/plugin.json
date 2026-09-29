@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "churnkey",
+  "version": "0.1.0",
+  "description": "Explore subscription retention, inspect cancel flows, and manage Churnkey configuration with your existing workspace permissions.",
+  "author": { "name": "Churnkey", "url": "https://churnkey.co" },
+  "homepage": "https://churnkey.co/feature/mcp",
+  "repository": "https://github.com/churnkey/sdk",
+  "license": "MIT",
+  "keywords": ["churnkey", "retention", "subscriptions", "cancel-flows", "mcp"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Churnkey",
+        "shortDescription": "Explore cancel flows and subscription retention.",
+        "longDescription": "Open Flow Explorer from the sidebar or a thread, review published flows and live performance, and mention a flow in the composer. Existing MCP tools support permission-scoped configuration management through Churnkey OAuth.",
+        "developerName": "Churnkey",
+        "category": "Productivity",
+        "capabilities": ["Read", "Write"],
+        "websiteURL": "https://churnkey.co/feature/mcp",
+        "defaultPrompt": ["Open my Churnkey Flow Explorer.", "Review my cancel flow performance over the last 30 days."],
+        "brandColor": "#176E56",
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/icon.svg"
+      }
+    }
+  }
+}

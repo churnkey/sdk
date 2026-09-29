@@ -2,10 +2,16 @@
 
 Model Context Protocol server for [Churnkey](https://churnkey.co). Lets an AI assistant (Claude Code, Cursor, Claude Desktop, ChatGPT, etc.) read your retention data and manage cancel flows, offers, segments, and recovery campaigns.
 
+## OpenAI plugin extensions (draft)
+
+The source now includes a read-only Flow Explorer MCP App, OpenAI sidebar/thread entrypoints, and cancel-flow composer mentions. See [`plugins/churnkey`](../../plugins/churnkey/README.md) for the portable plugin manifest, synthetic recording demo, and native ChatGPT validation steps. These additions require Node 22+; they are not available on the hosted endpoint until this code is deployed.
+
 ## Tools
 
 | Tool | Description |
 |------|-------------|
+| `open_flow_explorer` | Read-only visual cancel-flow library with OpenAI sidebar/thread entrypoints. Accepts empty input, orients to the workspace, and returns inventory plus the UI resource. |
+| `search_mentions` | OpenAI composer integration: find current-workspace flow resources by name, capped at 20 results. App-visible tool. |
 | `get_account` | Identity & session context — call it first to orient: which workspace (org) the token acts on, the authenticated user, coarse entitlements (active subscription, Intelligence access), the granted OAuth scopes (so you know what's permitted), and the **effective mode** (live/test). No scope required. |
 | `list_sessions` | Cancel/dunning sessions, with filters for date range, customer, outcome (saveType/canceled/aborted), plan, segment, A/B test, etc. Negation via `not: { ... }`. Default 50 / max 500 per call. |
 | `aggregate_sessions` | Session counts, optionally grouped by `breakdownBy` dimensions (saveType, offerType, planId, day/week/month, …). Same filter set as `list_sessions`. |

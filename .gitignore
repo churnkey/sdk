@@ -6,3 +6,7 @@ dist/
 .DS_Store
 .env
 .env.*
+
+# Local browser validation and recordings
+output/
+.playwright-cli/

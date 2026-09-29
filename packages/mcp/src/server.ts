@@ -3,6 +3,7 @@ import { ChurnkeyClient } from './client'
 import type { ChurnkeyMcpConfig } from './config'
 import { allTools } from './tools'
 import { MODE_DATA_NOTE, MODE_TRAFFIC_NOTE } from './tools/shared'
+import { registerFlowExplorer } from './ui/server'
 
 export const SERVER_NAME = 'churnkey-mcp'
 export const SERVER_VERSION = '2.3.0'
@@ -78,6 +79,8 @@ export function createServer(config: ChurnkeyMcpConfig): McpServer {
       },
     )
   }
+
+  registerFlowExplorer(server, client)
 
   return server
 }

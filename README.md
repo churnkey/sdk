@@ -53,6 +53,8 @@ import '@churnkey/react/styles.css'
 - [Create a free Churnkey account](https://app.churnkey.co/register?intent=sdk) — get an `appId` for analytics
 - [churnkey.co](https://churnkey.co) — dashboard, hosted embed, AI retention features
 
+- [OpenAI plugin extension prototype](./plugins/churnkey/README.md) — Flow Explorer, sidebar/thread entrypoints, composer mentions, and a local recording demo
+
 ## Repo layout
 
 ```
