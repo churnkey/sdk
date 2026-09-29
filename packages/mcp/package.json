@@ -36,13 +36,13 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && node scripts/build-app.mjs",
     "dev": "tsup --watch",
     "test": "vitest run",
     "local-run": "pnpm build >/dev/null && node scripts/local-run.mjs",
     "smoke": "pnpm build >/dev/null && node scripts/smoke.mjs",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p app",
     "start": "node dist/bin.js",
     "start:http": "node dist/bin.js --http"
   },
@@ -51,7 +51,10 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@modelcontextprotocol/ext-apps": "1.7.5",
+    "@openai/mcp-extensions": "0.1.0",
     "@types/node": "^22.0.0",
+    "esbuild": "^0.28.2",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0",
     "vitest": "^2.0.0"

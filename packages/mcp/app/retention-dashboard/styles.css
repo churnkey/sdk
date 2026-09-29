@@ -1,0 +1,281 @@
+:root {
+  --saved: light-dark(rgb(22 163 74), rgb(74 222 128));
+  --canceled: light-dark(rgb(220 38 38), rgb(248 113 113));
+  --abandoned: color-mix(in srgb, var(--foreground) 28%, transparent);
+  --gap: 12px;
+}
+
+main {
+  display: grid;
+  gap: var(--gap);
+  padding: 16px;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.loading,
+.error {
+  padding: 24px 0;
+}
+
+.error {
+  color: var(--destructive);
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+}
+
+.title {
+  display: grid;
+  gap: 2px;
+}
+
+.title h1 {
+  font-size: 1.15rem;
+}
+
+.pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  background: var(--muted);
+}
+
+.pill.test {
+  background: color-mix(in srgb, var(--destructive) 18%, transparent);
+  color: var(--destructive);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--input);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.segmented button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 4px 12px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-weight: 600;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--gap);
+}
+
+.kpi {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+}
+
+.kpi .label {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.kpi .value {
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.kpi .sub {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+}
+
+.panel {
+  padding: 14px 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.panel h2 {
+  font-size: 0.95rem;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--gap);
+}
+
+.stack {
+  display: flex;
+  height: 14px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--muted);
+}
+
+.stack span {
+  display: block;
+  height: 100%;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.legend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: baseline;
+}
+
+.offers {
+  display: grid;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.offer-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 48px;
+  gap: 8px;
+  align-items: center;
+}
+
+.offer-row .bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--saved);
+}
+
+.offer-row .n {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+
+svg.trend {
+  width: 100%;
+  height: 170px;
+  overflow: visible;
+}
+
+svg.trend text {
+  fill: var(--muted-foreground);
+  font-size: 10px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+th {
+  font-weight: 500;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+}
+
+td.num,
+th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+tbody tr {
+  cursor: var(--cursor-interaction, pointer);
+}
+
+tbody tr:hover {
+  background: var(--muted);
+}
+
+tbody tr[aria-selected="true"] {
+  background: var(--accent);
+}
+
+.rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.rate .mini {
+  width: 60px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.rate .mini span {
+  display: block;
+  height: 100%;
+  background: var(--saved);
+}
+
+.muted-cell {
+  color: var(--muted-foreground);
+}
+
+.warning {
+  font-size: 0.82rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--destructive) 12%, transparent);
+  color: var(--destructive);
+}
+
+.ask {
+  padding: 3px 10px;
+  font-size: 0.78rem;
+}
+
+.footer {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}

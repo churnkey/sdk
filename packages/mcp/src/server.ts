@@ -1,4 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { registerDashboard } from './apps/dashboard'
+import { registerMentions } from './apps/mentions'
 import { ChurnkeyClient } from './client'
 import type { ChurnkeyMcpConfig } from './config'
 import { allTools } from './tools'
@@ -17,6 +19,18 @@ const SERVER_DESCRIPTION =
   'Read Churnkey retention data and manage cancel flows, offers, segments, and payment recovery campaigns.'
 const SERVER_WEBSITE = 'https://churnkey.co/feature/mcp'
 
+// Monochrome `currentColor` glyph on a 20x20 viewport, per the OpenAI plugin
+// icon guidelines. ChatGPT falls back to the server icon for sidebar
+// entrypoints (the MCP SDK has no per-tool `icons` yet), and other hosts show
+// it next to the server name.
+const SERVER_ICON_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.75 16.25 6.4v7.2L10 17.25 3.75 13.6V6.4z"/><path d="M7.25 10.25 9.25 12.25 12.75 8"/></svg>'
+const SERVER_ICON = {
+  src: `data:image/svg+xml,${encodeURIComponent(SERVER_ICON_SVG)}`,
+  mimeType: 'image/svg+xml',
+  sizes: ['any'],
+}
+
 export function createServer(config: ChurnkeyMcpConfig): McpServer {
   const server = new McpServer({
     name: SERVER_NAME,
@@ -24,6 +38,7 @@ export function createServer(config: ChurnkeyMcpConfig): McpServer {
     version: SERVER_VERSION,
     description: SERVER_DESCRIPTION,
     websiteUrl: SERVER_WEBSITE,
+    icons: [SERVER_ICON],
   })
   const client = new ChurnkeyClient(config)
 
@@ -78,6 +93,12 @@ export function createServer(config: ChurnkeyMcpConfig): McpServer {
       },
     )
   }
+
+  // MCP Apps + OpenAI plugin extensions. These carry their own result shape
+  // (structuredContent for the UI), so they register outside the JSON-text
+  // wrapper above.
+  registerDashboard(server, client)
+  registerMentions(server, client)
 
   return server
 }
