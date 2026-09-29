@@ -47,15 +47,13 @@ function render(): void {
   const total = Math.max(1, outcomes.saved.total + outcomes.canceled + outcomes.abandoned)
   const offers = Object.entries(outcomes.saved.byOfferType).sort(([, a], [, b]) => b - a)
   const maxOffer = Math.max(1, ...offers.map(([, n]) => n))
-  const canFullscreen = app.getHostContext()?.availableDisplayModes?.includes('fullscreen')
-  const isFullscreen = app.getHostContext()?.displayMode === 'fullscreen'
 
   root.innerHTML = `
     <header>
       <div class="title">
-        <h1>${esc(d.org?.name ?? 'Churnkey')} · Retention
-          <span class="pill ${d.mode === 'test' ? 'test' : ''}">${d.mode.toUpperCase()}</span></h1>
-        <span class="text-muted text-small">${esc(scopeName)} · ${esc(d.startDate)} → ${esc(d.endDate)}</span>
+        <span class="eyebrow">${esc(d.org?.name ?? 'Churnkey')}<span class="pill ${d.mode === 'test' ? 'test' : ''}">${d.mode.toUpperCase()}</span></span>
+        <h1>Retention</h1>
+        <span class="scope">${esc(scopeName)} · ${esc(d.startDate)} → ${esc(d.endDate)}</span>
       </div>
       <div class="controls">
         <div class="segmented" role="group" aria-label="Time window">
@@ -66,7 +64,6 @@ function render(): void {
         </div>
         ${d.segmentId ? '<button type="button" class="btn btn-ghost" data-action="clear">All flows</button>' : ''}
         ${canAsk() ? '<button type="button" class="btn btn-primary" data-action="ask-view">Ask about this view</button>' : ''}
-        ${canFullscreen && !isFullscreen ? '<button type="button" class="btn btn-ghost" data-action="fullscreen" aria-label="Open fullscreen">⤢</button>' : ''}
       </div>
     </header>
 
@@ -93,6 +90,7 @@ function render(): void {
           <span><i style="background:var(--abandoned)"></i>Abandoned ${pct(outcomes.abandoned / total)}</span>
         </div>
         <div class="offers">
+          <span class="offers-head">Saved by offer</span>
           ${
             offers.length === 0
               ? '<span class="text-muted">No saves in this window.</span>'
