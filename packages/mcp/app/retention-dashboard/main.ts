@@ -131,26 +131,31 @@ function kpi(label: string, value: string, sub: string): string {
 
 function trendChart(trend: DashboardData['trend']): string {
   if (trend.length === 0) return '<span class="text-muted">No sessions in this window.</span>'
-  const width = 100 * trend.length
+  // Horizontal positions are percentages and vertical ones pixels, with no
+  // viewBox: a stretched viewBox (preserveAspectRatio="none") distorted the
+  // labels, squashing them to illegible slivers at 12 months.
   const height = 150
   const max = Math.max(1, ...trend.map((t) => t.saved + t.canceled + t.abandoned))
-  const barW = 56
+  const slot = 100 / trend.length
+  const barW = slot * 0.56
+  const dense = trend.length > 8
   const bars = trend
     .map((t, i) => {
-      const x = i * 100 + (100 - barW) / 2
+      const x = i * slot + (slot - barW) / 2
+      const cx = `${x + barW / 2}%`
       let y = height
       const seg = (n: number, color: string) => {
-        const h = (n / max) * (height - 12)
+        const h = (n / max) * (height - 16)
         y -= h
-        return `<rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="${color}" rx="2"><title>${int(n)}</title></rect>`
+        return `<rect x="${x}%" y="${y}" width="${barW}%" height="${h}" fill="${color}" rx="2"><title>${int(n)}</title></rect>`
       }
       const rate = t.saved / Math.max(1, t.saved + t.canceled + t.abandoned)
       return `${seg(t.saved, 'var(--saved)')}${seg(t.canceled, 'var(--canceled)')}${seg(t.abandoned, 'var(--abandoned)')}
-        <text x="${x + barW / 2}" y="${y - 4}" text-anchor="middle">${pct(rate)}</text>
-        <text x="${x + barW / 2}" y="${height + 14}" text-anchor="middle">${esc(monthLabel(t.month))}</text>`
+        <text x="${cx}" y="${y - 4}" text-anchor="middle">${dense ? `${Math.round(rate * 100)}%` : pct(rate)}</text>
+        <text x="${cx}" y="${height + 14}" text-anchor="middle">${esc(monthLabel(t.month))}</text>`
     })
     .join('')
-  return `<svg class="trend" viewBox="0 0 ${width} ${height + 18}" preserveAspectRatio="none" role="img" aria-label="Monthly sessions by outcome">${bars}</svg>`
+  return `<svg class="trend${dense ? ' dense' : ''}" height="${height + 18}" role="img" aria-label="Monthly sessions by outcome">${bars}</svg>`
 }
 
 function segmentTable(d: DashboardData): string {

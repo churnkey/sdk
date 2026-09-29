@@ -192,6 +192,11 @@ svg.trend {
 
 svg.trend text {
   fill: var(--muted-foreground);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+svg.trend.dense text {
   font-size: 10px;
 }
 
