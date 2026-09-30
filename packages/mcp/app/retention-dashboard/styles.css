@@ -446,3 +446,17 @@ tbody tr[aria-selected="true"] td:first-child {
   background: var(--surface);
   color: var(--ink);
 }
+
+/* Both labels share one grid cell, so the button keeps the wider width and the header never rewraps. */
+.share {
+  display: inline-grid;
+}
+
+.share > span {
+  grid-area: 1 / 1;
+}
+
+.share[data-copied="false"] > span:last-child,
+.share[data-copied="true"] > span:first-child {
+  visibility: hidden;
+}

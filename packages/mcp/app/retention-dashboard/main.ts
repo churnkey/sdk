@@ -19,6 +19,7 @@ let data: DashboardData | null = null
 // Share state: `copied` flips the button label for a moment; `sharedUrl` shows the link inline
 // when the host's sandbox refuses clipboard access, so it can still be copied by hand.
 let copied = false
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
 let sharedUrl: string | null = null
 let loading = false
 
@@ -67,7 +68,7 @@ function render(): void {
           ).join('')}
         </div>
         ${d.segmentId ? '<button type="button" class="btn btn-ghost" data-action="clear">All flows</button>' : ''}
-        ${d.shareBase ? `<button type="button" class="btn btn-ghost" data-action="share">${copied ? 'Link copied' : 'Copy link'}</button>` : ''}
+        ${d.shareBase ? `<button type="button" class="btn btn-ghost share" data-action="share" data-copied="${copied}"><span>Copy link</span><span>Link copied</span></button>` : ''}
         ${canAsk() ? '<button type="button" class="btn btn-primary" data-action="ask-view">Ask about this view</button>' : ''}
       </div>
     </header>
@@ -233,6 +234,8 @@ async function reload(args: { window?: DashboardWindow; segmentId?: string | nul
     })
     if (result.isError) throw new Error(textOf(result.content) || 'Could not load retention data.')
     data = result.structuredContent as unknown as DashboardData
+    // A fallback link belongs to the view it was made for.
+    sharedUrl = null
     render()
     await shareContext(data)
   } catch (err) {
@@ -350,7 +353,9 @@ async function shareView(d: DashboardData): Promise<void> {
     copied = true
     sharedUrl = null
     render()
-    setTimeout(() => {
+    // A second click restarts the confirmation instead of racing the first timer.
+    clearTimeout(copiedTimer)
+    copiedTimer = setTimeout(() => {
       copied = false
       render()
     }, 1800)
