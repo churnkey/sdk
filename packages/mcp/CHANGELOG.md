@@ -2,6 +2,16 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- `open_retention_dashboard`, an [MCP App](https://github.com/modelcontextprotocol/ext-apps). It returns save rate, customers saved, boosted revenue, outcomes by offer type, a monthly trend and per-segment save rates for a window, as `structuredContent` plus a text summary. Hosts that render MCP Apps show an interactive view that re-queries the tool when the user changes the window or segment. Every other client gets the text, so nothing changes for Claude Code or Cursor beyond one more read-only tool.
+- OpenAI [plugin extensions](https://github.com/openai/mcp-extensions) metadata, so ChatGPT can open the dashboard from its sidebar (global entrypoint) or as a tab in a thread (thread entrypoint) without a model call. The view also shares what the user is looking at as model context and can send a question with the numbers attached.
+- **Open in Churnkey** in the dashboard header opens the Churnkey web app through the host's `openLink`. With a segment selected it opens that segment's cancel flow in the builder (the draft blueprint, as the Flows page does); otherwise it opens cancel-flow analytics. Set `CHURNKEY_WEB_URL` for a non-production web app.
+- `search_mentions`, an app-only tool that backs ChatGPT composer @-mentions over segments and A/B tests, plus a `churnkey://{kind}/{id}` resource template that resolves a mention. If the A/B test list is forbidden, segment suggestions still come back. A forbidden read on a mentioned link surfaces the scope error rather than a misleading "not found".
+- The `initialize` response now carries a server icon: a monochrome `currentColor` SVG sent as a data URI, so there is no `src` that can break. ChatGPT falls back to it for sidebar entrypoints because the MCP SDK cannot yet attach `icons` to a tool.
+
 ## 2.3.0 - 2026-09-09
 
 ### Changed

@@ -6,6 +6,7 @@ Model Context Protocol server for [Churnkey](https://churnkey.co). Lets an AI as
 
 | Tool | Description |
 |------|-------------|
+| `open_retention_dashboard` | Retention overview for a 30-day, 90-day (default) or 12-month window, optionally scoped to one segment: headline metrics, outcomes by offer type, monthly trend, per-segment save rates. Renders as an interactive MCP App where supported (see below), text elsewhere. |
 | `get_account` | Identity & session context — call it first to orient: which workspace (org) the token acts on, the authenticated user, coarse entitlements (active subscription, Intelligence access), the granted OAuth scopes (so you know what's permitted), and the **effective mode** (live/test). No scope required. |
 | `list_sessions` | Cancel/dunning sessions, with filters for date range, customer, outcome (saveType/canceled/aborted), plan, segment, A/B test, etc. Negation via `not: { ... }`. Default 50 / max 500 per call. |
 | `aggregate_sessions` | Session counts, optionally grouped by `breakdownBy` dimensions (saveType, offerType, planId, day/week/month, …). Same filter set as `list_sessions`. |
@@ -51,6 +52,25 @@ Each tool's input schema is fully described to the MCP client — enums for `sav
 Mode (live vs test): with OAuth, set `CHURNKEY_MODE=test` (sent as `x-ck-mode: test`); with a deprecated Data API key, mode comes from the key prefix (`test_…`). Mode defaults to **live**, and `get_account` reports the effective mode for the session.
 
 Mode applies to **session analytics only** (`list_sessions` / `aggregate_sessions` — the only surface partitioned by test/live, so those two tools echo the active mode in their results). Everything else is mode-independent: **blueprint / segment / recovery configuration is shared across modes** (not key-dependent); **payment-recovery analytics are not partitioned by mode** (dunning campaigns come from real provider failed-payment events and carry no test/live distinction); `get_flow_metrics` is live-mode by definition (it joins real invoices); and DSR looks up a customer by email across the whole workspace regardless of mode.
+
+## Retention Dashboard (MCP App) and ChatGPT plugin extensions
+
+`open_retention_dashboard` returns the same numbers as text to any client, and hosts that support [MCP Apps](https://github.com/modelcontextprotocol/ext-apps) render them as an interactive view instead: save rate, customers saved, boosted revenue, outcomes by offer type, a monthly trend, and a per-segment table. Picking a time window or a segment re-queries the tool from inside the view.
+
+The server also carries the metadata for OpenAI's [plugin extensions](https://github.com/openai/mcp-extensions/blob/main/docs/spec.md). Other hosts ignore these fields.
+
+| Extension | What it does in ChatGPT |
+|-----------|-------------------------|
+| Global entrypoint | The dashboard opens from the sidebar with no model call. |
+| Thread entrypoint | The dashboard opens as a side-panel tab inside a conversation. |
+| Model context (`ui/update-model-context`) | The view tells the model what the user is looking at, and a selected segment appears as a removable composer attachment. |
+| Messages (`ui/message`) | "Ask about this view" and the per-segment **Ask** button send a question with the numbers attached. |
+| Composer @-mentions (`search_mentions`) | Typing `@` lists the workspace's segments and A/B tests. A picked item resolves through `churnkey://segments/<id>` or `churnkey://ab-tests/<id>`. |
+| Display modes / deep links | Renders inline by default and can go fullscreen. The deep link `/segments/<id>?window=30d` opens the dashboard on that segment. **Open in Churnkey** opens the web app: the selected segment's cancel flow in the builder, or cancel-flow analytics. |
+
+Hosts without the OpenAI extensions but with the standard MCP Apps `ui/update-model-context` and `ui/message` (Claude, for one) still get the context sharing and Ask buttons, minus the titled composer chips.
+
+The view is one self-contained HTML file, built into `dist/retention-dashboard.html` by `pnpm build`, and it is served with an empty CSP allowlist because every piece of data arrives through tool calls.
 
 ## Authentication
 
@@ -187,10 +207,13 @@ For MCP client configs, point the client directly at the built server:
 | `CHURNKEY_MCP_CORS_ORIGIN` | no | — |
 | `CHURNKEY_MCP_PUBLIC_URL` | no | `http://<host>:<port>` |
 | `CHURNKEY_MCP_OPENAI_CHALLENGE_TOKEN` | no | — |
+| `CHURNKEY_WEB_URL` | no | `https://app.churnkey.co` |
 
 `CHURNKEY_MCP_PUBLIC_URL` is the canonical public URL of the HTTP endpoint (e.g. `https://mcp.churnkey.co`). The server advertises it as the OAuth resource identifier: `GET /.well-known/oauth-protected-resource` returns RFC 9728 metadata pointing at the Churnkey API's authorization server, and unauthenticated requests get a `WWW-Authenticate: Bearer resource_metadata="…"` header — so OAuth-capable MCP clients (Claude, etc.) can discover and run the sign-in flow themselves when connecting to a hosted endpoint.
 
 `CHURNKEY_MCP_ALLOWED_HOSTS` is a comma-separated list of accepted `Host` headers, including ports when present (for example, `mcp.churnkey.co,localhost:3333`). `CHURNKEY_MCP_CORS_ORIGIN` is intentionally opt-in; set it to one exact browser origin, or `*`, only when a browser-based MCP client needs CORS.
+
+`CHURNKEY_WEB_URL` is the Churnkey web app the Retention Dashboard's **Open in Churnkey** button links to. Point it at a staging app for non-production deployments.
 
 `CHURNKEY_MCP_OPENAI_CHALLENGE_TOKEN` holds the domain-verification token issued by the OpenAI plugin directory. When set, `GET /.well-known/openai-apps-challenge` returns that token as bare text, unauthenticated and exempt from the host allowlist, which is how their reviewer fetches it. Unset, the path 404s. It lives in the environment so re-issuing a token is a config change rather than a deploy.
 
