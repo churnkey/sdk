@@ -34,12 +34,8 @@ export interface DashboardData {
   segmentId: string | null
   metrics: FlowMetrics
   trend: Array<{ month: string } & OutcomeCounts>
-  /**
-   * Base of a ChatGPT deep link to this tool (`…/app/open_retention_dashboard`). The app appends
-   * `?path=/segments/<id>?window=30d` to share the current view. Null until the server knows its
-   * ChatGPT plugin id (CHURNKEY_MCP_CHATGPT_PLUGIN_ID), so no half-working link is offered.
-   */
-  shareBase: string | null
+  /** Cancel-flow analytics in the Churnkey web app, for "Open in Churnkey". */
+  churnkeyUrl: string
   segments: Array<
     {
       id: string
@@ -48,6 +44,8 @@ export interface DashboardData {
       priority: number
       total: number
       saveRate: number | null
+      /** The segment's cancel flow in the Churnkey builder, when it has a draft blueprint. */
+      flowUrl: string | null
     } & OutcomeCounts
   >
 }

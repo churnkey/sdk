@@ -428,35 +428,3 @@ tbody tr[aria-selected="true"] td:first-child {
   color: var(--ink-faint);
 }
 
-.share-fallback {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.8rem;
-  color: var(--ink-soft);
-}
-
-.share-fallback input {
-  flex: 1;
-  font: inherit;
-  font-size: 0.78rem;
-  padding: 6px 10px;
-  border-radius: var(--radius);
-  border: 2px solid var(--line-strong);
-  background: var(--surface);
-  color: var(--ink);
-}
-
-/* Both labels share one grid cell, so the button keeps the wider width and the header never rewraps. */
-.share {
-  display: inline-grid;
-}
-
-.share > span {
-  grid-area: 1 / 1;
-}
-
-.share[data-copied="false"] > span:last-child,
-.share[data-copied="true"] > span:first-child {
-  visibility: hidden;
-}

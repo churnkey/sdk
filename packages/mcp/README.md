@@ -66,7 +66,7 @@ The server also carries the metadata for OpenAI's [plugin extensions](https://gi
 | Model context (`ui/update-model-context`) | The view tells the model what the user is looking at, and a selected segment appears as a removable composer attachment. |
 | Messages (`ui/message`) | "Ask about this view" and the per-segment **Ask** button send a question with the numbers attached. |
 | Composer @-mentions (`search_mentions`) | Typing `@` lists the workspace's segments and A/B tests. A picked item resolves through `churnkey://segments/<id>` or `churnkey://ab-tests/<id>`. |
-| Display modes / deep links | Renders inline by default and can go fullscreen. The deep link `/segments/<id>?window=30d` opens the dashboard on that segment, and **Copy link** in the header copies one for the current view (once `CHURNKEY_MCP_CHATGPT_PLUGIN_ID` is set). |
+| Display modes / deep links | Renders inline by default and can go fullscreen. The deep link `/segments/<id>?window=30d` opens the dashboard on that segment. **Open in Churnkey** opens the web app: the selected segment's cancel flow in the builder, or cancel-flow analytics. |
 
 Hosts without the OpenAI extensions but with the standard MCP Apps `ui/update-model-context` and `ui/message` (Claude, for one) still get the context sharing and Ask buttons, minus the titled composer chips.
 
@@ -207,13 +207,13 @@ For MCP client configs, point the client directly at the built server:
 | `CHURNKEY_MCP_CORS_ORIGIN` | no | — |
 | `CHURNKEY_MCP_PUBLIC_URL` | no | `http://<host>:<port>` |
 | `CHURNKEY_MCP_OPENAI_CHALLENGE_TOKEN` | no | — |
-| `CHURNKEY_MCP_CHATGPT_PLUGIN_ID` | no | — |
+| `CHURNKEY_WEB_URL` | no | `https://app.churnkey.co` |
 
 `CHURNKEY_MCP_PUBLIC_URL` is the canonical public URL of the HTTP endpoint (e.g. `https://mcp.churnkey.co`). The server advertises it as the OAuth resource identifier: `GET /.well-known/oauth-protected-resource` returns RFC 9728 metadata pointing at the Churnkey API's authorization server, and unauthenticated requests get a `WWW-Authenticate: Bearer resource_metadata="…"` header — so OAuth-capable MCP clients (Claude, etc.) can discover and run the sign-in flow themselves when connecting to a hosted endpoint.
 
 `CHURNKEY_MCP_ALLOWED_HOSTS` is a comma-separated list of accepted `Host` headers, including ports when present (for example, `mcp.churnkey.co,localhost:3333`). `CHURNKEY_MCP_CORS_ORIGIN` is intentionally opt-in; set it to one exact browser origin, or `*`, only when a browser-based MCP client needs CORS.
 
-`CHURNKEY_MCP_CHATGPT_PLUGIN_ID` is the id OpenAI assigns to the published ChatGPT plugin (the `<id>` in `https://chatgpt.com/plugins/<id>`). When set, the Retention Dashboard shows **Copy link**, which copies a ChatGPT deep link that opens the dashboard on the current segment and window. Unset, the button is hidden.
+`CHURNKEY_WEB_URL` is the Churnkey web app the Retention Dashboard's **Open in Churnkey** button links to. Point it at a staging app for non-production deployments.
 
 `CHURNKEY_MCP_OPENAI_CHALLENGE_TOKEN` holds the domain-verification token issued by the OpenAI plugin directory. When set, `GET /.well-known/openai-apps-challenge` returns that token as bare text, unauthenticated and exempt from the host allowlist, which is how their reviewer fetches it. Unset, the path 404s. It lives in the environment so re-issuing a token is a config change rather than a deploy.
 

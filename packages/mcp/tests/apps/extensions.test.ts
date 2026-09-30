@@ -1,7 +1,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { DASHBOARD_TOOL, DASHBOARD_URI, loadDashboard, MCP_APP_MIME_TYPE, shareBase } from '../../src/apps/dashboard'
+import { DASHBOARD_TOOL, DASHBOARD_URI, loadDashboard, MCP_APP_MIME_TYPE, webBase } from '../../src/apps/dashboard'
 import { MENTIONS_TOOL } from '../../src/apps/mentions'
 import type { ChurnkeyClient } from '../../src/client'
 import { createServer } from '../../src/server'
@@ -40,6 +40,14 @@ function route(path: string, query: URLSearchParams): unknown {
       return flowMetrics
     case '/v1/data/segments':
       return segments
+    case '/v1/data/blueprints':
+      return {
+        flows: [
+          { flowId: 'org', scope: 'org', editableBlueprintId: 'bp_org' },
+          { flowId: 'seg_annual', scope: 'segment', editableBlueprintId: 'bp_annual_draft' },
+          { flowId: 'seg_new', scope: 'segment', editableBlueprintId: null },
+        ],
+      }
     case '/v1/data/ab-tests':
       return [{ id: 'ab1', name: 'Annual pause vs discount', state: 'tracking' }]
     case '/v1/data/warehouse/session-aggregation':
@@ -238,22 +246,39 @@ describe('trend window edges', () => {
   })
 })
 
-describe('share links', () => {
-  it('offers no share link until the ChatGPT plugin id is configured', () => {
-    expect(shareBase({})).toBeNull()
-    expect(shareBase({ CHURNKEY_MCP_CHATGPT_PLUGIN_ID: '  ' })).toBeNull()
+describe('Open in Churnkey links', () => {
+  it('points at the production web app unless CHURNKEY_WEB_URL overrides it', () => {
+    expect(webBase({})).toBe('https://app.churnkey.co')
+    expect(webBase({ CHURNKEY_WEB_URL: 'https://dev.churnkey.co/' })).toBe('https://dev.churnkey.co')
   })
 
-  it('builds the ChatGPT web deep-link base for the dashboard tool', () => {
-    expect(shareBase({ CHURNKEY_MCP_CHATGPT_PLUGIN_ID: 'plugin_asdk_app_123' })).toBe(
-      'https://chatgpt.com/plugins/plugin_asdk_app_123/app/open_retention_dashboard',
-    )
-  })
-
-  it('carries the share base in the tool result', async () => {
+  it('links analytics, and each segment to its draft flow in the builder', async () => {
     const client = await connect()
     const result = await client.callTool({ name: DASHBOARD_TOOL, arguments: {} })
-    expect((result.structuredContent as { shareBase: unknown }).shareBase).toBeNull()
+    const data = result.structuredContent as {
+      churnkeyUrl: string
+      segments: Array<{ id: string; flowUrl: string | null }>
+    }
+    expect(data.churnkeyUrl).toBe('https://app.churnkey.co/cancellation/analytics')
+    const byId = Object.fromEntries(data.segments.map((s) => [s.id, s.flowUrl]))
+    // the builder opens the editable draft, like the Flows page does, never the org flow
+    expect(byId.seg_annual).toBe('https://app.churnkey.co/builder/bp_annual_draft')
+    expect(byId.seg_new).toBeNull()
+    expect(byId.seg_old).toBeNull()
+    await client.close()
+  })
+
+  it('still loads the dashboard when the blueprint inventory is unavailable', async () => {
+    fetchMock.mockImplementation(async (input: URL | string) => {
+      const url = new URL(String(input))
+      if (url.pathname === '/v1/data/blueprints') return new Response('Missing required scope: x', { status: 403 })
+      return fakeApi(input)
+    })
+    const client = await connect()
+    const result = await client.callTool({ name: DASHBOARD_TOOL, arguments: {} })
+    expect(result.isError).toBeFalsy()
+    const segs = (result.structuredContent as { segments: Array<{ flowUrl: string | null }> }).segments
+    expect(segs.every((s) => s.flowUrl === null)).toBe(true)
     await client.close()
   })
 })

@@ -103,11 +103,14 @@ function asRows(value: unknown): CountRow[] {
   return Array.isArray(value) ? (value as CountRow[]) : []
 }
 
-// ChatGPT deep links address a plugin by the id OpenAI assigns at publish time
-// (https://chatgpt.com/plugins/<id>/app/<tool>?path=…), so sharing waits for it.
-export function shareBase(env: NodeJS.ProcessEnv = process.env): string | null {
-  const id = env.CHURNKEY_MCP_CHATGPT_PLUGIN_ID?.trim()
-  return id ? `https://chatgpt.com/plugins/${encodeURIComponent(id)}/app/${DASHBOARD_TOOL}` : null
+// The Churnkey web app. "Open in Churnkey" lands on cancel-flow analytics, or on a segment's
+// flow in the builder, the same /builder/<draft blueprint id> route the Flows page opens.
+export function webBase(env: NodeJS.ProcessEnv = process.env): string {
+  return (env.CHURNKEY_WEB_URL?.trim() || 'https://app.churnkey.co').replace(/\/$/, '')
+}
+
+interface BlueprintInventory {
+  flows?: Array<{ flowId: string; scope: string; editableBlueprintId: string | null }>
 }
 
 export async function loadDashboard(
@@ -129,7 +132,7 @@ export async function loadDashboard(
   const endDate = isoDate(now)
   const range = { startDate, endDate }
 
-  const [account, metrics, trendRows, segmentRows, segments] = await Promise.all([
+  const [account, metrics, trendRows, segmentRows, segments, inventory] = await Promise.all([
     client.get<Account>('/data/account').catch(() => null),
     client.get<FlowMetrics>('/data/flow-metrics', { query: { ...range, segmentId: args.segmentId } }),
     client.get('/data/warehouse/session-aggregation', {
@@ -137,7 +140,12 @@ export async function loadDashboard(
     }),
     client.get('/data/warehouse/session-aggregation', { query: { ...range, breakdown: 'segmentId-saveType' } }),
     client.get<Segment[]>('/data/segments').catch(() => [] as Segment[]),
+    client.get<BlueprintInventory>('/data/blueprints').catch(() => null),
   ])
+  const web = webBase()
+  const draftBySegment = new Map(
+    (inventory?.flows ?? []).filter((f) => f.scope === 'segment').map((f) => [f.flowId, f.editableBlueprintId]),
+  )
 
   const byMonth = new Map<string, OutcomeCounts>()
   for (const row of asRows(trendRows)) {
@@ -164,6 +172,9 @@ export async function loadDashboard(
         name: segment.name,
         enabled: segment.enabled,
         priority: segment.priority,
+        flowUrl: draftBySegment.get(segment.id)
+          ? `${web}/builder/${encodeURIComponent(draftBySegment.get(segment.id) as string)}`
+          : null,
         ...counts,
         total,
         saveRate: total > 0 ? counts.saved / total : null,
@@ -185,7 +196,7 @@ export async function loadDashboard(
       startDate,
     ).map(([month, counts]) => ({ month, ...counts })),
     segments: segmentTable,
-    shareBase: shareBase(),
+    churnkeyUrl: `${web}/cancellation/analytics`,
   }
 }
 

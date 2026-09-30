@@ -16,11 +16,7 @@ const openai = new OpenAIExtensions(app)
 const root = document.getElementById('root') as HTMLElement
 
 let data: DashboardData | null = null
-// Share state: `copied` flips the button label for a moment; `sharedUrl` shows the link inline
-// when the host's sandbox refuses clipboard access, so it can still be copied by hand.
-let copied = false
-let copiedTimer: ReturnType<typeof setTimeout> | undefined
-let sharedUrl: string | null = null
+
 let loading = false
 
 // ---------- formatting ----------
@@ -68,12 +64,11 @@ function render(): void {
           ).join('')}
         </div>
         ${d.segmentId ? '<button type="button" class="btn btn-ghost" data-action="clear">All flows</button>' : ''}
-        ${d.shareBase ? `<button type="button" class="btn btn-ghost share" data-action="share" data-copied="${copied}"><span>Copy link</span><span>Link copied</span></button>` : ''}
+        ${canOpenLinks() ? `<button type="button" class="btn btn-ghost" data-action="open-churnkey">${selected?.flowUrl ? 'Edit flow in Churnkey' : 'Open in Churnkey'}</button>` : ''}
         ${canAsk() ? '<button type="button" class="btn btn-primary" data-action="ask-view">Ask about this view</button>' : ''}
       </div>
     </header>
 
-    ${sharedUrl ? `<div class="share-fallback"><span>Link to this view</span><input readonly value="${esc(sharedUrl)}" /></div>` : ''}
     ${m.sampleSizeWarning ? `<div class="warning">${esc(m.sampleSizeWarning)}</div>` : ''}
 
     <section class="kpis">
@@ -201,6 +196,7 @@ function viewSummary(d: DashboardData): string {
 // one) gets the same content through the base App API instead.
 const hostCaps = () => app.getHostCapabilities()
 const canAsk = () => openai.message != null || hostCaps()?.message != null
+const canOpenLinks = () => hostCaps()?.openLinks != null
 
 async function shareContext(d: DashboardData): Promise<void> {
   const modelContext = openai.modelContext
@@ -234,8 +230,6 @@ async function reload(args: { window?: DashboardWindow; segmentId?: string | nul
     })
     if (result.isError) throw new Error(textOf(result.content) || 'Could not load retention data.')
     data = result.structuredContent as unknown as DashboardData
-    // A fallback link belongs to the view it was made for.
-    sharedUrl = null
     render()
     await shareContext(data)
   } catch (err) {
@@ -310,7 +304,11 @@ root.addEventListener('click', (event) => {
   }
 
   const action = target.closest<HTMLElement>('[data-action]')?.dataset.action
-  if (action === 'share') void shareView(d)
+  if (action === 'open-churnkey') {
+    // A selected segment opens its cancel flow in the builder; otherwise cancel-flow analytics.
+    const seg = d.segmentId ? d.segments.find((row) => row.id === d.segmentId) : undefined
+    void app.openLink({ url: seg?.flowUrl ?? d.churnkeyUrl }).catch(() => undefined)
+  }
   if (action === 'clear') void reload({ segmentId: null })
   if (action === 'fullscreen') void app.requestDisplayMode({ mode: 'fullscreen' }).catch(() => undefined)
   if (action === 'ask-view') {
@@ -320,51 +318,6 @@ root.addEventListener('click', (event) => {
     })
   }
 })
-
-// The deep link for the current view, in ChatGPT's web form:
-// <shareBase>?path=%2Fsegments%2F<id>%3Fwindow%3D30d
-export function viewLink(d: DashboardData): string | null {
-  if (!d.shareBase) return null
-  const path = d.segmentId ? `/segments/${encodeURIComponent(d.segmentId)}?window=${d.window}` : `/?window=${d.window}`
-  return `${d.shareBase}?path=${encodeURIComponent(path)}`
-}
-
-async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text)
-    return true
-  } catch {
-    const field = document.createElement('textarea')
-    field.value = text
-    field.style.position = 'fixed'
-    field.style.opacity = '0'
-    document.body.append(field)
-    field.select()
-    const ok = document.execCommand('copy')
-    field.remove()
-    return ok
-  }
-}
-
-async function shareView(d: DashboardData): Promise<void> {
-  const url = viewLink(d)
-  if (!url) return
-  if (await copyText(url)) {
-    copied = true
-    sharedUrl = null
-    render()
-    // A second click restarts the confirmation instead of racing the first timer.
-    clearTimeout(copiedTimer)
-    copiedTimer = setTimeout(() => {
-      copied = false
-      render()
-    }, 1800)
-  } else {
-    sharedUrl = url
-    render()
-    root.querySelector<HTMLInputElement>('.share-fallback input')?.select()
-  }
-}
 
 // Deep links: /segments/<id>?window=30d opens the dashboard on that segment.
 // Each link is applied once, when it arrives (at initialize or in a later
