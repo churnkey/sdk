@@ -14,7 +14,8 @@ const MAX_RESULTS = 20
 
 interface Segment {
   id: string
-  name: string
+  /** Optional in the Segment model, so unnamed segment flows exist. */
+  name?: string | null
   enabled: boolean
   priority: number
 }
@@ -62,12 +63,13 @@ export async function searchMentions(client: ChurnkeyClient, query: string): Pro
 
   const items: MentionItem[] = []
   for (const s of segments) {
-    if (!matches(s.name)) continue
+    const name = s.name || 'Untitled segment flow'
+    if (!matches(name)) continue
     items.push({
       type: 'resource_link',
       uri: mentionUri('segments', s.id),
-      name: s.name,
-      title: s.name,
+      name,
+      title: name,
       description: `Segment flow · ${s.enabled ? 'enabled' : 'disabled'} · priority ${s.priority + 1}`,
       mimeType: 'application/json',
     })
