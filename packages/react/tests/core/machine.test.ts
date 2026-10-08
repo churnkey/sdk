@@ -401,6 +401,13 @@ describe('CancelFlowMachine', () => {
       expect(mockApi.createSession.mock.calls[0][0].acceptedOffer).toMatchObject({ pauseDuration: 1 })
     })
 
+    it.each([5, 1.5, 0])('pauses for the longest length on offer when the pick is %s', async (months) => {
+      const { machine, mockApi } = tokenMachine({ type: 'pause', months: 3 })
+      await machine.accept({ months })
+
+      expect(mockApi.pause).toHaveBeenCalledWith({ duration: 3, interval: 'month' })
+    })
+
     it('switches to the plan the customer picked, not the first on offer', async () => {
       const { machine, mockApi } = tokenMachine({ type: 'plan_change', plans: [plan('basic', 900), plan('pro', 2900)] })
       await machine.accept({ planId: 'pro' })

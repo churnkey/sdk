@@ -738,4 +738,18 @@ describe('token-mode actions from the component', () => {
     await waitFor(() => expect(handleCancel).toHaveBeenCalledOnce())
     expect(handled()).not.toContain('orgs/app_1/cancel-flow/actions/cancel')
   })
+
+  it('uses a handler passed after the first render instead of cancelling on the server', async () => {
+    const urls = stubFlow([{ guid: 'c', type: 'confirm' }])
+    const token = sessionToken()
+    const { rerender } = render(<CancelFlow session={token} />)
+    await screen.findByText('Cancel subscription')
+
+    const handleCancel = vi.fn()
+    rerender(<CancelFlow session={token} handleCancel={handleCancel} />)
+    await userEvent.setup().click(screen.getByText('Cancel subscription'))
+
+    await waitFor(() => expect(handleCancel).toHaveBeenCalledOnce())
+    expect(urls()).not.toContain('orgs/app_1/cancel-flow/actions/cancel')
+  })
 })

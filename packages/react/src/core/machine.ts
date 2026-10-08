@@ -126,10 +126,12 @@ function toApiPauseInterval(interval: 'month' | 'week' | undefined): ApiPauseInt
 }
 
 // The built-in pause and plan-change offers pass the customer's pick to onAccept; the offer
-// itself holds the longest pause and every plan on offer.
+// itself holds the longest pause and every plan on offer. The server grants whole lengths up
+// to that longest one, so any other pick falls back to it.
 function chosenPauseLength(offer: PauseOffer, result?: Record<string, unknown>): number {
   const months = result?.months
-  return typeof months === 'number' && months >= 1 ? months : offer.months
+  const fits = typeof months === 'number' && Number.isInteger(months) && months >= 1 && months <= offer.months
+  return fits ? months : offer.months
 }
 
 function chosenPlan(offer: PlanChangeOffer, result?: Record<string, unknown>): PlanOption | undefined {

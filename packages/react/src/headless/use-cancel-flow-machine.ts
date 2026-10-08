@@ -32,10 +32,11 @@ export interface CancelFlowMachineHandle {
  * `CancelFlow` component and the `useCancelFlow` hook — not part of the
  * public API.
  *
- * Callbacks reach the machine via thunks that dereference a ref updated each
- * render. This buys two things: the consumer's latest closure always runs,
- * and the fetch effect's dep list stays stable so inline-arrow handlers
- * don't trigger a re-fetch and reset the flow to step 1.
+ * Callbacks reach the machine through a ref updated each render: listeners as
+ * thunks that dereference it, `handle*` as getters on it, so the machine still
+ * sees whether a handler is passed. This buys two things: the consumer's
+ * latest closure always runs, and the fetch effect's dep list stays stable so
+ * inline-arrow handlers don't trigger a re-fetch and reset the flow to step 1.
  */
 export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandle {
   // FlowConfig extends FlowCallbacks, so storing the whole config gives us
