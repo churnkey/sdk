@@ -742,6 +742,8 @@ type CancelCallback = (customer: DirectCustomer | null) => Promise<void> | void
  *   swallowed; listeners can't flip the flow into an error state.
  *
  * `onAccept` is a catch-all that fires alongside the per-type listener.
+ * Errors from `onAccept` and `onCancel` do put the flow into an error state,
+ * because in local mode they often do the billing work.
  */
 export interface FlowCallbacks {
   handleDiscount?: OfferCallback

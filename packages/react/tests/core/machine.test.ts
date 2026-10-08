@@ -277,6 +277,22 @@ describe('CancelFlowMachine', () => {
       expect(machine.getSnapshot().step).toBe('offer') // stays on offer
     })
 
+    it('reaches success when a per-type listener throws synchronously', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const onDiscount = vi.fn(() => {
+        throw new Error('Analytics down')
+      })
+      const machine = new CancelFlowMachine({ ...baseConfig, onDiscount })
+      machine.selectReason('expensive')
+      machine.next()
+      await machine.accept()
+      consoleError.mockRestore()
+
+      expect(onDiscount).toHaveBeenCalled()
+      expect(machine.getSnapshot().error).toBeNull()
+      expect(machine.getSnapshot().step).toBe('success')
+    })
+
     it('does nothing when no offer is on the current step', async () => {
       const onAccept = vi.fn()
       const machine = new CancelFlowMachine({ ...baseConfig, onAccept })

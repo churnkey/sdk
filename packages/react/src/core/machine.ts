@@ -71,10 +71,16 @@ function listenerFor(offerType: string, cb: FlowCallbacks): OfferCallback | unde
 
 // Listener errors are swallowed — they're side effects, not part of the
 // success path, and shouldn't flip the flow into an error state.
-function runListener(listener: OfferCallback, offer: AcceptedOffer, customer: DirectCustomer | null): Promise<void> {
-  return Promise.resolve(listener(offer, customer)).catch((e) => {
+async function runListener(
+  listener: OfferCallback,
+  offer: AcceptedOffer,
+  customer: DirectCustomer | null,
+): Promise<void> {
+  try {
+    await listener(offer, customer)
+  } catch (e) {
     console.error('Error in offer listener:', e)
-  })
+  }
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
