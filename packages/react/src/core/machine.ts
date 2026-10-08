@@ -26,6 +26,9 @@ import type {
   FlowState,
   Mode,
   OfferDecision,
+  PauseOffer,
+  PlanChangeOffer,
+  PlanOption,
   ReasonConfig,
   Step,
 } from './types'
@@ -122,6 +125,17 @@ function toApiPauseInterval(interval: 'month' | 'week' | undefined): ApiPauseInt
   return interval === 'week' ? 'WEEK' : 'MONTH'
 }
 
+// The built-in pause and plan-change offers pass the customer's pick to onAccept; the offer
+// itself holds the longest pause and every plan on offer.
+function chosenPauseLength(offer: PauseOffer, result?: Record<string, unknown>): number {
+  const months = result?.months
+  return typeof months === 'number' && months >= 1 ? months : offer.months
+}
+
+function chosenPlan(offer: PlanChangeOffer, result?: Record<string, unknown>): PlanOption | undefined {
+  return offer.plans?.find((plan) => plan.id === result?.planId) ?? offer.plans?.[0]
+}
+
 // --- Offer shape builders ---
 //
 // Sessions record offers two ways: presentedOffers keeps the nested config
@@ -180,15 +194,17 @@ function toAcceptedOfferPayload(rec: OfferDecision, result?: Record<string, unkn
     case 'pause':
       return {
         ...base,
-        pauseDuration: o.months,
+        pauseDuration: chosenPauseLength(o, result),
         pauseInterval: toApiPauseInterval(o.interval),
       }
-    case 'plan_change':
+    case 'plan_change': {
+      const plan = chosenPlan(o, result)
       return {
         ...base,
-        newPlanId: o.plans?.[0]?.id,
-        newPlanPrice: o.plans?.[0]?.amount.value,
+        newPlanId: plan?.id,
+        newPlanPrice: plan?.amount.value,
       }
+    }
     case 'trial_extension':
       return { ...base, trialExtensionDays: o.days }
     case 'redirect':
@@ -608,10 +624,10 @@ export class CancelFlowMachine {
         }
         break
       case 'pause':
-        await this.apiClient.pause({ duration: o.months, interval: o.interval ?? 'month' })
+        await this.apiClient.pause({ duration: chosenPauseLength(o, offer.result), interval: o.interval ?? 'month' })
         break
       case 'plan_change':
-        await this.apiClient.changePlan(o.plans[0]?.id)
+        await this.apiClient.changePlan(chosenPlan(o, offer.result)?.id as string)
         break
       case 'trial_extension':
         await this.apiClient.extendTrial(o.days, this.blueprintId ?? undefined)

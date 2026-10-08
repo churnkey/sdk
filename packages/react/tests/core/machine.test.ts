@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import type { SessionPayload } from '../../src/core/api'
 import type { SdkConfig } from '../../src/core/api-types'
 import { CancelFlowMachine } from '../../src/core/machine'
 
@@ -372,6 +373,43 @@ describe('CancelFlowMachine', () => {
 
       expect(calls).toEqual(['action', 'onAccept'])
       expect(mockApi.applyDiscount).toHaveBeenCalledWith('c_1', 'bp_1')
+    })
+  })
+
+  describe('pause and plan change in token mode', () => {
+    const creds = { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 }
+    const plan = (id: string, value: number) => ({ id, amount: { value, currency: 'usd' } })
+    const tokenMachine = (offer: object) => {
+      const mockApi = {
+        pause: vi.fn(async () => {}),
+        changePlan: vi.fn(async () => {}),
+        createSession: vi.fn(async (_payload: SessionPayload) => {}),
+      }
+      const machine = new CancelFlowMachine({
+        session: 'ck_placeholder',
+        steps: [{ type: 'offer', offer: offer as any }, { type: 'confirm' }],
+      })
+      machine.initializeFromConfig(sdkConfig(), mockApi as any, creds)
+      return { machine, mockApi }
+    }
+
+    it('pauses for the length the customer picked, not the longest on offer', async () => {
+      const { machine, mockApi } = tokenMachine({ type: 'pause', months: 3 })
+      await machine.accept({ months: 1 })
+
+      expect(mockApi.pause).toHaveBeenCalledWith({ duration: 1, interval: 'month' })
+      expect(mockApi.createSession.mock.calls[0][0].acceptedOffer).toMatchObject({ pauseDuration: 1 })
+    })
+
+    it('switches to the plan the customer picked, not the first on offer', async () => {
+      const { machine, mockApi } = tokenMachine({ type: 'plan_change', plans: [plan('basic', 900), plan('pro', 2900)] })
+      await machine.accept({ planId: 'pro' })
+
+      expect(mockApi.changePlan).toHaveBeenCalledWith('pro')
+      expect(mockApi.createSession.mock.calls[0][0].acceptedOffer).toMatchObject({
+        newPlanId: 'pro',
+        newPlanPrice: 2900,
+      })
     })
   })
 
