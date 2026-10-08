@@ -684,3 +684,58 @@ describe('offer CTA catalog overrides', () => {
     expect(screen.getByText('No thanks')).toBeInTheDocument()
   })
 })
+
+describe('token-mode actions from the component', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const stubFlow = (steps: Record<string, unknown>[]) => {
+    const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => ({
+      ok: true,
+      status: 200,
+      json: async () =>
+        String(url).includes('cancel-flow/config')
+          ? {
+              blueprintId: 'bp_1',
+              steps,
+              customer: { id: 'cus_1' },
+              subscriptions: [],
+              settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false, cancelAtPeriodEnd: true },
+            }
+          : {},
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    return () => fetchMock.mock.calls.map(([url]) => String(url).replace('https://api.churnkey.co/v1/api/', ''))
+  }
+  const copy = { headline: 'Stay', body: '', cta: 'Accept offer', declineCta: 'No thanks' }
+
+  it('applies an accepted offer on the server when the consumer has no handler for it', async () => {
+    const urls = stubFlow([
+      { guid: 's', type: 'offer', offer: { type: 'discount', decisionId: 'd', couponId: 'C20', percentOff: 20, copy } },
+      { guid: 'c', type: 'confirm' },
+    ])
+    render(<CancelFlow session={sessionToken()} />)
+
+    await userEvent.setup().click(await screen.findByText('Accept offer'))
+
+    await screen.findByText('Discount applied.')
+    expect(urls()).toContain('orgs/app_1/cancel-flow/actions/discount')
+  })
+
+  it('cancels on the server without a handler, and leaves it to the handler when there is one', async () => {
+    const user = userEvent.setup()
+    const urls = stubFlow([{ guid: 'c', type: 'confirm' }])
+    const { unmount } = render(<CancelFlow session={sessionToken()} />)
+    await user.click(await screen.findByText('Cancel subscription'))
+    await waitFor(() => expect(urls()).toContain('orgs/app_1/cancel-flow/actions/cancel'))
+    unmount()
+
+    const handleCancel = vi.fn()
+    const handled = stubFlow([{ guid: 'c', type: 'confirm' }])
+    render(<CancelFlow session={sessionToken()} handleCancel={handleCancel} />)
+    await user.click(await screen.findByText('Cancel subscription'))
+    await waitFor(() => expect(handleCancel).toHaveBeenCalledOnce())
+    expect(handled()).not.toContain('orgs/app_1/cancel-flow/actions/cancel')
+  })
+})

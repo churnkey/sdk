@@ -9,6 +9,15 @@ import { CancelFlowMachine } from '../core/machine'
 import { decodeSessionToken } from '../core/token'
 import type { FlowCallbacks, FlowConfig, FlowState } from '../core/types'
 
+const HANDLER_NAMES = [
+  'handleDiscount',
+  'handlePause',
+  'handlePlanChange',
+  'handleTrialExtension',
+  'handleRebate',
+  'handleCancel',
+] as const satisfies readonly (keyof FlowCallbacks)[]
+
 export interface CancelFlowMachineHandle {
   machine: CancelFlowMachine
   state: FlowState
@@ -37,12 +46,6 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
   const [machine] = useState(() => {
     const cb = callbacksRef
     const dispatch: FlowCallbacks = {
-      handleDiscount: (o, c) => cb.current.handleDiscount?.(o, c),
-      handlePause: (o, c) => cb.current.handlePause?.(o, c),
-      handlePlanChange: (o, c) => cb.current.handlePlanChange?.(o, c),
-      handleTrialExtension: (o, c) => cb.current.handleTrialExtension?.(o, c),
-      handleRebate: (o, c) => cb.current.handleRebate?.(o, c),
-      handleCancel: (c) => cb.current.handleCancel?.(c),
       onAccept: (o, c) => cb.current.onAccept?.(o, c),
       onDiscount: (o, c) => cb.current.onDiscount?.(o, c),
       onPause: (o, c) => cb.current.onPause?.(o, c),
@@ -53,7 +56,13 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
       onClose: () => cb.current.onClose?.(),
       onStepChange: (step, prevStep) => cb.current.onStepChange?.(step, prevStep),
     }
-    return new CancelFlowMachine({ ...config, ...dispatch })
+    const machineConfig: FlowConfig = { ...config, ...dispatch }
+    // A handler replaces Churnkey's own server action, so the machine has to see whether the
+    // consumer passes one, not a wrapper that always exists.
+    for (const name of HANDLER_NAMES) {
+      Object.defineProperty(machineConfig, name, { get: () => cb.current[name], enumerable: true })
+    }
+    return new CancelFlowMachine(machineConfig)
   })
 
   const [state, setState] = useState<FlowState>(() => machine.getSnapshot())
