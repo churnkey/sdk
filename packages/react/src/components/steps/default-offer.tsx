@@ -6,6 +6,7 @@ import { DefaultPauseOffer } from './offer/default-pause-offer'
 import { DefaultPlanChangeOffer } from './offer/default-plan-change-offer'
 import { DefaultRebateOffer } from './offer/default-rebate-offer'
 import { DefaultRedirectOffer } from './offer/default-redirect-offer'
+import { DefaultStackedOffer } from './offer/default-stacked-offer'
 import { DefaultTrialExtensionOffer } from './offer/default-trial-extension-offer'
 
 // Routes to the per-type component, which owns its full canvas. Two
@@ -13,7 +14,9 @@ import { DefaultTrialExtensionOffer } from './offer/default-trial-extension-offe
 // take over the whole offer step via the `Offer` slot.
 export function DefaultOffer(props: OfferStepProps) {
   const { offer, components } = props
-  const Component = pickOfferComponent(offer.type, components)
+  const Component = offer.stackedOffer
+    ? (components?.StackedOffer ?? DefaultStackedOffer)
+    : pickOfferComponent(offer.type, components)
   // Custom offer types are dispatched upstream against `customComponents`,
   // so an unknown type reaching this switcher is bad data.
   if (!Component) return null

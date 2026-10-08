@@ -4,6 +4,7 @@ import { defaultMessages } from '../../../core/messages'
 import type { OfferDecision, OfferStepProps } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { RichText } from '../../rich-text'
+import { PauseChips } from './offer-controls'
 
 export function DefaultPauseOffer({
   title,
@@ -35,21 +36,7 @@ export function DefaultPauseOffer({
       <div className={cn('ck-offer-card ck-pause-card', classNames?.card)}>
         <div className="ck-pause-eyebrow">{msg.offer.pauseEyebrow}</div>
         <div className="ck-pause-date">{resumeDate}</div>
-        {max > 1 && (
-          <div className={cn('ck-pause-chips', classNames?.pauseSlider)}>
-            {Array.from({ length: max }, (_, i) => i + 1).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMonths(m)}
-                className={cn('ck-pause-chip', m === months && 'ck-pause-chip--selected')}
-                aria-pressed={m === months}
-              >
-                {m} {m === 1 ? msg.common.month : msg.common.months}
-              </button>
-            ))}
-          </div>
-        )}
+        {max > 1 && <PauseChips max={max} months={months} onSelect={setMonths} classNames={classNames} msg={msg} />}
       </div>
       <button
         type="button"

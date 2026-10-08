@@ -685,6 +685,130 @@ describe('offer CTA catalog overrides', () => {
   })
 })
 
+describe('a pair of offers in token mode', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const copy = { headline: 'Before you go', body: '', cta: 'Pause subscription', declineCta: 'No thanks' }
+  const pairConfig = (offer: Record<string, unknown>) => ({
+    blueprintId: 'bp_1',
+    steps: [
+      { guid: 'pair-step', type: 'offer', offer },
+      { guid: 'c1', type: 'confirm' },
+    ],
+    customer: { id: 'cus_1' },
+    subscriptions: [
+      {
+        id: 'sub_1',
+        start: '2024-01-01',
+        status: { name: 'active', currentPeriod: { start: '2026-06-01', end: '2026-07-01' } },
+        items: [{ price: { id: 'current', amount: { value: 3900, currency: 'USD' } } }],
+      },
+    ],
+    settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false },
+  })
+  const stubPairFetch = (offer: Record<string, unknown>, parts: Record<string, unknown>[]) => {
+    const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => ({
+      ok: true,
+      status: 200,
+      json: async () => {
+        if (String(url).includes('cancel-flow/config')) return pairConfig(offer)
+        if (String(url).includes('cancel-flow/actions/stacked')) return { acceptanceId: 'acc_1', parts }
+        return {}
+      },
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    const call = (path: string) => fetchMock.mock.calls.find(([url]) => String(url).includes(path))
+    return {
+      body: (path: string) => JSON.parse(String(call(path)?.[1]?.body)),
+      headers: (path: string) => call(path)?.[1]?.headers as Record<string, string>,
+    }
+  }
+
+  it('shows both offers, accepts them in one request and says when the second one starts', async () => {
+    const user = userEvent.setup()
+    const requests = stubPairFetch(
+      {
+        type: 'pause',
+        decisionId: 'pause1',
+        months: 3,
+        interval: 'month',
+        copy,
+        stackedOffer: {
+          type: 'discount',
+          decisionId: 'd1',
+          couponId: 'PAIR20',
+          percentOff: 20,
+          durationInMonths: 3,
+          copy,
+        },
+      },
+      [
+        { offerType: 'PAUSE', status: 'APPLIED' },
+        { offerType: 'DISCOUNT', status: 'SCHEDULED' },
+      ],
+    )
+    render(<CancelFlow session={sessionToken()} />)
+
+    expect(await screen.findByText('Pause your subscription')).toBeInTheDocument()
+    expect(screen.getByText('20% off for 3 months')).toBeInTheDocument()
+    expect(screen.getByText('Starts when your subscription resumes.')).toBeInTheDocument()
+    expect(requests.headers('cancel-flow/config')['x-ck-capabilities']).toBe('stacked-offers')
+
+    await user.click(screen.getByText('2 months'))
+    await user.click(screen.getByText('Accept both offers'))
+
+    expect(await screen.findByText('Offers applied.')).toBeInTheDocument()
+    expect(screen.getByText('Your second offer starts when your subscription resumes.')).toBeInTheDocument()
+    expect(requests.body('cancel-flow/actions/stacked')).toEqual({
+      blueprintId: 'bp_1',
+      offerGuid: 'pause1',
+      coupon: 'PAIR20',
+      pause: { duration: 2, interval: 'month' },
+    })
+    await waitFor(() =>
+      expect(requests.body('api/sessions/sdk').acceptedOffer).toMatchObject({
+        offerType: 'PAUSE',
+        pauseDuration: 2,
+        stackedOffer: { offerType: 'DISCOUNT', acceptanceId: 'acc_1', stackStatus: 'SCHEDULED' },
+      }),
+    )
+  })
+
+  it('sends the plan picked in the pair and tells the customer when only part applied', async () => {
+    const user = userEvent.setup()
+    const requests = stubPairFetch(
+      {
+        type: 'plan_change',
+        decisionId: 'p1',
+        plans: [
+          { id: 'current', name: 'Pro', amount: { value: 3900, currency: 'USD' } },
+          { id: 'starter', name: 'Starter', amount: { value: 900, currency: 'USD' } },
+          { id: 'basic', name: 'Basic', amount: { value: 1900, currency: 'USD' } },
+        ],
+        copy,
+        stackedOffer: { type: 'discount', decisionId: 'd1', couponId: 'PAIR20', percentOff: 20, copy },
+      },
+      [
+        { offerType: 'PLAN_CHANGE', status: 'APPLIED' },
+        { offerType: 'DISCOUNT', status: 'FAILED', failureReason: 'No such coupon' },
+      ],
+    )
+    render(<CancelFlow session={sessionToken()} />)
+
+    expect(await screen.findByText('Switch to a new plan')).toBeInTheDocument()
+    expect(screen.getByText('Applies to your new plan.')).toBeInTheDocument()
+    expect(screen.getByText('Pro').closest('button')).toBeDisabled()
+
+    await user.click(screen.getByText('Basic'))
+    await user.click(screen.getByText('Accept both offers'))
+
+    expect(await screen.findByText(/couldn't apply all of your offer/)).toBeInTheDocument()
+    expect(requests.body('cancel-flow/actions/stacked')).toMatchObject({ planId: 'basic', coupon: 'PAIR20' })
+  })
+})
+
 describe('token-mode actions from the component', () => {
   afterEach(() => {
     vi.unstubAllGlobals()

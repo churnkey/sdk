@@ -632,6 +632,38 @@
   border-color: var(--ck-color-primary);
 }
 
+/* Pair of offers: one card per offer, one accept. */
+.ck-cancel-flow .ck-stacked-part {
+  gap: 10px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  background: var(--ck-color-surface-muted);
+  border-radius: var(--ck-radius-lg);
+}
+
+.ck-cancel-flow .ck-stacked-part .ck-offer-details {
+  margin-bottom: 0;
+}
+
+.ck-cancel-flow .ck-stacked-part .ck-pause-chips {
+  justify-content: flex-start;
+}
+
+.ck-cancel-flow .ck-stacked-part-title {
+  font-family: var(--ck-font-display);
+  font-size: 18px;
+  font-weight: var(--ck-step-title-weight);
+  letter-spacing: var(--ck-step-title-letter-spacing);
+  line-height: 1.25;
+  color: var(--ck-color-text);
+}
+
+.ck-cancel-flow .ck-stacked-part-detail,
+.ck-cancel-flow .ck-stacked-part-timing {
+  font-size: 13px;
+  color: var(--ck-color-text-secondary);
+}
+
 /* Trial extension: day count badge + new end date. */
 .ck-cancel-flow .ck-trial-block {
   display: flex;

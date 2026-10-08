@@ -106,7 +106,7 @@ Swap out any piece of the UI. The SDK handles navigation and state; you handle r
 />
 ```
 
-You can replace `Modal`, `CloseButton`, `BackButton`, the step components (`Survey`, `Offer`, `Feedback`, `Confirm`, `Success`), `ReasonButton`, and per-offer-type components (`DiscountOffer`, `PauseOffer`, `PlanChangeOffer`, `TrialExtensionOffer`, `ContactOffer`, `RedirectOffer`).
+You can replace `Modal`, `CloseButton`, `BackButton`, the step components (`Survey`, `Offer`, `Feedback`, `Confirm`, `Success`), `ReasonButton`, per-offer-type components (`DiscountOffer`, `PauseOffer`, `PlanChangeOffer`, `TrialExtensionOffer`, `ContactOffer`, `RedirectOffer`), and `StackedOffer` for a pair of offers.
 
 ## Add custom steps
 
@@ -303,6 +303,14 @@ Two kinds of callbacks, distinguished by name:
 Available handlers: `handleDiscount`, `handlePause`, `handlePlanChange`, `handleTrialExtension`, `handleCancel`. Available listeners: `onDiscount`, `onPause`, `onPlanChange`, `onTrialExtension`, `onCancel`, plus the catch-all `onAccept` that fires for any accepted offer.
 
 In **local mode** (no token), there's no server action — handlers do the work. In **token mode**, defining a handler opts out of Churnkey running the action and gives the work back to you.
+
+### Pairs of offers
+
+An offer can carry a second one (`offer.stackedOffer`), set up in the dashboard for orgs that use stacked offers. The SDK shows one card per offer and a single "Accept both offers" button; replace it through the `StackedOffer` component slot.
+
+- Without handlers, token mode applies both offers in one request. After a pause or a trial extension, the second offer starts when the pause or trial ends.
+- With handlers, each offer goes through its own handler (or Churnkey's action when its type has none), first offer first. If the second one fails, the flow still completes and `acceptedOffer.stackedOffer.stackStatus` is `'failed'`. A handler cannot wait for a pause or trial to end, so a pair whose second offer waits is left out of the flow when a handler covers either offer.
+- Listeners and `onAccept` get each offer on its own, once per offer that applied.
 
 ### Passing customer/subscription data alongside a token
 

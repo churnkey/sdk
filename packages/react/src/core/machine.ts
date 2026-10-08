@@ -6,6 +6,10 @@ import type {
   ChurnkeyApi,
   PresentedOffer,
   SessionPayload,
+  StackedOfferPayload,
+  StackedOfferRequest,
+  StackedOfferResult,
+  StackStatus,
   StepViewed,
 } from './api'
 import { AnalyticsClient, directDataToSessionCustomer, toApiMode } from './api'
@@ -26,11 +30,13 @@ import type {
   FlowState,
   Mode,
   OfferDecision,
+  OfferStep,
   PauseOffer,
   PlanChangeOffer,
   PlanOption,
   ReasonConfig,
   Step,
+  SurveyStep,
 } from './types'
 
 type OfferCallback = (offer: AcceptedOffer, customer: DirectCustomer | null) => Promise<void> | void
@@ -142,6 +148,68 @@ function chosenPauseLength(offer: PauseOffer, result?: Record<string, unknown>):
 
 function chosenPlan(offer: PlanChangeOffer, result?: Record<string, unknown>): PlanOption | undefined {
   return offer.plans?.find((plan) => plan.id === result?.planId) ?? offer.plans?.[0]
+}
+
+// --- Pairs ---
+//
+// A pair is two offers accepted with one click. Without merchant handlers the
+// server applies both in one request and holds the second one while a pause
+// or trial runs. A handler cannot wait for that, so a pair that waits is left
+// out of the flow when a handler covers either of its offers.
+
+type PartStatus = StackedOfferResult['parts'][number]['status']
+
+interface PairOutcome {
+  statuses: PartStatus[]
+  acceptanceId?: string
+  failureReason?: string
+}
+
+const WAITING_FIRST_OFFERS = ['pause', 'trial_extension']
+
+function isHandledWaitingPair(offer: ReasonConfig['offer'], cb: FlowCallbacks): boolean {
+  const second = (offer as OfferDecision | undefined)?.stackedOffer
+  if (!(offer && second && WAITING_FIRST_OFFERS.includes(offer.type))) return false
+  return Boolean(handlerFor(offer.type, cb) || handlerFor(second.type, cb))
+}
+
+function withoutHandledWaitingPairs(steps: Step[], cb: FlowCallbacks): Step[] {
+  return steps.flatMap((step): Step[] => {
+    if (step.type === 'offer') return isHandledWaitingPair((step as OfferStep).offer, cb) ? [] : [step]
+    if (step.type !== 'survey') return [step]
+    const survey = step as SurveyStep
+    return [
+      {
+        ...survey,
+        reasons: survey.reasons.map((r) => (isHandledWaitingPair(r.offer, cb) ? { ...r, offer: undefined } : r)),
+      },
+    ]
+  })
+}
+
+function pairStatus(statuses: PartStatus[]): StackStatus {
+  if (statuses.some((status) => status === 'FAILED' || status === 'CANCELED')) return 'FAILED'
+  return statuses.includes('SCHEDULED') ? 'SCHEDULED' : 'APPLIED'
+}
+
+function stackedRequestFields(offer: AcceptedOffer): Partial<StackedOfferRequest> {
+  const o = offer as BuiltInOfferConfig
+  switch (o.type) {
+    case 'discount':
+      return { coupon: o.couponId }
+    case 'pause':
+      return { pause: { duration: chosenPauseLength(o, offer.result), interval: o.interval ?? 'month' } }
+    case 'plan_change':
+      return { planId: chosenPlan(o, offer.result)?.id }
+    case 'trial_extension':
+      return { days: o.days }
+    default:
+      return {}
+  }
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
 }
 
 // --- Offer shape builders ---
@@ -288,7 +356,7 @@ export class CancelFlowMachine {
       if (config.steps) this.localSteps = config.steps
     } else if (config.steps) {
       const merged = applyMergeFieldsToSteps(config.steps, this.directCustomer, this.customerAttributes)
-      this.graph = buildStepGraph(merged, defaultOfferCopy)
+      this.graph = buildStepGraph(withoutHandledWaitingPairs(merged, config), defaultOfferCopy)
     }
 
     // Seed state from local props for open-source and analytics modes. Token
@@ -411,6 +479,10 @@ export class CancelFlowMachine {
     const safeResult = isPlainObject(result) ? result : undefined
     this.setState({ isProcessing: true, error: null })
     try {
+      if (offer.stackedOffer) {
+        await this.acceptPair(offer, offer.stackedOffer, safeResult)
+        return
+      }
       const acceptedOffer = this.buildAcceptedOffer(offer, safeResult)
       const customer = this.state.customer
 
@@ -500,7 +572,7 @@ export class CancelFlowMachine {
 
     const merged = this.localSteps ? mergeLocalSteps(result.steps, this.localSteps) : result.steps
     const steps = applyMergeFieldsToSteps(merged, config.customer ?? null, this.customerAttributes)
-    this.graph = buildStepGraph(steps, defaultOfferCopy)
+    this.graph = buildStepGraph(withoutHandledWaitingPairs(steps, this.callbacks), defaultOfferCopy)
 
     this.state = this.buildInitialState(config.customer ?? null, config.subscriptions ?? [])
     this.cachedSnapshot = { ...this.state }
@@ -592,8 +664,10 @@ export class CancelFlowMachine {
   private recordOfferPresented(): void {
     const offer = this.currentOffer
     if (!offer) return
+    const second = offer.stackedOffer
     this.presentedOffers.push({
       ...toPresentedOfferConfig(offer),
+      ...(second && { stackedOffer: { ...toPresentedOfferConfig(second), guid: second.decisionId } }),
       guid: offer.decisionId,
       accepted: false,
       presentedAt: new Date().toISOString(),
@@ -616,6 +690,78 @@ export class CancelFlowMachine {
   private notify(): void {
     for (const listener of this.listeners) {
       listener()
+    }
+  }
+
+  // Each offer of a pair runs the way a single offer does in accept().
+  private async runOfferAction(offer: AcceptedOffer, decisionId?: string): Promise<void> {
+    const handler = handlerFor(offer.type, this.callbacks)
+    if (handler) {
+      await handler(offer, this.state.customer)
+    } else if (this.isTokenMode()) {
+      await this.executeTokenAction(offer, decisionId)
+    }
+  }
+
+  private async notifyAccepted(offer: AcceptedOffer): Promise<void> {
+    const listener = listenerFor(offer.type, this.callbacks)
+    if (listener) await runListener(listener, offer, this.state.customer)
+    await this.callbacks.onAccept?.(offer, this.state.customer)
+  }
+
+  // Listeners and onAccept fire once per offer that applied, not for one that waits or failed.
+  private async acceptPair(
+    offer: OfferDecision,
+    second: OfferDecision,
+    result?: Record<string, unknown>,
+  ): Promise<void> {
+    const parts = [this.buildAcceptedOffer(offer, result), this.buildAcceptedOffer(second, result)]
+    const outcome =
+      this.isTokenMode() && !parts.some((part) => handlerFor(part.type, this.callbacks))
+        ? await this.acceptPairOnServer(offer, parts)
+        : await this.acceptPairInTurn(parts, [offer.decisionId, second.decisionId])
+    for (const [i, part] of parts.entries()) {
+      if (outcome.statuses[i] === 'APPLIED') await this.notifyAccepted(part)
+    }
+
+    const stackStatus = pairStatus(outcome.statuses)
+    this.markCurrentOfferAccepted()
+    this.enterSuccessStep('saved', {
+      ...parts[0],
+      stackedOffer: { ...parts[1], stackStatus: stackStatus.toLowerCase() as 'applied' | 'scheduled' | 'failed' },
+    })
+    this.recordOutcome('saved', offer, result, {
+      ...toAcceptedOfferPayload(second, result),
+      ...(outcome.acceptanceId && { acceptanceId: outcome.acceptanceId }),
+      stackStatus,
+      ...(outcome.failureReason && { stackFailureReason: outcome.failureReason }),
+    })
+  }
+
+  // A request error means nothing applied; a part that failed after the other applied comes back in the answer.
+  private async acceptPairOnServer(offer: OfferDecision, parts: AcceptedOffer[]): Promise<PairOutcome> {
+    const response = await this.apiClient!.acceptStackedOffer({
+      blueprintId: this.blueprintId ?? undefined,
+      offerGuid: offer.decisionId,
+      ...Object.assign({}, ...parts.map(stackedRequestFields)),
+    })
+    const failed = response.parts.find((part) => part.status === 'FAILED')
+    return {
+      statuses: response.parts.map((part) => part.status),
+      acceptanceId: response.acceptanceId,
+      failureReason: failed && `${failed.offerType}: ${failed.failureReason ?? ''}`,
+    }
+  }
+
+  // The first offer failing fails the accept as for a single offer; the second failing leaves the first applied.
+  private async acceptPairInTurn(parts: AcceptedOffer[], decisionIds: (string | undefined)[]): Promise<PairOutcome> {
+    await this.runOfferAction(parts[0], decisionIds[0])
+    try {
+      await this.runOfferAction(parts[1], decisionIds[1])
+      return { statuses: ['APPLIED', 'APPLIED'] }
+    } catch (error) {
+      const { offerType } = toApiOfferType(parts[1].type)
+      return { statuses: ['APPLIED', 'FAILED'], failureReason: `${offerType}: ${errorMessage(error)}` }
     }
   }
 
@@ -679,7 +825,7 @@ export class CancelFlowMachine {
   // potentially moves currentStepId off the offer step. copy and decisionId
   // are SDK-internal — strip them from the consumer-facing payload.
   private buildAcceptedOffer(offer: OfferDecision, result?: Record<string, unknown>): AcceptedOffer {
-    const { copy: _copy, decisionId: _decisionId, ...offerConfig } = offer
+    const { copy: _copy, decisionId: _decisionId, stackedOffer: _stackedOffer, ...offerConfig } = offer
     const accepted: AcceptedOffer = offerConfig
     if (this.state.selectedReason) accepted.reasonId = this.state.selectedReason
     if (result) accepted.result = result
@@ -778,6 +924,7 @@ export class CancelFlowMachine {
     outcome: 'saved' | 'cancelled',
     acceptedOffer?: OfferDecision,
     result?: Record<string, unknown>,
+    stackedOffer?: StackedOfferPayload,
   ): void {
     const client = this.apiClient ?? this.analyticsClient
     if (!client) return
@@ -787,6 +934,7 @@ export class CancelFlowMachine {
 
     if (outcome === 'saved' && acceptedOffer) {
       payload.acceptedOffer = toAcceptedOfferPayload(acceptedOffer, result)
+      if (stackedOffer) payload.acceptedOffer.stackedOffer = stackedOffer
     }
 
     client.createSession(payload).catch(() => {})

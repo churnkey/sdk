@@ -190,7 +190,16 @@ export type BuiltInOfferConfig =
   | RebateOffer
 export type OfferConfig = BuiltInOfferConfig | CustomOfferConfig
 
-export type OfferDecision = OfferConfig & { copy: OfferCopy; decisionId?: string }
+export type OfferDecision = OfferConfig & {
+  copy: OfferCopy
+  decisionId?: string
+  /**
+   * The second offer of a pair: one card, one accept, both offers applied.
+   * Served in token mode by orgs that use pairs. A custom `Offer` component
+   * receives it here and should render both offers.
+   */
+  stackedOffer?: OfferDecision
+}
 
 export interface OfferCopy {
   headline: string
@@ -215,6 +224,13 @@ export type AcceptedOffer = OfferConfig & {
    *  pause and plan change offers put the customer's pick here (`{ months }`,
    *  `{ planId }`); `months` and `plans` on the offer are what was on offer. */
   result?: Record<string, unknown>
+  /** The second offer of an accepted pair (on `FlowState.acceptedOffer` and
+   *  `SuccessStepProps.acceptedOffer`; callbacks get each offer on its own). */
+  stackedOffer?: AcceptedOffer & {
+    /** `scheduled`: the second offer starts when the pause or trial ends.
+     *  `failed`: one of the two offers could not be applied. */
+    stackStatus: 'applied' | 'scheduled' | 'failed'
+  }
 }
 
 // ─── Reasons ─────────────────────────────────────────────────────────────────
@@ -510,6 +526,8 @@ export interface ComponentOverrides {
   ContactOffer?: (props: OfferStepProps) => ReactElement
   RedirectOffer?: (props: OfferStepProps) => ReactElement
   RebateOffer?: (props: OfferStepProps) => ReactElement
+  /** A pair of offers (`offer.stackedOffer` set), whatever their types. */
+  StackedOffer?: (props: OfferStepProps) => ReactElement
 }
 
 export type CustomComponents = Record<string, ComponentType<CustomStepProps> | ComponentType<CustomOfferProps>>

@@ -80,6 +80,8 @@ interface SdkOfferBase {
   /** Per-offer guid — used for analytics joins between presented and accepted offers. */
   decisionId?: string
   copy: SdkOfferCopy
+  /** The second offer of a pair, accepted together with this one. Sent only to clients that declare pair support. */
+  stackedOffer?: SdkOffer
 }
 
 /**
