@@ -4,8 +4,12 @@ import { confirmLiteral } from './shared'
 import type { ToolDefinition } from './types'
 
 const blueprintId = z.string().describe('Campaign blueprint id (from list_recovery_blueprints).')
-const READINESS_NOTE =
-  'Refused (422) while payment recovery `readiness.blockers` contains NO_RECOVERY_LINK: without a recovery page domain every email would go out without a working payment link. Check `readiness` (from get_account or get_recovery_blueprint) first; set_hosted_subdomain fixes the blocker.'
+// Shared guidance for the two calls the API refuses while payment recovery has
+// no recovery page domain (emails without one would fail to send).
+const READINESS_FIX =
+  'Check `readiness` (from get_account or get_recovery_blueprint) first. To fix NO_RECOVERY_LINK, use set_hosted_subdomain (works immediately) or a custom domain. A custom domain counts as soon as add_custom_domain registers it, before it resolves, so wait until check_domain_status reports it live before publishing or enabling. After fixing the domain, retry the same call.'
+const PUBLISH_READINESS_NOTE = `Refused (422) when the campaign is enabled and payment recovery \`readiness.blockers\` contains NO_RECOVERY_LINK: without a recovery page domain, recovery emails would fail to send. A disabled campaign (e.g. a clone_recovery_blueprint draft) still publishes. ${READINESS_FIX}`
+const ENABLE_READINESS_NOTE = `Enabling is refused (422) while payment recovery \`readiness.blockers\` contains NO_RECOVERY_LINK: without a recovery page domain, recovery emails would fail to send. ${READINESS_FIX} Retry this enable call, not publish_recovery_blueprint, which would publish the campaign but leave it off.`
 
 const campaignId = z.string().describe('Running campaign instance id (from list_recovery_campaigns).')
 
@@ -136,7 +140,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'get_recovery_blueprint',
       title: 'Get a recovery campaign config',
       description:
-        "Full campaign configuration: the email sequence (each with guid, subject, content, cadence sendOnDay/timeToSend, sender identity, autoRetry), SMS sequence, and audience filters. Use the email guids with update_recovery_email. Also includes `readiness` (the org's payment recovery readiness, same shape as get_account's `paymentRecovery.readiness`): check `ready` and `blockers` before publishing.",
+        "Full campaign configuration: the email sequence (each with guid, subject, content, cadence sendOnDay/timeToSend, sender identity, autoRetry), SMS sequence, and audience filters. Use the email guids with update_recovery_email. Also includes `readiness` (the org's payment recovery readiness, same shape as get_account's `paymentRecovery.readiness`; null if it could not be computed, so call again): check `ready` and `blockers` before publishing or enabling.",
       inputSchema: z.object({ blueprintId }),
       annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) =>
@@ -330,7 +334,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         '**Live-impacting and immediate**: matches the dashboard toggle, which saves AND publishes in one step. Disabling stops the campaign from matching new failed payments right away (in-flight sequences continue — use stop_recovery_campaign for those); enabling puts it back in rotation. Blocked during an active A/B test and on the primary catch-all campaign. Requires confirm: "set_recovery_blueprint_enabled". Confirm with the user first.',
         '',
-        `Enabling: ${READINESS_NOTE}`,
+        ENABLE_READINESS_NOTE,
       ].join('\n'),
       inputSchema: z.object({
         confirm: confirmLiteral('set_recovery_blueprint_enabled'),
@@ -349,7 +353,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         '**Live-impacting**: publishing rebuilds the PENDING emails of in-flight customer sequences with the new content/cadence (already-sent emails are unaffected). Requires confirm: "publish_recovery_blueprint". Audit-logged.',
         '',
-        READINESS_NOTE,
+        PUBLISH_READINESS_NOTE,
       ].join('\n'),
       inputSchema: z.object({
         confirm: confirmLiteral('publish_recovery_blueprint'),
