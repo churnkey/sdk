@@ -15,6 +15,7 @@ export { DefaultPauseOffer } from './steps/offer/default-pause-offer'
 export { DefaultPlanChangeOffer } from './steps/offer/default-plan-change-offer'
 export { DefaultRebateOffer } from './steps/offer/default-rebate-offer'
 export { DefaultRedirectOffer } from './steps/offer/default-redirect-offer'
+export { DefaultStackedOffer } from './steps/offer/default-stacked-offer'
 export { DefaultTrialExtensionOffer } from './steps/offer/default-trial-extension-offer'
 // Structural
 export { DefaultBackButton } from './structural/default-back-button'

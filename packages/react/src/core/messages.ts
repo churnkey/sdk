@@ -80,6 +80,13 @@ export interface CancelFlowMessages {
       trial_extension: SavedOfferCopy
       plan_change: SavedOfferCopy
       rebate: SavedOfferCopy
+      /** A pair of offers. The description is replaced when the second offer
+       *  waits for a pause or trial to end, or when one of them failed. */
+      stacked: SavedOfferCopy & {
+        afterPauseDescription: string
+        afterTrialDescription: string
+        partialDescription: string
+      }
     }
     cancelled: {
       title: TimingAware
@@ -117,6 +124,20 @@ export interface CancelFlowMessages {
       /** Tax parenthetical after the money-back label. Supports `{amount}`. */
       inclTax: string
       netLabel: string
+    }
+    /** A pair of offers shown as one card per offer with a single accept. */
+    stacked: {
+      acceptCta: string
+      pauseTitle: string
+      planChangeTitle: string
+      /** Supports `{days}`. */
+      trialTitle: string
+      /** Supports `{amount}`. */
+      rebateTitle: string
+      /** Under the second offer, when it starts. */
+      afterPause: string
+      afterTrial: string
+      withPlanChange: string
     }
   }
 }
@@ -192,6 +213,13 @@ export const defaultMessages: CancelFlowMessages = {
       trial_extension: { title: 'Trial extended.', description: 'Your trial has been extended successfully.' },
       plan_change: { title: 'Plan changed.', description: 'Your new plan is now in effect.' },
       rebate: { title: 'Refund issued.', description: "Your money's on its way back." },
+      stacked: {
+        title: 'Offers applied.',
+        description: "We're so happy you're still here.",
+        afterPauseDescription: 'Your second offer starts when your subscription resumes.',
+        afterTrialDescription: 'Your second offer starts when your trial ends.',
+        partialDescription: "We couldn't apply all of your offer right now. The rest will be handled for you.",
+      },
     },
     cancelled: {
       title: 'Subscription cancelled',
@@ -219,6 +247,16 @@ export const defaultMessages: CancelFlowMessages = {
       moneyBackLabel: 'Money back',
       inclTax: '(incl. {amount} tax)',
       netLabel: 'Your net for this period',
+    },
+    stacked: {
+      acceptCta: 'Accept both offers',
+      pauseTitle: 'Pause your subscription',
+      planChangeTitle: 'Switch to a new plan',
+      trialTitle: '{days} more days of your trial',
+      rebateTitle: '{amount} back on your last payment',
+      afterPause: 'Starts when your subscription resumes.',
+      afterTrial: 'Starts with your first paid billing period.',
+      withPlanChange: 'Applies to your new plan.',
     },
   },
 }

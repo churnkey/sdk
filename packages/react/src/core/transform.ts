@@ -77,7 +77,9 @@ function transformReason(r: SdkReason): ReasonConfig {
 }
 
 function transformOfferDecision(o: SdkOffer): OfferDecision {
-  return { ...transformOfferConfig(o), copy: o.copy, decisionId: o.decisionId }
+  const decision: OfferDecision = { ...transformOfferConfig(o), copy: o.copy, decisionId: o.decisionId }
+  if (o.stackedOffer) decision.stackedOffer = transformOfferDecision(o.stackedOffer)
+  return decision
 }
 
 function transformOfferConfig(o: SdkOffer): OfferConfig {

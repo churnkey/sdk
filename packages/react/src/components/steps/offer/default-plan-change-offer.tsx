@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { formatPriceFromMinor } from '../../../core/format'
 import { defaultMessages, formatMessage } from '../../../core/messages'
 import type { OfferDecision, OfferStepProps, PlanOption } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { RichText } from '../../rich-text'
-import { Checkmark } from '../shared'
+import { PlanGrid } from './offer-controls'
 
 export function DefaultPlanChangeOffer({
   title,
@@ -41,54 +40,13 @@ export function DefaultPlanChangeOffer({
       {body && <RichText as="div" html={body} className={cn('ck-step-description', classNames?.description)} />}
 
       <div className={cn('ck-offer-card', classNames?.card)}>
-        <div className="ck-offer-details ck-plan-grid">
-          {plans.map((plan) => {
-            const interval = plan.duration?.interval ?? 'month'
-            const currency = plan.amount.currency ?? 'USD'
-            const isSelected = plan.id === selectedPlanId
-            const isCurrent = plan.id === currentPlanId
-
-            return (
-              <button
-                type="button"
-                key={plan.id}
-                onClick={() => setSelectedPlanId(plan.id)}
-                disabled={isCurrent}
-                className={cn(
-                  'ck-plan-card',
-                  isSelected && 'ck-plan-card--selected',
-                  isCurrent && 'ck-plan-card--current',
-                )}
-                aria-pressed={isSelected}
-              >
-                <div className="ck-plan-name">
-                  {plan.name ?? plan.id}
-                  {isCurrent && <span className="ck-plan-current-badge">{msg.offer.currentPlanBadge}</span>}
-                </div>
-                {plan.tagline && <div className="ck-plan-tagline">{plan.tagline}</div>}
-
-                <div className="ck-plan-price-row">
-                  <span className="ck-plan-amount">{formatPriceFromMinor(plan.amount.value, currency)}</span>
-                  <span className="ck-plan-period">/{interval}</span>
-                  {plan.msrp && <span className="ck-plan-msrp">{plan.msrp}</span>}
-                </div>
-
-                {plan.features && plan.features.length > 0 && (
-                  <ul className="ck-plan-features">
-                    {plan.features.map((feature, i) => (
-                      <li key={`${plan.id}-feature-${i}`} className="ck-plan-feature">
-                        <span className="ck-plan-feature-check">
-                          <Checkmark size={11} />
-                        </span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </button>
-            )
-          })}
-        </div>
+        <PlanGrid
+          plans={plans}
+          currentPlanId={currentPlanId}
+          selectedPlanId={selectedPlanId}
+          onSelect={setSelectedPlanId}
+          msg={msg}
+        />
         <button
           type="button"
           className={cn('ck-button ck-button-primary', classNames?.acceptButton)}

@@ -312,6 +312,7 @@ function StepRenderer({
           description={
             isSaved
               ? (config?.savedDescription ??
+                stackedDescription(messages, state.acceptedOffer) ??
                 pauseResumeDescription(messages, state.acceptedOffer) ??
                 perOffer?.description ??
                 messages.success.saved.description)
@@ -360,8 +361,20 @@ const SAVED_OFFER_COPY_TYPES = ['discount', 'pause', 'trial_extension', 'plan_ch
 
 function savedOfferCopy(messages: CancelFlowMessages, offer: AcceptedOffer | null): SavedOfferCopy | undefined {
   if (!offer) return undefined
+  if (offer.stackedOffer) return messages.success.saved.stacked
   if (!(SAVED_OFFER_COPY_TYPES as readonly string[]).includes(offer.type)) return undefined
   return messages.success.saved[offer.type as (typeof SAVED_OFFER_COPY_TYPES)[number]]
+}
+
+function stackedDescription(messages: CancelFlowMessages, offer: AcceptedOffer | null): string | undefined {
+  const status = offer?.stackedOffer?.stackStatus
+  if (!status) return undefined
+  const copy = messages.success.saved.stacked
+  if (status === 'failed') return copy.partialDescription
+  if (status === 'scheduled') {
+    return offer.type === 'trial_extension' ? copy.afterTrialDescription : copy.afterPauseDescription
+  }
+  return copy.description
 }
 
 // The built-in pause UI always passes the selected duration on accept;
