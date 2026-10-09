@@ -14,6 +14,8 @@ export function dnsTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Current domain setup for Churnkey-hosted pages: the churnkey.co subdomain, every registered custom domain with its propagation status (live / dns_ok_ssl_pending / awaiting_dns), a per-domain nextStep, and the exact DNS records the customer must add.',
         '',
+        'Payment recovery emails link to a page on one of these hosts. When there is no subdomain and no custom domain configured, the response includes `recoveryLinkNote` saying recovery emails cannot be sent until one is set (set_hosted_subdomain is the quickest fix). This is separate from `note`, which is always present. Relay `recoveryLinkNote` to the user; get_account reports the full payment recovery readiness.',
+        '',
         BOUNDARY,
       ].join('\n'),
       inputSchema: z.object({}),
@@ -25,6 +27,8 @@ export function dnsTools(client: ChurnkeyClient): ToolDefinition[] {
       title: 'Set the Churnkey-hosted subdomain',
       description: [
         'Set the workspace subdomain on churnkey.co (e.g. "acme" → acme.churnkey.co) for hosted pages. Idempotent — re-setting an existing subdomain returns its current state. No customer-side DNS is needed; the page is live immediately.',
+        '',
+        'The subdomain is customer-facing (it appears in hosted page and payment recovery links) and setting it replaces the current one, so agree the name with the user first.',
         '',
         'Requires confirm: "set_subdomain".',
       ].join('\n'),
