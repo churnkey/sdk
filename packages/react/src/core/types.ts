@@ -211,8 +211,9 @@ export type AcceptedOffer = OfferConfig & {
   /** Survey reason that routed to this offer. Absent when the offer was
    *  declared as a standalone `OfferStep`. */
   reasonId?: string
-  /** Payload from custom offers — whatever your component passed to
-   *  `onAccept(result)`. Built-in offer types do not populate this. */
+  /** Whatever the offer component passed to `onAccept(result)`. The built-in
+   *  pause and plan change offers put the customer's pick here (`{ months }`,
+   *  `{ planId }`); `months` and `plans` on the offer are what was on offer. */
   result?: Record<string, unknown>
 }
 
@@ -741,6 +742,8 @@ type CancelCallback = (customer: DirectCustomer | null) => Promise<void> | void
  *   swallowed; listeners can't flip the flow into an error state.
  *
  * `onAccept` is a catch-all that fires alongside the per-type listener.
+ * Errors from `onAccept` and `onCancel` do put the flow into an error state,
+ * because in local mode they often do the billing work.
  */
 export interface FlowCallbacks {
   handleDiscount?: OfferCallback

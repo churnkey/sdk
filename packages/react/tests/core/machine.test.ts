@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import type { SessionPayload } from '../../src/core/api'
 import type { SdkConfig } from '../../src/core/api-types'
 import { CancelFlowMachine } from '../../src/core/machine'
 
@@ -276,6 +277,22 @@ describe('CancelFlowMachine', () => {
       expect(machine.getSnapshot().step).toBe('offer') // stays on offer
     })
 
+    it('reaches success when a per-type listener throws synchronously', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const onDiscount = vi.fn(() => {
+        throw new Error('Analytics down')
+      })
+      const machine = new CancelFlowMachine({ ...baseConfig, onDiscount })
+      machine.selectReason('expensive')
+      machine.next()
+      await machine.accept()
+      consoleError.mockRestore()
+
+      expect(onDiscount).toHaveBeenCalled()
+      expect(machine.getSnapshot().error).toBeNull()
+      expect(machine.getSnapshot().step).toBe('success')
+    })
+
     it('does nothing when no offer is on the current step', async () => {
       const onAccept = vi.fn()
       const machine = new CancelFlowMachine({ ...baseConfig, onAccept })
@@ -372,6 +389,50 @@ describe('CancelFlowMachine', () => {
 
       expect(calls).toEqual(['action', 'onAccept'])
       expect(mockApi.applyDiscount).toHaveBeenCalledWith('c_1', 'bp_1')
+    })
+  })
+
+  describe('pause and plan change in token mode', () => {
+    const creds = { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 }
+    const plan = (id: string, value: number) => ({ id, amount: { value, currency: 'usd' } })
+    const tokenMachine = (offer: object) => {
+      const mockApi = {
+        pause: vi.fn(async () => {}),
+        changePlan: vi.fn(async () => {}),
+        createSession: vi.fn(async (_payload: SessionPayload) => {}),
+      }
+      const machine = new CancelFlowMachine({
+        session: 'ck_placeholder',
+        steps: [{ type: 'offer', offer: offer as any }, { type: 'confirm' }],
+      })
+      machine.initializeFromConfig(sdkConfig(), mockApi as any, creds)
+      return { machine, mockApi }
+    }
+
+    it('pauses for the length the customer picked, not the longest on offer', async () => {
+      const { machine, mockApi } = tokenMachine({ type: 'pause', months: 3 })
+      await machine.accept({ months: 1 })
+
+      expect(mockApi.pause).toHaveBeenCalledWith({ duration: 1, interval: 'month' })
+      expect(mockApi.createSession.mock.calls[0][0].acceptedOffer).toMatchObject({ pauseDuration: 1 })
+    })
+
+    it.each([5, 1.5, 0])('pauses for the longest length on offer when the pick is %s', async (months) => {
+      const { machine, mockApi } = tokenMachine({ type: 'pause', months: 3 })
+      await machine.accept({ months })
+
+      expect(mockApi.pause).toHaveBeenCalledWith({ duration: 3, interval: 'month' })
+    })
+
+    it('switches to the plan the customer picked, not the first on offer', async () => {
+      const { machine, mockApi } = tokenMachine({ type: 'plan_change', plans: [plan('basic', 900), plan('pro', 2900)] })
+      await machine.accept({ planId: 'pro' })
+
+      expect(mockApi.changePlan).toHaveBeenCalledWith('pro')
+      expect(mockApi.createSession.mock.calls[0][0].acceptedOffer).toMatchObject({
+        newPlanId: 'pro',
+        newPlanPrice: 2900,
+      })
     })
   })
 

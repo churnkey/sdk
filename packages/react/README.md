@@ -46,7 +46,7 @@ import '@churnkey/react/styles.css'
     { type: 'confirm' },
   ]}
   handleDiscount={async (offer) => myBilling.applyCoupon(offer.couponId)}
-  handlePause={async (offer) => myBilling.pause({ months: offer.months })}
+  handlePause={async (offer) => myBilling.pause({ months: offer.result?.months ?? offer.months })}
   handleCancel={async () => myBilling.cancel()}
   onClose={() => setOpen(false)}
 />
@@ -291,10 +291,10 @@ Two kinds of callbacks, distinguished by name:
   // server-side pause; you run the action instead. Skip handle* and
   // Churnkey takes the action automatically in token mode.
   handlePause={async (offer, customer) => {
-    await myBilling.pause({ months: offer.months })
+    await myBilling.pause({ months: offer.result?.months ?? offer.months })
   }}
   // Listener: fires after the pause completes (whoever ran it).
-  onPause={(offer, customer) => analytics.track('paused', { months: offer.months })}
+  onPause={(offer, customer) => analytics.track('paused', { months: offer.result?.months ?? offer.months })}
   onAccept={(offer) => analytics.track('offer_accepted', { type: offer.type })}
   onCancel={() => router.push('/goodbye')}
 />

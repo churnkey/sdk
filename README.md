@@ -39,7 +39,7 @@ import '@churnkey/react/styles.css'
     { type: 'confirm' },
   ]}
   handleDiscount={async (offer) => myBilling.applyCoupon(offer.couponId)}
-  handlePause={async (offer) => myBilling.pause({ months: offer.months })}
+  handlePause={async (offer) => myBilling.pause({ months: offer.result?.months ?? offer.months })}
   handleCancel={async () => myBilling.cancel()}
   onClose={() => setOpen(false)}
 />

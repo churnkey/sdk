@@ -26,6 +26,9 @@ import type {
   FlowState,
   Mode,
   OfferDecision,
+  PauseOffer,
+  PlanChangeOffer,
+  PlanOption,
   ReasonConfig,
   Step,
 } from './types'
@@ -68,10 +71,16 @@ function listenerFor(offerType: string, cb: FlowCallbacks): OfferCallback | unde
 
 // Listener errors are swallowed — they're side effects, not part of the
 // success path, and shouldn't flip the flow into an error state.
-function runListener(listener: OfferCallback, offer: AcceptedOffer, customer: DirectCustomer | null): Promise<void> {
-  return Promise.resolve(listener(offer, customer)).catch((e) => {
+async function runListener(
+  listener: OfferCallback,
+  offer: AcceptedOffer,
+  customer: DirectCustomer | null,
+): Promise<void> {
+  try {
+    await listener(offer, customer)
+  } catch (e) {
     console.error('Error in offer listener:', e)
-  })
+  }
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -120,6 +129,19 @@ function toApiOfferType(type: string): { offerType: ApiOfferType; customOfferTyp
 
 function toApiPauseInterval(interval: 'month' | 'week' | undefined): ApiPauseInterval {
   return interval === 'week' ? 'WEEK' : 'MONTH'
+}
+
+// The built-in pause and plan-change offers pass the customer's pick to onAccept; the offer
+// itself holds the longest pause and every plan on offer. The server grants whole lengths up
+// to that longest one, so any other pick falls back to it.
+function chosenPauseLength(offer: PauseOffer, result?: Record<string, unknown>): number {
+  const months = result?.months
+  const fits = typeof months === 'number' && Number.isInteger(months) && months >= 1 && months <= offer.months
+  return fits ? months : offer.months
+}
+
+function chosenPlan(offer: PlanChangeOffer, result?: Record<string, unknown>): PlanOption | undefined {
+  return offer.plans?.find((plan) => plan.id === result?.planId) ?? offer.plans?.[0]
 }
 
 // --- Offer shape builders ---
@@ -180,15 +202,17 @@ function toAcceptedOfferPayload(rec: OfferDecision, result?: Record<string, unkn
     case 'pause':
       return {
         ...base,
-        pauseDuration: o.months,
+        pauseDuration: chosenPauseLength(o, result),
         pauseInterval: toApiPauseInterval(o.interval),
       }
-    case 'plan_change':
+    case 'plan_change': {
+      const plan = chosenPlan(o, result)
       return {
         ...base,
-        newPlanId: o.plans?.[0]?.id,
-        newPlanPrice: o.plans?.[0]?.amount.value,
+        newPlanId: plan?.id,
+        newPlanPrice: plan?.amount.value,
       }
+    }
     case 'trial_extension':
       return { ...base, trialExtensionDays: o.days }
     case 'redirect':
@@ -608,10 +632,10 @@ export class CancelFlowMachine {
         }
         break
       case 'pause':
-        await this.apiClient.pause({ duration: o.months, interval: o.interval ?? 'month' })
+        await this.apiClient.pause({ duration: chosenPauseLength(o, offer.result), interval: o.interval ?? 'month' })
         break
       case 'plan_change':
-        await this.apiClient.changePlan(o.plans[0]?.id)
+        await this.apiClient.changePlan(chosenPlan(o, offer.result)?.id as string)
         break
       case 'trial_extension':
         await this.apiClient.extendTrial(o.days, this.blueprintId ?? undefined)
