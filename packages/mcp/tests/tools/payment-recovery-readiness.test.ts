@@ -34,6 +34,8 @@ describe('payment recovery readiness', () => {
     expect(get_account.description).toContain('paymentRecovery.readiness')
     expect(get_account.description).toContain('blockers')
     expect(get_account.description).toContain('NO_RECOVERY_LINK')
+    expect(get_account.description).toContain('set_hosted_subdomain (or a custom domain)')
+    expect(get_account.description).not.toContain('live custom domain')
   })
 
   it('warns that publishing and enabling are refused on NO_RECOVERY_LINK and names a fix tool that exists', () => {
@@ -49,6 +51,9 @@ describe('payment recovery readiness', () => {
     const byName = toolsByName(makeClient())
     expect(byName.get_recovery_blueprint.description).toContain('readiness')
     expect(byName.get_dns_config.description).toContain('recovery')
+    // The API adds the note only when no custom domain is configured at all, whatever its status.
+    expect(byName.get_dns_config.description).toContain('no subdomain and no custom domain configured')
+    expect(byName.get_dns_config.description).not.toContain('live custom domain')
   })
 
   it('passes readiness through untouched, and still works when the API omits it', async () => {
