@@ -14,6 +14,8 @@ export function dnsTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Current domain setup for Churnkey-hosted pages: the churnkey.co subdomain, every registered custom domain with its propagation status (live / dns_ok_ssl_pending / awaiting_dns), a per-domain nextStep, and the exact DNS records the customer must add.',
         '',
+        'Payment recovery emails link to a page on one of these hosts. When there is no subdomain and no live custom domain, the response includes a note saying recovery emails cannot be sent until one is set (set_hosted_subdomain is the quickest fix). Relay that note to the user; get_account reports the full payment recovery readiness.',
+        '',
         BOUNDARY,
       ].join('\n'),
       inputSchema: z.object({}),

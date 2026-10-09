@@ -13,6 +13,8 @@ export function accountTools(client: ChurnkeyClient): ToolDefinition[] {
         'Call this FIRST to orient yourself before reading data or making changes, especially to confirm which workspace and which mode you are operating in. The scopes tell you which operations are permitted (so you can avoid a guaranteed 403).',
         '',
         'Mode note: configuration (blueprints, segments, surveys, settings) is shared across live and test mode; only runtime data (sessions, metrics, recoveries, campaigns) and live traffic/sends are mode-scoped. Mode defaults to live.',
+        '',
+        'Payment recovery: `paymentRecovery.readiness` says whether recovery (dunning) emails can actually be sent. Check `ready` and `blockers` before publishing or enabling a payment recovery campaign. A `NO_RECOVERY_LINK` blocker means there is no recovery page domain, so every email would go out without a working payment link; fix it with set_hosted_subdomain (or a live custom domain) first. `warnings` (e.g. `NO_VERIFIED_SENDER_DOMAIN`) do not block publishing but should be relayed to the user. Each blocker and warning carries a `nextStep`. Older API versions omit this field.',
       ].join('\n'),
       inputSchema: z.object({}),
       annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },

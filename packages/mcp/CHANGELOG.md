@@ -4,6 +4,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## Unreleased
 
+### Changed
+
+- Tool descriptions now cover payment recovery readiness. `get_account` returns `paymentRecovery.readiness` and `get_recovery_blueprint` returns `readiness`: whether recovery emails can be sent, plus `blockers` and `warnings`, each with a `nextStep`. The descriptions tell the agent to check `ready` and `blockers` before publishing. `publish_recovery_blueprint` and `set_recovery_blueprint_enabled` explain that the API refuses them (422) while `NO_RECOVERY_LINK` is a blocker and point to `set_hosted_subdomain` as the fix. `get_dns_config` mentions the note it returns when there is no recovery link host.
+
+  Without a recovery page domain, every payment recovery email goes out without a working link. Before this, an agent could read the DNS config, see no subdomain, and have no reason to think that mattered before publishing. Responses are passed through as-is, so nothing changes against an API that does not send these fields yet.
+
 ### Added
 
 - `open_retention_dashboard`, an [MCP App](https://github.com/modelcontextprotocol/ext-apps). It returns save rate, customers saved, boosted revenue, outcomes by offer type, a monthly trend and per-segment save rates for a window, as `structuredContent` plus a text summary. Hosts that render MCP Apps show an interactive view that re-queries the tool when the user changes the window or segment. Every other client gets the text, so nothing changes for Claude Code or Cursor beyond one more read-only tool.

@@ -4,6 +4,9 @@ import { confirmLiteral } from './shared'
 import type { ToolDefinition } from './types'
 
 const blueprintId = z.string().describe('Campaign blueprint id (from list_recovery_blueprints).')
+const READINESS_NOTE =
+  'Refused (422) while payment recovery `readiness.blockers` contains NO_RECOVERY_LINK: without a recovery page domain every email would go out without a working payment link. Check `readiness` (from get_account or get_recovery_blueprint) first; set_hosted_subdomain fixes the blocker.'
+
 const campaignId = z.string().describe('Running campaign instance id (from list_recovery_campaigns).')
 
 // Shape of the dunning audience-attribute palette returned by
@@ -133,7 +136,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'get_recovery_blueprint',
       title: 'Get a recovery campaign config',
       description:
-        'Full campaign configuration: the email sequence (each with guid, subject, content, cadence sendOnDay/timeToSend, sender identity, autoRetry), SMS sequence, and audience filters. Use the email guids with update_recovery_email.',
+        "Full campaign configuration: the email sequence (each with guid, subject, content, cadence sendOnDay/timeToSend, sender identity, autoRetry), SMS sequence, and audience filters. Use the email guids with update_recovery_email. Also includes `readiness` (the org's payment recovery readiness, same shape as get_account's `paymentRecovery.readiness`): check `ready` and `blockers` before publishing.",
       inputSchema: z.object({ blueprintId }),
       annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
       handler: async (args) =>
@@ -324,8 +327,11 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
     {
       name: 'set_recovery_blueprint_enabled',
       title: 'Turn a recovery campaign on or off',
-      description:
+      description: [
         '**Live-impacting and immediate**: matches the dashboard toggle, which saves AND publishes in one step. Disabling stops the campaign from matching new failed payments right away (in-flight sequences continue — use stop_recovery_campaign for those); enabling puts it back in rotation. Blocked during an active A/B test and on the primary catch-all campaign. Requires confirm: "set_recovery_blueprint_enabled". Confirm with the user first.',
+        '',
+        `Enabling: ${READINESS_NOTE}`,
+      ].join('\n'),
       inputSchema: z.object({
         confirm: confirmLiteral('set_recovery_blueprint_enabled'),
         blueprintId,
@@ -340,8 +346,11 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
     {
       name: 'publish_recovery_blueprint',
       title: 'Publish a recovery campaign config',
-      description:
+      description: [
         '**Live-impacting**: publishing rebuilds the PENDING emails of in-flight customer sequences with the new content/cadence (already-sent emails are unaffected). Requires confirm: "publish_recovery_blueprint". Audit-logged.',
+        '',
+        READINESS_NOTE,
+      ].join('\n'),
       inputSchema: z.object({
         confirm: confirmLiteral('publish_recovery_blueprint'),
         blueprintId,
