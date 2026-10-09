@@ -2,6 +2,19 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.8.1 - 2026-10-09
+
+### Fixed
+
+- `CancelFlow` and `useCancelFlow` in token mode now run Churnkey's own action when no `handle*` callback is passed, as documented. Previously an accepted offer was not applied and Cancel did not cancel, while the session still recorded the outcome.
+- Token-mode pause and plan change use the length and the plan the customer picked, both in the API call and on the session, instead of the longest pause on offer and the first plan. A pick the offer doesn't allow falls back to the old values.
+- A per-type listener (`onPause` and the like) that throws synchronously no longer puts the flow into an error state.
+- README pause examples read the picked length from `offer.result.months`.
+
+### Changed
+
+- Token-mode integrations that pass no `handle*` callbacks and do the billing in `onAccept` or `onCancel` now run it twice: Churnkey performs the action, then the listener repeats it. Move that work into the matching `handle*` callback or drop it.
+
 ## 0.8.0 — 2026-07-22
 
 ### Added
