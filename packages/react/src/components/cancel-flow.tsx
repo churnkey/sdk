@@ -361,6 +361,13 @@ const SAVED_OFFER_COPY_TYPES = ['discount', 'pause', 'trial_extension', 'plan_ch
 
 function savedOfferCopy(messages: CancelFlowMessages, offer: AcceptedOffer | null): SavedOfferCopy | undefined {
   if (!offer) return undefined
+  const failedType = offer.stackedOffer?.failedOfferType
+  // A pair that applied in part reads as the offer that applied.
+  if (failedType)
+    return savedOfferCopy(
+      messages,
+      failedType === offer.type ? offer.stackedOffer! : { ...offer, stackedOffer: undefined },
+    )
   if (offer.stackedOffer) return messages.success.saved.stacked
   if (!(SAVED_OFFER_COPY_TYPES as readonly string[]).includes(offer.type)) return undefined
   return messages.success.saved[offer.type as (typeof SAVED_OFFER_COPY_TYPES)[number]]
@@ -370,7 +377,12 @@ function stackedDescription(messages: CancelFlowMessages, offer: AcceptedOffer |
   const status = offer?.stackedOffer?.stackStatus
   if (!status) return undefined
   const copy = messages.success.saved.stacked
-  if (status === 'failed') return copy.partialDescription
+  if (status === 'failed') {
+    const failedType = offer.stackedOffer?.failedOfferType
+    return failedType && failedType in copy.failedDescription
+      ? copy.failedDescription[failedType as keyof typeof copy.failedDescription]
+      : undefined
+  }
   if (status === 'scheduled') {
     return offer.type === 'trial_extension' ? copy.afterTrialDescription : copy.afterPauseDescription
   }

@@ -230,6 +230,8 @@ export type AcceptedOffer = OfferConfig & {
     /** `scheduled`: the second offer starts when the pause or trial ends.
      *  `failed`: one of the two offers could not be applied. */
     stackStatus: 'applied' | 'scheduled' | 'failed'
+    /** With `failed`: the type of the offer that was not applied. */
+    failedOfferType?: OfferConfig['type']
   }
 }
 

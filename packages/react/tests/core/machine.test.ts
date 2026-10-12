@@ -554,7 +554,10 @@ describe('CancelFlowMachine', () => {
       await machine.accept({ months: 2 })
 
       expect(machine.getSnapshot().step).toBe('success')
-      expect(machine.getSnapshot().acceptedOffer?.stackedOffer?.stackStatus).toBe('failed')
+      expect(machine.getSnapshot().acceptedOffer?.stackedOffer).toMatchObject({
+        stackStatus: 'failed',
+        failedOfferType: 'rebate',
+      })
       expect(session()?.acceptedOffer?.stackedOffer).toMatchObject({
         stackStatus: 'FAILED',
         stackFailureReason: 'REBATE: Refund refused',
@@ -614,6 +617,22 @@ describe('CancelFlowMachine', () => {
         stackStatus: 'FAILED',
         stackFailureReason: 'DISCOUNT: Coupon expired',
       })
+    })
+
+    it('runs a refund last, so a failing other offer leaves no refund behind', async () => {
+      const handleRebate = vi.fn()
+      const { machine, session } = serverMachine(pairStep(rebate, discount), parts(), {
+        handleRebate,
+        handleDiscount: async () => {
+          throw new Error('Coupon expired')
+        },
+      })
+
+      await machine.accept()
+
+      expect(machine.getSnapshot().error?.message).toBe('Coupon expired')
+      expect(handleRebate).not.toHaveBeenCalled()
+      expect(session()).toBeUndefined()
     })
 
     it('fails the accept when the first handler fails, without running the second', async () => {

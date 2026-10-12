@@ -804,7 +804,8 @@ describe('a pair of offers in token mode', () => {
     await user.click(screen.getByText('Basic'))
     await user.click(screen.getByText('Accept both offers'))
 
-    expect(await screen.findByText(/couldn't apply all of your offer/)).toBeInTheDocument()
+    expect(await screen.findByText('Plan changed.')).toBeInTheDocument()
+    expect(screen.getByText("We couldn't apply your discount.")).toBeInTheDocument()
     expect(requests.body('cancel-flow/actions/stacked')).toMatchObject({ planId: 'basic', coupon: 'PAIR20' })
   })
 })

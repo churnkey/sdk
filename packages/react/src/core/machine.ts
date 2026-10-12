@@ -725,10 +725,15 @@ export class CancelFlowMachine {
     }
 
     const stackStatus = pairStatus(outcome.statuses)
+    const failed = parts[outcome.statuses.findIndex((status) => status === 'FAILED' || status === 'CANCELED')]
     this.markCurrentOfferAccepted()
     this.enterSuccessStep('saved', {
       ...parts[0],
-      stackedOffer: { ...parts[1], stackStatus: stackStatus.toLowerCase() as 'applied' | 'scheduled' | 'failed' },
+      stackedOffer: {
+        ...parts[1],
+        stackStatus: stackStatus.toLowerCase() as 'applied' | 'scheduled' | 'failed',
+        ...(failed && { failedOfferType: failed.type }),
+      },
     })
     this.recordOutcome('saved', offer, result, {
       ...toAcceptedOfferPayload(second, result),
@@ -753,15 +758,19 @@ export class CancelFlowMachine {
     }
   }
 
-  // The first offer failing fails the accept as for a single offer; the second failing leaves the first applied.
+  // The offer that runs first failing fails the accept as for a single offer; the other failing leaves the first
+  // applied. A refund cannot be taken back, so it runs last, as on the server.
   private async acceptPairInTurn(parts: AcceptedOffer[], decisionIds: (string | undefined)[]): Promise<PairOutcome> {
-    await this.runOfferAction(parts[0], decisionIds[0])
+    const [before, after] = parts[0].type === 'rebate' ? [1, 0] : [0, 1]
+    await this.runOfferAction(parts[before], decisionIds[before])
     try {
-      await this.runOfferAction(parts[1], decisionIds[1])
+      await this.runOfferAction(parts[after], decisionIds[after])
       return { statuses: ['APPLIED', 'APPLIED'] }
     } catch (error) {
-      const { offerType } = toApiOfferType(parts[1].type)
-      return { statuses: ['APPLIED', 'FAILED'], failureReason: `${offerType}: ${errorMessage(error)}` }
+      const statuses: PartStatus[] = ['APPLIED', 'APPLIED']
+      statuses[after] = 'FAILED'
+      const { offerType } = toApiOfferType(parts[after].type)
+      return { statuses, failureReason: `${offerType}: ${errorMessage(error)}` }
     }
   }
 

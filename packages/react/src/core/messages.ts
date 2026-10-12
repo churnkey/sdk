@@ -81,11 +81,13 @@ export interface CancelFlowMessages {
       plan_change: SavedOfferCopy
       rebate: SavedOfferCopy
       /** A pair of offers. The description is replaced when the second offer
-       *  waits for a pause or trial to end, or when one of them failed. */
+       *  waits for a pause or trial to end. When one of them failed, the title
+       *  is the one of the offer that applied and the description names the
+       *  offer that did not. */
       stacked: SavedOfferCopy & {
         afterPauseDescription: string
         afterTrialDescription: string
-        partialDescription: string
+        failedDescription: Record<'discount' | 'pause' | 'trial_extension' | 'plan_change' | 'rebate', string>
       }
     }
     cancelled: {
@@ -218,7 +220,13 @@ export const defaultMessages: CancelFlowMessages = {
         description: "We're so happy you're still here.",
         afterPauseDescription: 'Your second offer starts when your subscription resumes.',
         afterTrialDescription: 'Your second offer starts when your trial ends.',
-        partialDescription: "We couldn't apply all of your offer right now. The rest will be handled for you.",
+        failedDescription: {
+          discount: "We couldn't apply your discount.",
+          pause: "We couldn't pause your subscription.",
+          trial_extension: "We couldn't extend your trial.",
+          plan_change: "We couldn't change your plan.",
+          rebate: "We couldn't issue your refund.",
+        },
       },
     },
     cancelled: {
