@@ -309,7 +309,7 @@ In **local mode** (no token), there's no server action — handlers do the work.
 An offer can carry a second one (`offer.stackedOffer`), set up in the dashboard for orgs that use stacked offers. The SDK shows one card per offer and a single "Accept both offers" button; replace it through the `StackedOffer` component slot.
 
 - Without handlers, token mode applies both offers in one request. After a pause or a trial extension, the second offer starts when the pause or trial ends.
-- With handlers, each offer goes through its own handler (or Churnkey's action when its type has none), first offer first, except that a rebate runs last. If the offer that runs second fails, the flow still completes, `acceptedOffer.stackedOffer.stackStatus` is `'failed'` and `failedOfferType` names the offer that did not apply. A handler cannot wait for a pause or trial to end, so a pair whose second offer waits is left out of the flow when a handler covers either offer.
+- With handlers, each offer goes through its own handler, first offer first, except that a rebate runs last. If the offer that runs second fails, the flow still completes, `acceptedOffer.stackedOffer.stackStatus` is `'failed'` and `failedOfferType` names the offer that did not apply. A handler cannot wait for a pause or trial to end, so a pair whose second offer waits is left out of the flow when a handler covers either offer. In token mode a pair is also left out when a handler covers only one of its offers, because Churnkey applies an offer of a pair only together with the other one.
 - Listeners and `onAccept` get each offer on its own, once per offer that applied.
 
 ### Passing customer/subscription data alongside a token

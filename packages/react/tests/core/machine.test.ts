@@ -475,7 +475,6 @@ describe('CancelFlowMachine', () => {
           if (answer instanceof Error) throw answer
           return answer
         }),
-        applyDiscount: vi.fn(async () => {}),
         createSession: vi.fn(async (_payload: SessionPayload) => {}),
       }
       const machine = new CancelFlowMachine({ session: 'ck_placeholder', ...callbacks })
@@ -651,25 +650,27 @@ describe('CancelFlowMachine', () => {
       expect(session()).toBeUndefined()
     })
 
-    it('sends an offer without a handler through its own action when the other has one', async () => {
-      const handlePlanChange = vi.fn()
-      const { machine, mockApi, session } = serverMachine(pairStep(planChange, discount), parts(), {
-        handlePlanChange,
-      })
-
-      await machine.accept({ planId: 'pro' })
-
-      expect(handlePlanChange).toHaveBeenCalledOnce()
-      expect(mockApi.applyDiscount).toHaveBeenCalledWith('PAIR20', 'bp_1')
-      expect(session()?.acceptedOffer?.stackedOffer?.stackStatus).toBe('APPLIED')
+    it('leaves out a pair that waits for a pause when a handler covers either offer', () => {
+      const bothHandled = { handlePause: vi.fn(), handleDiscount: vi.fn() }
+      expect(serverMachine(pairStep(pause, discount), parts(), bothHandled).machine.getSnapshot().step).toBe('confirm')
     })
 
-    it('leaves out a pair that waits for a pause when a handler covers either offer', () => {
-      const withHandler = serverMachine(pairStep(pause, discount), parts(), { handleDiscount: vi.fn() })
-      expect(withHandler.machine.getSnapshot().step).toBe('confirm')
+    it('leaves out a pair a handler covers only in part, unless no server takes the other offer', () => {
+      const handleDiscount = vi.fn()
+      expect(
+        serverMachine(pairStep(planChange, discount), parts(), { handleDiscount }).machine.getSnapshot().step,
+      ).toBe('confirm')
+      const whole = serverMachine(pairStep(planChange, discount), parts(), {
+        handleDiscount,
+        handlePlanChange: vi.fn(),
+      })
+      expect(whole.machine.currentOffer?.stackedOffer?.type).toBe('discount')
 
-      const immediate = serverMachine(pairStep(planChange, discount), parts(), { handleDiscount: vi.fn() })
-      expect(immediate.machine.currentOffer?.stackedOffer?.type).toBe('discount')
+      const local = new CancelFlowMachine({
+        steps: [{ type: 'offer', offer: { ...planChange, stackedOffer: discount } as any }, { type: 'confirm' }],
+        handleDiscount,
+      })
+      expect(local.currentOffer?.stackedOffer?.type).toBe('discount')
     })
   })
 

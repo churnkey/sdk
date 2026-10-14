@@ -155,7 +155,9 @@ function chosenPlan(offer: PlanChangeOffer, result?: Record<string, unknown>): P
 // A pair is two offers accepted with one click. Without merchant handlers the
 // server applies both in one request and holds the second one while a pause
 // or trial runs. A handler cannot wait for that, so a pair that waits is left
-// out of the flow when a handler covers either of its offers.
+// out of the flow when a handler covers either of its offers. The server also
+// takes an offer of a pair only together with the other one, so in token mode
+// a pair is left out when a handler covers only one of its offers.
 
 type PartStatus = StackedOfferResult['parts'][number]['status']
 
@@ -167,21 +169,23 @@ interface PairOutcome {
 
 const WAITING_FIRST_OFFERS = ['pause', 'trial_extension']
 
-function isHandledWaitingPair(offer: ReasonConfig['offer'], cb: FlowCallbacks): boolean {
+function isLeftOutPair(offer: ReasonConfig['offer'], cb: FlowCallbacks, viaServer: boolean): boolean {
   const second = (offer as OfferDecision | undefined)?.stackedOffer
-  if (!(offer && second && WAITING_FIRST_OFFERS.includes(offer.type))) return false
-  return Boolean(handlerFor(offer.type, cb) || handlerFor(second.type, cb))
+  if (!(offer && second)) return false
+  const [first, last] = [handlerFor(offer.type, cb), handlerFor(second.type, cb)].map(Boolean)
+  if (WAITING_FIRST_OFFERS.includes(offer.type)) return first || last
+  return viaServer && first !== last
 }
 
-function withoutHandledWaitingPairs(steps: Step[], cb: FlowCallbacks): Step[] {
+function withoutLeftOutPairs(steps: Step[], cb: FlowCallbacks, viaServer: boolean): Step[] {
   return steps.flatMap((step): Step[] => {
-    if (step.type === 'offer') return isHandledWaitingPair((step as OfferStep).offer, cb) ? [] : [step]
+    if (step.type === 'offer') return isLeftOutPair((step as OfferStep).offer, cb, viaServer) ? [] : [step]
     if (step.type !== 'survey') return [step]
     const survey = step as SurveyStep
     return [
       {
         ...survey,
-        reasons: survey.reasons.map((r) => (isHandledWaitingPair(r.offer, cb) ? { ...r, offer: undefined } : r)),
+        reasons: survey.reasons.map((r) => (isLeftOutPair(r.offer, cb, viaServer) ? { ...r, offer: undefined } : r)),
       },
     ]
   })
@@ -356,7 +360,7 @@ export class CancelFlowMachine {
       if (config.steps) this.localSteps = config.steps
     } else if (config.steps) {
       const merged = applyMergeFieldsToSteps(config.steps, this.directCustomer, this.customerAttributes)
-      this.graph = buildStepGraph(withoutHandledWaitingPairs(merged, config), defaultOfferCopy)
+      this.graph = buildStepGraph(withoutLeftOutPairs(merged, config, false), defaultOfferCopy)
     }
 
     // Seed state from local props for open-source and analytics modes. Token
@@ -572,7 +576,7 @@ export class CancelFlowMachine {
 
     const merged = this.localSteps ? mergeLocalSteps(result.steps, this.localSteps) : result.steps
     const steps = applyMergeFieldsToSteps(merged, config.customer ?? null, this.customerAttributes)
-    this.graph = buildStepGraph(withoutHandledWaitingPairs(steps, this.callbacks), defaultOfferCopy)
+    this.graph = buildStepGraph(withoutLeftOutPairs(steps, this.callbacks, true), defaultOfferCopy)
 
     this.state = this.buildInitialState(config.customer ?? null, config.subscriptions ?? [])
     this.cachedSnapshot = { ...this.state }
