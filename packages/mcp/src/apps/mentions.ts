@@ -112,7 +112,7 @@ export function registerMentions(server: McpServer, client: ChurnkeyClient): voi
       title: 'Search Churnkey mentions',
       description: 'Typeahead search over this workspace’s segments and A/B tests for composer @-mentions.',
       inputSchema: { query: z.string().describe('Search text; may be empty.') },
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       _meta: {
         'openai/extensions': { 'mentions/search': {} },
         ui: { visibility: ['app'] },

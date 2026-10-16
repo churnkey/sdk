@@ -159,7 +159,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
         'A/B test variant segments appear as separate top-level entries here (the dashboard folds them under their parent test). Unfinished A/B test segments cannot be archived, enabled/disabled, or have their audience edited, and reorder_segments must keep test pairs together.',
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async () => client.get('/data/segments'),
     },
     {
@@ -173,7 +173,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
         'Use this before update_segment_filter so you target real attributes with valid operands. STRING/BOOLEAN use INCLUDES/NOT_INCLUDES; NUMBER/DATE use GTE/LTE/BETWEEN/NOT_BETWEEN (GT/LT are NOT supported). Numeric money attributes (PRICE) are compared in major currency units (e.g. dollars, not cents); dates are ISO-8601 strings.',
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async () => client.get('/data/segments/attributes'),
     },
     {
@@ -185,7 +185,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
         'Leave segment.enabled at its default (omit it, or pass true): the dashboard always creates segments enabled, so do NOT disable a new segment unless the user explicitly asks for a paused flow. The segment can be created with an empty filter for setup, but publish_blueprint and enabling both require at least one audience filter rule. Publishing makes the blueprint live but does not change the segment’s enabled state, mirroring the dashboard — use set_segment_enabled to toggle targeting. Use update_segment_filter before publishing if the filter is empty, or archive_segment to clean up a disposable test segment.',
       ].join('\n'),
       inputSchema: createSegmentFlowInput,
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       handler: async (args) => client.post('/data/segments', { body: args }),
     },
     {
@@ -194,7 +194,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Reorder cancel flow segment priority. This is a live-impacting configuration change, so it requires explicit confirmation and records an audit log. If an unfinished A/B test is involved, include both test segments together and keep the control immediately followed by its variant, matching the dashboard grouping.',
       inputSchema: reorderInput,
-      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       handler: async (args) => client.post('/data/segments/reorder', { body: args }),
     },
     {
@@ -203,7 +203,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Soft-delete/archive a cancel-flow segment so it disappears from the non-deleted segment inventory. Use this to clean up disposable segment flows created for testing. Segments in unfinished A/B tests cannot be archived. Requires explicit confirmation and records an audit log.',
       inputSchema: archiveSegmentInput,
-      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
       handler: async (args) =>
         client.post(`/data/segments/${args.segmentId}/archive`, {
           body: { confirm: args.confirm },
@@ -215,7 +215,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Enable or disable a cancel flow segment. Disabling stops its flow from being served to matching customers (the segment becomes inactive); enabling resumes it and requires at least one audience filter rule. Segments in unfinished A/B tests cannot be enabled or disabled through this tool. This is a live-impacting configuration change, so it requires explicit confirmation and records an audit log. Use list_segments first to get the segment ID, current enabled state, and filter.',
       inputSchema: setEnabledInput,
-      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
       handler: async (args) =>
         client.post(`/data/segments/${args.segmentId}/enabled`, {
           body: { enabled: args.enabled, confirm: args.confirm },
@@ -230,7 +230,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
         'Each rule is { attribute, operand, value, type? }. operand is one of INCLUDES, GTE, LTE, BETWEEN, NOT_INCLUDES, NOT_BETWEEN (GT/LT are NOT supported — use GTE/LTE). STRING/BOOLEAN attributes use INCLUDES/NOT_INCLUDES; NUMBER/DATE use GTE/LTE/BETWEEN/NOT_BETWEEN. For BETWEEN/NOT_BETWEEN, value has exactly two entries [low, high]; for GTE/LTE, one entry; for INCLUDES/NOT_INCLUDES, the list of matching values. See the `attribute` field for the catalog of built-in targeting attributes and which operands apply to each (custom customer attributes are also accepted). Call list_segments first to read the current rules.',
       ].join('\n'),
       inputSchema: updateFilterInput,
-      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       handler: async (args) =>
         client.post(`/data/segments/${args.segmentId}/filter`, {
           body: { filter: args.filter, confirm: args.confirm, confirmLiveChange: args.confirmLiveChange },
