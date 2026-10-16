@@ -106,7 +106,7 @@ Swap out any piece of the UI. The SDK handles navigation and state; you handle r
 />
 ```
 
-You can replace `Modal`, `CloseButton`, `BackButton`, the step components (`Survey`, `Offer`, `Feedback`, `Confirm`, `Success`), `ReasonButton`, and per-offer-type components (`DiscountOffer`, `PauseOffer`, `PlanChangeOffer`, `TrialExtensionOffer`, `ContactOffer`, `RedirectOffer`).
+You can replace `Modal`, `CloseButton`, `BackButton`, the step components (`Survey`, `Offer`, `Feedback`, `Confirm`, `Success`), `ReasonButton`, per-offer-type components (`DiscountOffer`, `PauseOffer`, `PlanChangeOffer`, `TrialExtensionOffer`, `ContactOffer`, `RedirectOffer`), and `StackedOffer` for a pair of offers.
 
 ## Add custom steps
 
@@ -199,6 +199,8 @@ function MyCancelPage() {
 ```
 
 The hook returns the current state (`step`, `reasons`, `currentOffer`, `feedback`, `outcome`, `isProcessing`) and actions (`selectReason`, `next`, `back`, `accept`, `decline`, `cancel`, `close`).
+
+In token mode the hook leaves pairs of offers out of the flow unless you pass `stackedOffers: true`; see [Pairs of offers](#pairs-of-offers).
 
 ## Add analytics
 
@@ -303,6 +305,16 @@ Two kinds of callbacks, distinguished by name:
 Available handlers: `handleDiscount`, `handlePause`, `handlePlanChange`, `handleTrialExtension`, `handleCancel`. Available listeners: `onDiscount`, `onPause`, `onPlanChange`, `onTrialExtension`, `onCancel`, plus the catch-all `onAccept` that fires for any accepted offer.
 
 In **local mode** (no token), there's no server action — handlers do the work. In **token mode**, defining a handler opts out of Churnkey running the action and gives the work back to you.
+
+### Pairs of offers
+
+An offer can carry a second one (`offer.stackedOffer`), set up in the dashboard. The SDK shows one card per offer and a single "Accept both offers" button; replace it through the `StackedOffer` component slot.
+
+Churnkey sends pairs only to a UI that shows both offers. With your own `Offer` component, or a `customComponents` entry for a built-in offer type, pairs are left out of the flow unless you also pass `StackedOffer`. With `useCancelFlow`, pass `stackedOffers: true` once your UI renders `offer.stackedOffer`.
+
+- Without handlers, token mode applies both offers in one request. After a pause or a trial extension, the second offer starts when the pause or trial ends.
+- With handlers, each offer goes through its own handler, first offer first, except that a rebate runs last. If the offer that runs second fails, the flow still completes, `acceptedOffer.stackedOffer.stackStatus` is `'failed'` and `failedOfferType` names the offer that did not apply. Only Churnkey can hold the second offer while a pause or trial runs, so a pair whose second offer waits is left out of the flow in local mode and when a handler covers either offer. In token mode a pair is also left out when a handler covers only one of its offers, because Churnkey applies an offer of a pair only together with the other one.
+- Listeners and `onAccept` get each offer on its own, once per offer that applied.
 
 ### Passing customer/subscription data alongside a token
 

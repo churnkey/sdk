@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { SessionPayload } from '../../src/core/api'
-import type { SdkConfig } from '../../src/core/api-types'
+import type { ApiOfferType, SessionPayload, StackedOfferRequest, StackedOfferResult } from '../../src/core/api'
+import type { SdkConfig, SdkOffer, SdkStep } from '../../src/core/api-types'
 import { CancelFlowMachine } from '../../src/core/machine'
+import type { FlowCallbacks } from '../../src/core/types'
 
 /** Minimal SdkConfig for token-mode tests; override fields per-test. */
 function sdkConfig(overrides: Partial<SdkConfig> = {}): SdkConfig {
@@ -433,6 +434,247 @@ describe('CancelFlowMachine', () => {
         newPlanId: 'pro',
         newPlanPrice: 2900,
       })
+    })
+  })
+
+  describe('pairs', () => {
+    const creds = { appId: 'a', customerId: 'c', authHash: 'h', mode: 'live' as const, issuedAt: 0 }
+    const copy = { headline: 'Stay', body: '', cta: 'Accept', declineCta: 'No thanks' }
+    const discount: SdkOffer = { type: 'discount', decisionId: 'd1', couponId: 'PAIR20', percentOff: 20, copy }
+    const planChange: SdkOffer = {
+      type: 'plan_change',
+      decisionId: 'p1',
+      plans: [
+        { id: 'basic', amount: { value: 900, currency: 'usd' } },
+        { id: 'pro', amount: { value: 2900, currency: 'usd' } },
+      ],
+      copy,
+    }
+    const pause: SdkOffer = { type: 'pause', decisionId: 'pause1', months: 3, interval: 'month', copy }
+    const rebate: SdkOffer = {
+      type: 'rebate',
+      decisionId: 'r1',
+      amountMinor: 500,
+      currency: 'usd',
+      amountPaidMinor: 2000,
+      netAfterRebateMinor: 1500,
+      copy,
+    }
+    const pairStep = (first: SdkOffer, second: SdkOffer): SdkStep => ({
+      guid: 'pair-step',
+      type: 'offer',
+      offer: { ...first, stackedOffer: second },
+    })
+    const serverMachine = (
+      step: SdkStep,
+      answer: StackedOfferResult | Error,
+      callbacks: Partial<FlowCallbacks> = {},
+    ) => {
+      const mockApi = {
+        acceptStackedOffer: vi.fn(async (_body: StackedOfferRequest) => {
+          if (answer instanceof Error) throw answer
+          return answer
+        }),
+        createSession: vi.fn(async (_payload: SessionPayload) => {}),
+      }
+      const machine = new CancelFlowMachine({ session: 'ck_placeholder', ...callbacks })
+      machine.initializeFromConfig(
+        sdkConfig({ steps: [step, { guid: 'confirm', type: 'confirm' }] }),
+        mockApi as any,
+        creds,
+      )
+      return { machine, mockApi, session: () => mockApi.createSession.mock.calls[0]?.[0] }
+    }
+    const parts = (...statuses: [string, StackedOfferResult['parts'][number]['status'], string?][]) => ({
+      acceptanceId: 'acc_1',
+      parts: statuses.map(([offerType, status, failureReason]) => ({
+        offerType: offerType as ApiOfferType,
+        status,
+        failureReason,
+      })),
+    })
+
+    it('accepts both offers in one request and records the acceptance on the session', async () => {
+      const onPlanChange = vi.fn()
+      const onDiscount = vi.fn()
+      const onAccept = vi.fn()
+      const { machine, mockApi, session } = serverMachine(
+        pairStep(planChange, discount),
+        parts(['PLAN_CHANGE', 'APPLIED'], ['DISCOUNT', 'APPLIED']),
+        { onPlanChange, onDiscount, onAccept },
+      )
+      expect(machine.currentOffer?.stackedOffer?.type).toBe('discount')
+
+      await machine.accept({ planId: 'pro' })
+
+      expect(mockApi.acceptStackedOffer).toHaveBeenCalledWith({
+        blueprintId: 'bp_1',
+        offerGuid: 'p1',
+        coupon: 'PAIR20',
+        planId: 'pro',
+      })
+      expect(machine.getSnapshot().step).toBe('success')
+      expect(machine.getSnapshot().acceptedOffer?.stackedOffer).toMatchObject({
+        type: 'discount',
+        stackStatus: 'applied',
+      })
+      expect(session()?.acceptedOffer).toMatchObject({
+        guid: 'p1',
+        offerType: 'PLAN_CHANGE',
+        newPlanId: 'pro',
+        stackedOffer: {
+          guid: 'd1',
+          offerType: 'DISCOUNT',
+          couponId: 'PAIR20',
+          acceptanceId: 'acc_1',
+          stackStatus: 'APPLIED',
+        },
+      })
+      expect(session()?.presentedOffers?.[0]).toMatchObject({
+        guid: 'p1',
+        accepted: true,
+        stackedOffer: { guid: 'd1', offerType: 'DISCOUNT' },
+      })
+      expect(onPlanChange).toHaveBeenCalledWith(expect.objectContaining({ type: 'plan_change' }), expect.anything())
+      expect(onPlanChange.mock.calls[0][0].stackedOffer).toBeUndefined()
+      expect(onDiscount).toHaveBeenCalledWith(expect.objectContaining({ type: 'discount' }), expect.anything())
+      expect(onAccept).toHaveBeenCalledTimes(2)
+    })
+
+    it('completes when one offer failed after the other applied, and reports only the applied one', async () => {
+      const onRebate = vi.fn()
+      const onPause = vi.fn()
+      const { machine, session } = serverMachine(
+        pairStep(rebate, pause),
+        parts(['REBATE', 'FAILED', 'Refund refused'], ['PAUSE', 'APPLIED']),
+        { onRebate, onPause },
+      )
+
+      await machine.accept({ months: 2 })
+
+      expect(machine.getSnapshot().step).toBe('success')
+      expect(machine.getSnapshot().acceptedOffer?.stackedOffer).toMatchObject({
+        stackStatus: 'failed',
+        failedOfferType: 'rebate',
+      })
+      expect(session()?.acceptedOffer?.stackedOffer).toMatchObject({
+        stackStatus: 'FAILED',
+        stackFailureReason: 'REBATE: Refund refused',
+        pauseDuration: 2,
+      })
+      expect(onPause).toHaveBeenCalledOnce()
+      expect(onRebate).not.toHaveBeenCalled()
+    })
+
+    it('reports a second offer that waits for the pause to end as scheduled, without its listener', async () => {
+      const onDiscount = vi.fn()
+      const { machine, mockApi, session } = serverMachine(
+        pairStep(pause, discount),
+        parts(['PAUSE', 'APPLIED'], ['DISCOUNT', 'SCHEDULED']),
+        { onDiscount },
+      )
+
+      await machine.accept({ months: 2 })
+
+      expect(mockApi.acceptStackedOffer.mock.calls[0][0]).toMatchObject({
+        pause: { duration: 2, interval: 'month' },
+        coupon: 'PAIR20',
+      })
+      expect(machine.getSnapshot().acceptedOffer?.stackedOffer?.stackStatus).toBe('scheduled')
+      expect(session()?.acceptedOffer?.stackedOffer?.stackStatus).toBe('SCHEDULED')
+      expect(onDiscount).not.toHaveBeenCalled()
+    })
+
+    it('shows the error and records no outcome when the request fails', async () => {
+      const { machine, session } = serverMachine(pairStep(planChange, discount), new Error('Plan was not offered'))
+
+      await machine.accept({ planId: 'pro' })
+
+      expect(machine.getSnapshot().step).toBe('offer')
+      expect(machine.getSnapshot().error?.message).toBe('Plan was not offered')
+      expect(session()).toBeUndefined()
+    })
+
+    it('runs merchant handlers in order and completes when the second one fails', async () => {
+      const calls: string[] = []
+      const { machine, mockApi, session } = serverMachine(pairStep(planChange, discount), parts(), {
+        handlePlanChange: async () => {
+          calls.push('plan')
+        },
+        handleDiscount: async () => {
+          calls.push('discount')
+          throw new Error('Coupon expired')
+        },
+      })
+
+      await machine.accept({ planId: 'pro' })
+
+      expect(calls).toEqual(['plan', 'discount'])
+      expect(mockApi.acceptStackedOffer).not.toHaveBeenCalled()
+      expect(machine.getSnapshot().step).toBe('success')
+      expect(session()?.acceptedOffer?.stackedOffer).toMatchObject({
+        stackStatus: 'FAILED',
+        stackFailureReason: 'DISCOUNT: Coupon expired',
+      })
+    })
+
+    it('runs a refund last, so a failing other offer leaves no refund behind', async () => {
+      const handleRebate = vi.fn()
+      const { machine, session } = serverMachine(pairStep(rebate, discount), parts(), {
+        handleRebate,
+        handleDiscount: async () => {
+          throw new Error('Coupon expired')
+        },
+      })
+
+      await machine.accept()
+
+      expect(machine.getSnapshot().error?.message).toBe('Coupon expired')
+      expect(handleRebate).not.toHaveBeenCalled()
+      expect(session()).toBeUndefined()
+    })
+
+    it('fails the accept when the first handler fails, without running the second', async () => {
+      const handleDiscount = vi.fn()
+      const { machine, session } = serverMachine(pairStep(planChange, discount), parts(), {
+        handlePlanChange: async () => {
+          throw new Error('No such plan')
+        },
+        handleDiscount,
+      })
+
+      await machine.accept({ planId: 'pro' })
+
+      expect(machine.getSnapshot().error?.message).toBe('No such plan')
+      expect(handleDiscount).not.toHaveBeenCalled()
+      expect(session()).toBeUndefined()
+    })
+
+    it('leaves out a pair that waits for a pause when a handler covers either offer, or in local mode', () => {
+      const bothHandled = { handlePause: vi.fn(), handleDiscount: vi.fn() }
+      expect(serverMachine(pairStep(pause, discount), parts(), bothHandled).machine.getSnapshot().step).toBe('confirm')
+      const local = new CancelFlowMachine({
+        steps: [{ type: 'offer', offer: { ...pause, stackedOffer: discount } as any }, { type: 'confirm' }],
+      })
+      expect(local.getSnapshot().step).toBe('confirm')
+    })
+
+    it('leaves out a pair a handler covers only in part, unless no server takes the other offer', () => {
+      const handleDiscount = vi.fn()
+      expect(
+        serverMachine(pairStep(planChange, discount), parts(), { handleDiscount }).machine.getSnapshot().step,
+      ).toBe('confirm')
+      const whole = serverMachine(pairStep(planChange, discount), parts(), {
+        handleDiscount,
+        handlePlanChange: vi.fn(),
+      })
+      expect(whole.machine.currentOffer?.stackedOffer?.type).toBe('discount')
+
+      const local = new CancelFlowMachine({
+        steps: [{ type: 'offer', offer: { ...planChange, stackedOffer: discount } as any }, { type: 'confirm' }],
+        handleDiscount,
+      })
+      expect(local.currentOffer?.stackedOffer?.type).toBe('discount')
     })
   })
 

@@ -75,6 +75,34 @@ export interface AcceptedOfferPayload {
   trialExtensionDays?: number
   redirectUrl?: string
   rebateAmount?: number
+  stackedOffer?: StackedOfferPayload
+}
+
+export type StackStatus = 'APPLIED' | 'SCHEDULED' | 'FAILED'
+
+/** The second offer of an accepted pair, with how the pair turned out. */
+export interface StackedOfferPayload extends Omit<AcceptedOfferPayload, 'stackedOffer'> {
+  acceptanceId?: string
+  stackStatus: StackStatus
+  stackFailureReason?: string
+}
+
+export interface StackedOfferRequest {
+  blueprintId?: string
+  offerGuid?: string
+  coupon?: string
+  planId?: string
+  pause?: { duration: number; interval: string }
+  days?: number
+}
+
+export interface StackedOfferResult {
+  acceptanceId: string
+  parts: Array<{
+    offerType: ApiOfferType
+    status: 'APPLIED' | 'SCHEDULED' | 'FAILED' | 'CANCELED'
+    failureReason?: string
+  }>
 }
 
 export interface SessionCustomer {
@@ -124,10 +152,12 @@ export interface SessionPayload {
 export class ChurnkeyApi {
   private creds: SessionCredentials
   private baseUrl: string
+  private stackedOffers: boolean
 
-  constructor(creds: SessionCredentials, baseUrl?: string) {
+  constructor(creds: SessionCredentials, baseUrl?: string, stackedOffers = false) {
     this.creds = creds
     this.baseUrl = baseUrl ?? DEFAULT_BASE_URL
+    this.stackedOffers = stackedOffers
   }
 
   private get headers(): Record<string, string> {
@@ -137,6 +167,9 @@ export class ChurnkeyApi {
       'x-ck-customer': this.creds.customerId,
       'x-ck-authorization': this.creds.authHash,
       'x-ck-mode': this.creds.mode,
+    }
+    if (this.stackedOffers) {
+      h['x-ck-capabilities'] = 'stacked-offers'
     }
     if (this.creds.subscriptionId) {
       h['x-ck-subscription'] = this.creds.subscriptionId
@@ -207,6 +240,11 @@ export class ChurnkeyApi {
 
   async applyRebate(blueprintId?: string, offerGuid?: string): Promise<void> {
     await this.request(this.orgUrl('cancel-flow/actions/rebate'), { blueprintId, offerGuid })
+  }
+
+  async acceptStackedOffer(body: StackedOfferRequest): Promise<StackedOfferResult> {
+    const res = await this.request(this.orgUrl('cancel-flow/actions/stacked'), body)
+    return (await res.json()) as StackedOfferResult
   }
 
   async createSession(payload: SessionPayload): Promise<void> {

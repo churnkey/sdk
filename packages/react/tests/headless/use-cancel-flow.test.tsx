@@ -96,6 +96,21 @@ describe('useCancelFlow', () => {
     expect(JSON.parse(init.body)).toEqual({ customAttributes: { videosCreated: 28 } })
   })
 
+  it('asks for pairs of offers only when the UI says it shows them', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => goodResponse } as Response)
+
+    await act(async () => {
+      renderHook(() => useCancelFlow({ session: TOKEN }))
+      renderHook(() => useCancelFlow({ session: TOKEN, stackedOffers: true }))
+    })
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    expect(fetchMock.mock.calls.map(([, init]) => init.headers['x-ck-capabilities'])).toEqual([
+      undefined,
+      'stacked-offers',
+    ])
+  })
+
   // Every callback must route through the ref so the latest render's closure
   // runs. handleRebate/onRebate were missing from the dispatch table, so the
   // machine held the first render's closure forever — or nothing at all if

@@ -190,7 +190,16 @@ export type BuiltInOfferConfig =
   | RebateOffer
 export type OfferConfig = BuiltInOfferConfig | CustomOfferConfig
 
-export type OfferDecision = OfferConfig & { copy: OfferCopy; decisionId?: string }
+export type OfferDecision = OfferConfig & {
+  copy: OfferCopy
+  decisionId?: string
+  /**
+   * The second offer of a pair: one card, one accept, both offers applied.
+   * Served in token mode only to a UI that shows both offers: the default
+   * one, a `StackedOffer` component, or one that sets `stackedOffers`.
+   */
+  stackedOffer?: OfferDecision
+}
 
 export interface OfferCopy {
   headline: string
@@ -215,6 +224,15 @@ export type AcceptedOffer = OfferConfig & {
    *  pause and plan change offers put the customer's pick here (`{ months }`,
    *  `{ planId }`); `months` and `plans` on the offer are what was on offer. */
   result?: Record<string, unknown>
+  /** The second offer of an accepted pair (on `FlowState.acceptedOffer` and
+   *  `SuccessStepProps.acceptedOffer`; callbacks get each offer on its own). */
+  stackedOffer?: AcceptedOffer & {
+    /** `scheduled`: the second offer starts when the pause or trial ends.
+     *  `failed`: one of the two offers could not be applied. */
+    stackStatus: 'applied' | 'scheduled' | 'failed'
+    /** With `failed`: the type of the offer that was not applied. */
+    failedOfferType?: OfferConfig['type']
+  }
 }
 
 // ─── Reasons ─────────────────────────────────────────────────────────────────
@@ -510,6 +528,8 @@ export interface ComponentOverrides {
   ContactOffer?: (props: OfferStepProps) => ReactElement
   RedirectOffer?: (props: OfferStepProps) => ReactElement
   RebateOffer?: (props: OfferStepProps) => ReactElement
+  /** A pair of offers (`offer.stackedOffer` set), whatever their types. */
+  StackedOffer?: (props: OfferStepProps) => ReactElement
 }
 
 export type CustomComponents = Record<string, ComponentType<CustomStepProps> | ComponentType<CustomOfferProps>>
@@ -726,6 +746,12 @@ export interface FlowConfig extends FlowCallbacks {
    * as unknown rather than falling back to this declaration.
    */
   cancelAtPeriodEnd?: boolean
+  /**
+   * Token mode: set it when your own UI shows both offers of a pair
+   * (`offer.stackedOffer`). Without it Churnkey leaves pairs out of the flow.
+   * `CancelFlow` sets it itself.
+   */
+  stackedOffers?: boolean
 }
 
 type OfferCallback = (offer: AcceptedOffer, customer: DirectCustomer | null) => Promise<void> | void
