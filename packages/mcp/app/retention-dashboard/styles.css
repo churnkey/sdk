@@ -428,3 +428,201 @@ tbody tr[aria-selected="true"] td:first-child {
   color: var(--ink-faint);
 }
 
+
+/* ---------- why they cancel ---------- */
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.panel-head .text-muted {
+  font-size: 0.78rem;
+}
+
+.reason {
+  border-top: 1px solid var(--line);
+}
+
+.reason:first-of-type {
+  border-top: 0;
+}
+
+.reason-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.3fr) minmax(90px, 1fr) 150px 118px;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 0.85rem;
+}
+
+.reason-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: var(--cursor-interaction, pointer);
+  min-width: 0;
+}
+
+.reason-name:disabled {
+  cursor: default;
+}
+
+.reason-name span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chev {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--ink-faint);
+  border-bottom: 2px solid var(--ink-faint);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+
+.chev.blank {
+  border-color: transparent;
+}
+
+.reason.open .chev {
+  transform: rotate(45deg);
+}
+
+.share {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share .bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--canceled);
+  min-width: 2px;
+}
+
+.share .n {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.reason-row .rate {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.reason-row > span:last-child {
+  text-align: right;
+}
+
+.quotes {
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  margin: 0 0 10px 15px;
+  padding: 10px 14px;
+  border-left: 2px solid var(--line-strong);
+  background: var(--surface-sunk);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 560px) {
+  .reason-row {
+    grid-template-columns: 1fr auto;
+  }
+  .reason-row .share {
+    display: none;
+  }
+}
+
+/* ---------- offer change ---------- */
+.proposal .rationale {
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.diff {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.diff .side {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 2px solid var(--line);
+  font-size: 0.88rem;
+}
+
+.diff .after {
+  border-color: var(--accent-soft);
+  background: var(--accent-tint);
+}
+
+.diff .after strong {
+  color: var(--accent);
+}
+
+.diff .label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.diff .arrow {
+  align-self: center;
+  color: var(--ink-faint);
+}
+
+.proposal .note,
+.proposal .done {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.proposal .done {
+  color: var(--ink);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 560px) {
+  .diff {
+    grid-template-columns: 1fr;
+  }
+  .diff .arrow {
+    display: none;
+  }
+}
