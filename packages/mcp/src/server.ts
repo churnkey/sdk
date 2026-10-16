@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { registerDashboard } from './apps/dashboard'
 import { registerMentions } from './apps/mentions'
+import { registerOfferChange } from './apps/offer-change'
 import { ChurnkeyClient } from './client'
 import type { ChurnkeyMcpConfig } from './config'
 import { allTools } from './tools'
@@ -99,6 +100,7 @@ export function createServer(config: ChurnkeyMcpConfig): McpServer {
   // wrapper above.
   registerDashboard(server, client)
   registerMentions(server, client)
+  registerOfferChange(server, client)
 
   return server
 }

@@ -59,6 +59,14 @@ function route(path: string, query: URLSearchParams): unknown {
           { month: '2026-07', saveType: 'DISCOUNT', count: '7' },
         ]
       }
+      if (query.get('breakdown') === 'response-saveType') {
+        return [
+          { response: 'Too expensive', saveType: null, count: 30 },
+          { response: 'Too expensive', saveType: 'DISCOUNT', count: 10 },
+          { response: 'Not using it enough', saveType: 'PAUSE', count: 12 },
+          { response: null, saveType: null, count: 3 },
+        ]
+      }
       return [
         { segmentId: 'seg_new', saveType: 'PAUSE', count: 30 },
         { segmentId: 'seg_new', saveType: null, count: 50 },
@@ -196,7 +204,11 @@ describe('loadDashboard', () => {
     const flow = calls.find(([p]) => p === '/data/flow-metrics')
     expect(flow?.[1].query).toMatchObject({ startDate: '2026-08-30', endDate: '2026-09-29', segmentId: 'seg_new' })
     const aggregations = calls.filter(([p]) => p === '/data/warehouse/session-aggregation')
-    expect(aggregations.map(([, o]) => o.query.breakdown).sort()).toEqual(['month-saveType', 'segmentId-saveType'])
+    expect(aggregations.map(([, o]) => o.query.breakdown).sort()).toEqual([
+      'month-saveType',
+      'response-saveType',
+      'segmentId-saveType',
+    ])
     for (const [, o] of aggregations) expect(o.query.startDate).toBe('2026-08-30')
     // The trend follows the selected segment; the segment table never does.
     expect(aggregations.find(([, o]) => o.query.breakdown === 'month-saveType')?.[1].query.segmentId).toBe('seg_new')

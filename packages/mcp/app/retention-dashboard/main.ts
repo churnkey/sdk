@@ -1,14 +1,22 @@
 import { App, applyDocumentTheme, applyHostFonts, applyHostStyleVariables } from '@modelcontextprotocol/ext-apps'
 import { OpenAIExtensions } from '@openai/mcp-extensions/app'
-import { type DashboardData, type DashboardWindow, WINDOWS } from '../../src/apps/dashboard-types'
+import {
+  type CancelReason,
+  type DashboardData,
+  type DashboardWindow,
+  type OfferProposal,
+  WINDOWS,
+} from '../../src/apps/dashboard-types'
 
 // Churnkey Retention Dashboard — the MCP App rendered by open_retention_dashboard.
 // It renders the tool result it was opened with, re-queries the same tool when
 // the user changes the window or segment, and uses the OpenAI extensions to
 // hand the model what the user is looking at (model context) or ask it a
-// question (ui/message).
+// question (ui/message). The same app renders propose_offer_change results as
+// a confirmation card whose Confirm button saves the change to the flow draft.
 
 const TOOL = 'open_retention_dashboard'
+const APPLY_TOOL = 'apply_offer_change'
 const WINDOW_LABEL: Record<DashboardWindow, string> = { '30d': '30 days', '90d': '90 days', '12m': '12 months' }
 
 const app = new App({ name: 'churnkey-retention-dashboard', version: '1.0.0' })
@@ -16,6 +24,11 @@ const openai = new OpenAIExtensions(app)
 const root = document.getElementById('root') as HTMLElement
 
 let data: DashboardData | null = null
+let proposal: OfferProposal | null = null
+type ProposalState = { status: 'pending' | 'saving' | 'saved' | 'dismissed' } | { status: 'error'; message: string }
+let proposalState: ProposalState = { status: 'pending' }
+// Reasons whose customer comments are expanded; kept across re-renders.
+const expanded = new Set<string>()
 
 let loading = false
 
@@ -39,6 +52,10 @@ const monthLabel = (month: string) => {
 // ---------- rendering ----------
 
 function render(): void {
+  if (proposal) {
+    renderProposal(proposal)
+    return
+  }
   if (!data) return
   const d = data
   const m = d.metrics
@@ -116,6 +133,8 @@ function render(): void {
       </div>
     </section>
 
+    ${d.reasons ? reasonsPanel(d) : ''}
+
     <section class="card panel">
       <h2>Segments</h2>
       ${segmentTable(d)}
@@ -176,6 +195,114 @@ function segmentTable(d: DashboardData): string {
     <tbody>${rows}</tbody></table></div>`
 }
 
+function reasonsPanel(d: DashboardData): string {
+  const reasons = d.reasons
+  if (!reasons) return ''
+  const maxShare = Math.max(...reasons.rows.map((r) => r.share), 0.0001)
+  const rows = reasons.rows
+    .map((r) => {
+      const open = expanded.has(r.reason)
+      const hasQuotes = r.quotes.length > 0
+      return `<div class="reason${open ? ' open' : ''}">
+        <div class="reason-row">
+          <button type="button" class="reason-name" data-expand="${esc(r.reason)}" aria-expanded="${open}" ${hasQuotes ? '' : 'disabled'}>
+            ${hasQuotes ? '<span class="chev" aria-hidden="true"></span>' : '<span class="chev blank" aria-hidden="true"></span>'}
+            <span class="${r.kind === 'answer' ? '' : 'text-muted'}">${esc(r.reason)}</span>
+          </button>
+          <span class="share"><span class="bar" style="width:${(r.share / maxShare) * 100}%"></span><span class="n">${pct(r.share)}</span></span>
+          <span class="rate">${pct(r.saveRate)} saved<span class="mini"><span style="width:${(r.saveRate ?? 0) * 100}%"></span></span></span>
+          <span>${canAsk() && r.kind === 'answer' ? `<button type="button" class="btn btn-ghost ask" data-ask-reason="${esc(r.reason)}">Ask what to try</button>` : ''}</span>
+        </div>
+        ${open && hasQuotes ? `<ul class="quotes">${r.quotes.map((q) => `<li>“${esc(q)}”</li>`).join('')}</ul>` : ''}
+      </div>`
+    })
+    .join('')
+  return `<section class="card panel reasons">
+      <div class="panel-head"><h2>Why they cancel</h2><span class="text-muted">Survey answers · ${int(reasons.total)} sessions</span></div>
+      ${rows}
+    </section>`
+}
+
+function reasonPrompt(d: DashboardData, r: CancelReason): { text: string; attachment: { title: string; text: string } } {
+  const selected = d.segmentId ? d.segments.find((s) => s.id === d.segmentId) : undefined
+  const scope = selected ? `the "${selected.name}" segment (segmentId ${selected.id})` : 'all cancel flows'
+  const quotes = r.quotes.length ? ` Some of what they wrote: ${r.quotes.map((q) => `"${q}"`).join(' ')}` : ''
+  return {
+    text: `Customers who cancel because "${r.reason}" are ${pct(r.share)} of sessions, and ${pct(r.saveRate)} of them are saved. What offer would you try for them? If you have a concrete suggestion, show me the change so I can apply it to the draft.`,
+    attachment: {
+      title: `Reason: ${r.reason}`,
+      text: `Survey answer "${r.reason}" in ${scope}, ${d.startDate} to ${d.endDate}: ${r.total} sessions (${pct(r.share)} of all), ${pct(r.saveRate)} saved.${quotes}`,
+    },
+  }
+}
+
+// ---------- offer change confirmation ----------
+
+function renderProposal(p: OfferProposal): void {
+  const state = proposalState
+  const side = (label: string, s: OfferProposal['before'], cls: string) =>
+    `<div class="side ${cls}"><span class="label">${label}</span>${
+      s
+        ? `<strong>${esc(s.text)}</strong>${s.header ? `<span class="text-muted">“${esc(s.header)}”</span>` : ''}`
+        : '<strong class="text-muted">No offer</strong>'
+    }</div>`
+  let footer: string
+  if (state.status === 'saved') {
+    footer = `<p class="done">Saved to the draft. Customers see it once you publish the flow in Churnkey.</p>
+      ${canOpenLinks() ? '<div class="actions"><button type="button" class="btn btn-primary" data-action="open-builder">Review &amp; publish in Churnkey</button></div>' : `<p class="text-muted">${esc(p.builderUrl)}</p>`}`
+  } else if (state.status === 'dismissed') {
+    footer = '<p class="text-muted">Dismissed. Nothing was changed.</p>'
+  } else {
+    footer = `${state.status === 'error' ? `<p class="error">${esc(state.message)}</p>` : ''}
+      <p class="note">This saves to the draft only. Nothing changes for customers until the flow is published.</p>
+      <div class="actions">
+        <button type="button" class="btn btn-ghost" data-action="dismiss" ${state.status === 'saving' ? 'disabled' : ''}>Cancel</button>
+        <button type="button" class="btn btn-primary" data-action="confirm" ${state.status === 'saving' ? 'disabled' : ''}>${state.status === 'saving' ? 'Saving…' : 'Apply to draft'}</button>
+      </div>`
+  }
+  root.innerHTML = `
+    <header>
+      <div class="title">
+        <span class="eyebrow">${esc(p.flow.name)}<span class="pill ${p.mode === 'test' ? 'test' : ''}">DRAFT</span></span>
+        <h1>Offer change</h1>
+        <span class="scope">${esc(p.target)}</span>
+      </div>
+    </header>
+    <section class="card panel proposal">
+      ${p.rationale ? `<p class="rationale">${esc(p.rationale)}</p>` : ''}
+      <div class="diff">
+        ${side('Now', p.before, 'before')}
+        <span class="arrow" aria-hidden="true">→</span>
+        ${side('Proposed', p.after, 'after')}
+      </div>
+      ${footer}
+    </section>`
+}
+
+async function confirmProposal(p: OfferProposal): Promise<void> {
+  if (proposalState.status === 'saving' || proposalState.status === 'saved') return
+  proposalState = { status: 'saving' }
+  render()
+  try {
+    const result = await app.callServerTool({ name: APPLY_TOOL, arguments: { ...p.change } })
+    if (result.isError) throw new Error(textOf(result.content) || 'Could not save the change.')
+    proposalState = { status: 'saved' }
+    await tellModel(
+      `The user applied the proposed change to the ${p.flow.name} draft (${p.target}: ${p.after.text}). It is saved but not published.`,
+    )
+  } catch (err) {
+    proposalState = { status: 'error', message: err instanceof Error ? err.message : String(err) }
+  }
+  render()
+}
+
+async function tellModel(text: string): Promise<void> {
+  const params = { content: [{ type: 'text' as const, text, annotations: { audience: ['assistant' as const] } }] }
+  const modelContext = openai.modelContext
+  if (modelContext) await modelContext.update(params).catch(() => undefined)
+  else if (hostCaps()?.updateModelContext != null) await app.updateModelContext(params).catch(() => undefined)
+}
+
 function renderError(message: string): void {
   root.innerHTML = `<p class="error">${esc(message)}</p>`
 }
@@ -187,7 +314,12 @@ function viewSummary(d: DashboardData): string {
   return [
     `The user is viewing the Churnkey Retention Dashboard for ${d.org?.name ?? 'their workspace'} (${d.mode} mode), ${d.startDate} to ${d.endDate}, scoped to ${selected ? `the "${selected.name}" segment (segmentId ${selected.id})` : 'all cancel flows'}.`,
     d.metrics.summary,
-  ].join(' ')
+    d.reasons
+      ? `Why they cancel (survey answers): ${d.reasons.rows.map((r) => `${r.reason} ${pct(r.share)} of sessions, ${pct(r.saveRate)} saved`).join('; ')}.`
+      : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
 // The OpenAI extensions are preferred where the host advertises them (titled
@@ -272,8 +404,39 @@ async function ask(text: string, attachment?: { title: string; text: string }): 
 
 root.addEventListener('click', (event) => {
   const target = event.target as HTMLElement
+  if (proposal) {
+    const p = proposal
+    const action = target.closest<HTMLElement>('[data-action]')?.dataset.action
+    if (action === 'confirm') void confirmProposal(p)
+    if (action === 'dismiss') {
+      proposalState = { status: 'dismissed' }
+      render()
+      void tellModel(`The user dismissed the proposed change to the ${p.flow.name} draft (${p.target}). Nothing was changed.`)
+    }
+    if (action === 'open-builder') void app.openLink({ url: p.builderUrl }).catch(() => undefined)
+    return
+  }
   const d = data
   if (!d) return
+
+  const expand = target.closest<HTMLElement>('[data-expand]')
+  if (expand) {
+    const reason = expand.dataset.expand as string
+    if (expanded.has(reason)) expanded.delete(reason)
+    else expanded.add(reason)
+    render()
+    return
+  }
+
+  const askReason = target.closest<HTMLElement>('[data-ask-reason]')
+  if (askReason) {
+    const r = d.reasons?.rows.find((row) => row.reason === askReason.dataset.askReason)
+    if (r) {
+      const { text, attachment } = reasonPrompt(d, r)
+      void ask(text, attachment)
+    }
+    return
+  }
 
   const windowButton = target.closest<HTMLElement>('[data-window]')
   if (windowButton) {
@@ -361,6 +524,13 @@ app.ontoolresult = (result) => {
     renderError(textOf(result.content) || 'Could not load retention data.')
     return
   }
+  const content = result.structuredContent as { kind?: string } | undefined
+  if (content?.kind === 'offer-proposal') {
+    proposal = content as unknown as OfferProposal
+    proposalState = { status: 'pending' }
+    render()
+    return
+  }
   data = result.structuredContent as unknown as DashboardData
   // A deep link to another view replaces this first one: render once the
   // scoped data lands, so the unscoped view doesn't flash first.
@@ -372,6 +542,10 @@ app.ontoolresult = (result) => {
 app.addEventListener('hostcontextchanged', () => {
   applyHostContext()
   // An in-flight reload renders with the latest host context when it lands.
+  if (proposal) {
+    render()
+    return
+  }
   if (applyDeepLink() || loading) return
   render()
 })
