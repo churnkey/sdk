@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CancelFlow } from '../../src/components/cancel-flow'
-import type { AcceptedOffer, CustomOfferProps, Step } from '../../src/core/types'
+import type { AcceptedOffer, CancelFlowProps, CustomOfferProps, Step } from '../../src/core/types'
 
 const steps: Step[] = [
   {
@@ -807,6 +807,55 @@ describe('a pair of offers in token mode', () => {
     expect(await screen.findByText('Plan changed.')).toBeInTheDocument()
     expect(screen.getByText("We couldn't apply your discount. We'll handle it and let you know.")).toBeInTheDocument()
     expect(requests.body('cancel-flow/actions/stacked')).toMatchObject({ planId: 'basic', coupon: 'PAIR20' })
+  })
+
+  const discount = { type: 'discount', decisionId: 'd1', couponId: 'PAIR20', percentOff: 20, copy }
+  const pausePair = { type: 'pause', decisionId: 'pause1', months: 3, interval: 'month', copy, stackedOffer: discount }
+  const SingleOffer = () => <p>Single offer</p>
+
+  it.each<[string, Partial<CancelFlowProps>, string | undefined]>([
+    ['the default offer UI', {}, 'stacked-offers'],
+    [
+      'a custom component for a custom offer type',
+      { customComponents: { 'change-seats': SingleOffer } },
+      'stacked-offers',
+    ],
+    ['a custom Offer', { components: { Offer: SingleOffer } }, undefined],
+    ['a custom component for a built-in offer type', { customComponents: { pause: SingleOffer } }, undefined],
+    [
+      'a StackedOffer next to a custom Offer',
+      { components: { Offer: SingleOffer, StackedOffer: SingleOffer } },
+      'stacked-offers',
+    ],
+  ])('with %s, asks for pairs: %s', async (_ui, props, capability) => {
+    const requests = stubPairFetch(pausePair, [])
+    render(<CancelFlow session={sessionToken()} {...props} />)
+
+    await waitFor(() => expect(requests.headers('cancel-flow/config')).toBeDefined())
+    expect(requests.headers('cancel-flow/config')['x-ck-capabilities']).toBe(capability)
+  })
+
+  it('gives a pair to the StackedOffer slot before a custom Offer or a custom component for its type', async () => {
+    stubPairFetch(pausePair, [])
+    render(
+      <CancelFlow
+        session={sessionToken()}
+        components={{
+          Offer: SingleOffer,
+          StackedOffer: ({ offer }) => <p>{`Pair of ${offer.type} and ${offer.stackedOffer?.type}`}</p>,
+        }}
+        customComponents={{ pause: SingleOffer }}
+      />,
+    )
+
+    expect(await screen.findByText('Pair of pause and discount')).toBeInTheDocument()
+  })
+
+  it('counts a one-day trial extension in the singular', async () => {
+    stubPairFetch({ type: 'trial_extension', decisionId: 't1', days: 1, copy, stackedOffer: discount }, [])
+    render(<CancelFlow session={sessionToken()} />)
+
+    expect(await screen.findByText('1 more day of your trial')).toBeInTheDocument()
   })
 })
 

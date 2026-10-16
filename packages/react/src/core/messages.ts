@@ -132,7 +132,7 @@ export interface CancelFlowMessages {
       acceptCta: string
       pauseTitle: string
       planChangeTitle: string
-      /** Supports `{days}`. */
+      /** Supports `{days}` and `{unit}` (`common.day` or `common.days`). */
       trialTitle: string
       /** Supports `{amount}`. */
       rebateTitle: string
@@ -260,7 +260,7 @@ export const defaultMessages: CancelFlowMessages = {
       acceptCta: 'Accept both offers',
       pauseTitle: 'Pause your subscription',
       planChangeTitle: 'Switch to a new plan',
-      trialTitle: '{days} more days of your trial',
+      trialTitle: '{days} more {unit} of your trial',
       rebateTitle: '{amount} back on your last payment',
       afterPause: 'Starts when your subscription resumes.',
       afterTrial: 'Starts with your first paid billing period.',

@@ -110,8 +110,10 @@ function partTitle(part: PartDecision, msg: CancelFlowMessages): string {
       return msg.offer.stacked.pauseTitle
     case 'plan_change':
       return msg.offer.stacked.planChangeTitle
-    case 'trial_extension':
-      return formatMessage(msg.offer.stacked.trialTitle, { days: part.days ?? 0 })
+    case 'trial_extension': {
+      const days = part.days ?? 0
+      return formatMessage(msg.offer.stacked.trialTitle, { days, unit: days === 1 ? msg.common.day : msg.common.days })
+    }
     case 'rebate': {
       // Paid minus net is the rebate plus the tax refunded on it, as on the single rebate offer.
       const refund =

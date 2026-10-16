@@ -29,7 +29,10 @@ import { DefaultModal } from './structural/default-modal'
 import { useColorScheme } from './use-color-scheme'
 
 export function CancelFlow(props: CancelFlowProps) {
-  const { machine, state, isLoading, loadError, retry } = useCancelFlowMachine(props)
+  const { machine, state, isLoading, loadError, retry } = useCancelFlowMachine({
+    ...props,
+    stackedOffers: showsStackedOffers(props),
+  })
 
   if (isLoading || loadError) {
     return (
@@ -56,6 +59,12 @@ export function CancelFlow(props: CancelFlowProps) {
       customComponents={props.customComponents}
     />
   )
+}
+
+// A custom Offer, or a custom component for a built-in offer type, would show only the first offer of a pair.
+function showsStackedOffers({ components, customComponents }: CancelFlowProps): boolean {
+  if (components?.StackedOffer) return true
+  return !components?.Offer && !BUILT_IN_OFFER_TYPES.some((type) => customComponents?.[type])
 }
 
 function LoadStatus({
@@ -213,9 +222,12 @@ function StepRenderer({
     case 'offer': {
       const offer = machine.currentOffer
       if (!offer) return null
+      const PairOffer = offer.stackedOffer ? components?.StackedOffer : undefined
       // Custom offer types (e.g. 'change-seats') match against
       // customComponents first; built-ins fall through to DefaultOffer.
-      const CustomOffer = customComponents?.[offer.type] as ((props: CustomOfferProps) => ReactElement) | undefined
+      const CustomOffer = PairOffer
+        ? undefined
+        : (customComponents?.[offer.type] as ((props: CustomOfferProps) => ReactElement) | undefined)
       if (CustomOffer) {
         return (
           <CustomOffer
@@ -231,7 +243,7 @@ function StepRenderer({
       if (!BUILT_IN_OFFER_TYPES.includes(offer.type)) {
         return <UnregisteredOfferFallback offerType={offer.type} onSkip={machine.decline} />
       }
-      const Offer = components?.Offer ?? DefaultOffer
+      const Offer = PairOffer ?? components?.Offer ?? DefaultOffer
       const config = stepConfig as OfferStep | undefined
       return (
         <Offer

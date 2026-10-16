@@ -650,9 +650,13 @@ describe('CancelFlowMachine', () => {
       expect(session()).toBeUndefined()
     })
 
-    it('leaves out a pair that waits for a pause when a handler covers either offer', () => {
+    it('leaves out a pair that waits for a pause when a handler covers either offer, or in local mode', () => {
       const bothHandled = { handlePause: vi.fn(), handleDiscount: vi.fn() }
       expect(serverMachine(pairStep(pause, discount), parts(), bothHandled).machine.getSnapshot().step).toBe('confirm')
+      const local = new CancelFlowMachine({
+        steps: [{ type: 'offer', offer: { ...pause, stackedOffer: discount } as any }, { type: 'confirm' }],
+      })
+      expect(local.getSnapshot().step).toBe('confirm')
     })
 
     it('leaves out a pair a handler covers only in part, unless no server takes the other offer', () => {

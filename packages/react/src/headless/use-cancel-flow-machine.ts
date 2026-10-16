@@ -81,7 +81,7 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
     setIsLoading(true)
     let cancelled = false
     const creds = decodeSessionToken(config.session)
-    const api = new ChurnkeyApi(creds, config.apiBaseUrl)
+    const api = new ChurnkeyApi(creds, config.apiBaseUrl, callbacksRef.current.stackedOffers)
     api
       // Read through the ref, not the closure: an inline `customerAttributes`
       // object literal would otherwise join the dep list and re-fetch (and

@@ -195,8 +195,8 @@ export type OfferDecision = OfferConfig & {
   decisionId?: string
   /**
    * The second offer of a pair: one card, one accept, both offers applied.
-   * Served in token mode by orgs that use pairs. A custom `Offer` component
-   * receives it here and should render both offers.
+   * Served in token mode only to a UI that shows both offers: the default
+   * one, a `StackedOffer` component, or one that sets `stackedOffers`.
    */
   stackedOffer?: OfferDecision
 }
@@ -746,6 +746,12 @@ export interface FlowConfig extends FlowCallbacks {
    * as unknown rather than falling back to this declaration.
    */
   cancelAtPeriodEnd?: boolean
+  /**
+   * Token mode: set it when your own UI shows both offers of a pair
+   * (`offer.stackedOffer`). Without it Churnkey leaves pairs out of the flow.
+   * `CancelFlow` sets it itself.
+   */
+  stackedOffers?: boolean
 }
 
 type OfferCallback = (offer: AcceptedOffer, customer: DirectCustomer | null) => Promise<void> | void

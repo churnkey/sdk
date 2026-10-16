@@ -152,12 +152,8 @@ function chosenPlan(offer: PlanChangeOffer, result?: Record<string, unknown>): P
 
 // --- Pairs ---
 //
-// A pair is two offers accepted with one click. Without merchant handlers the
-// server applies both in one request and holds the second one while a pause
-// or trial runs. A handler cannot wait for that, so a pair that waits is left
-// out of the flow when a handler covers either of its offers. The server also
-// takes an offer of a pair only together with the other one, so in token mode
-// a pair is left out when a handler covers only one of its offers.
+// Only the server can hold the second offer while a pause or trial runs, and it takes an offer of a pair only
+// together with the other one; a pair either rule would break is left out of the flow.
 
 type PartStatus = StackedOfferResult['parts'][number]['status']
 
@@ -173,7 +169,7 @@ function isLeftOutPair(offer: ReasonConfig['offer'], cb: FlowCallbacks, viaServe
   const second = (offer as OfferDecision | undefined)?.stackedOffer
   if (!(offer && second)) return false
   const [first, last] = [handlerFor(offer.type, cb), handlerFor(second.type, cb)].map(Boolean)
-  if (WAITING_FIRST_OFFERS.includes(offer.type)) return first || last
+  if (WAITING_FIRST_OFFERS.includes(offer.type)) return !viaServer || first || last
   return viaServer && first !== last
 }
 

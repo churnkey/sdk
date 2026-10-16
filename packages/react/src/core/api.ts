@@ -152,10 +152,12 @@ export interface SessionPayload {
 export class ChurnkeyApi {
   private creds: SessionCredentials
   private baseUrl: string
+  private stackedOffers: boolean
 
-  constructor(creds: SessionCredentials, baseUrl?: string) {
+  constructor(creds: SessionCredentials, baseUrl?: string, stackedOffers = false) {
     this.creds = creds
     this.baseUrl = baseUrl ?? DEFAULT_BASE_URL
+    this.stackedOffers = stackedOffers
   }
 
   private get headers(): Record<string, string> {
@@ -165,7 +167,9 @@ export class ChurnkeyApi {
       'x-ck-customer': this.creds.customerId,
       'x-ck-authorization': this.creds.authHash,
       'x-ck-mode': this.creds.mode,
-      'x-ck-capabilities': 'stacked-offers',
+    }
+    if (this.stackedOffers) {
+      h['x-ck-capabilities'] = 'stacked-offers'
     }
     if (this.creds.subscriptionId) {
       h['x-ck-subscription'] = this.creds.subscriptionId
