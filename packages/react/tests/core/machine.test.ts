@@ -538,7 +538,22 @@ describe('CancelFlowMachine', () => {
       expect(onPlanChange).toHaveBeenCalledWith(expect.objectContaining({ type: 'plan_change' }), expect.anything())
       expect(onPlanChange.mock.calls[0][0].stackedOffer).toBeUndefined()
       expect(onDiscount).toHaveBeenCalledWith(expect.objectContaining({ type: 'discount' }), expect.anything())
+      expect(onDiscount.mock.calls[0][0].result).toBeUndefined()
       expect(onAccept).toHaveBeenCalledTimes(2)
+    })
+
+    it('gives each offer of a pair only its own pick and keeps the other keys on both', async () => {
+      const onRebate = vi.fn()
+      const onPause = vi.fn()
+      const { machine } = serverMachine(pairStep(rebate, pause), parts(['REBATE', 'APPLIED'], ['PAUSE', 'APPLIED']), {
+        onRebate,
+        onPause,
+      })
+
+      await machine.accept({ months: 2, planId: 'pro', source: 'card' })
+
+      expect(onRebate.mock.calls[0][0].result).toEqual({ source: 'card' })
+      expect(onPause.mock.calls[0][0].result).toEqual({ months: 2, source: 'card' })
     })
 
     it('completes when one offer failed after the other applied, and reports only the applied one', async () => {

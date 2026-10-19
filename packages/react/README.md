@@ -315,6 +315,7 @@ Churnkey sends pairs only to a UI that shows both offers. With your own `Offer` 
 - Without handlers, token mode applies both offers in one request. After a pause or a trial extension, the second offer starts when the pause or trial ends.
 - With handlers, each offer goes through its own handler, first offer first, except that a rebate runs last. If the offer that runs second fails, the flow still completes, `acceptedOffer.stackedOffer.stackStatus` is `'failed'` and `failedOfferType` names the offer that did not apply. Only Churnkey can hold the second offer while a pause or trial runs, so a pair whose second offer waits is left out of the flow in local mode and when a handler covers either offer. In token mode a pair is also left out when a handler covers only one of its offers, because Churnkey applies an offer of a pair only together with the other one.
 - Listeners and `onAccept` get each offer on its own, once per offer that applied.
+- A `StackedOffer` component accepts the pair with one result: `months` for the pause and `planId` for the plan change. Each offer's `result` gets only its own pick, plus any other keys you pass.
 
 ### Passing customer/subscription data alongside a token
 

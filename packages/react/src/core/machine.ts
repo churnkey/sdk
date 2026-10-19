@@ -192,6 +192,18 @@ function pairStatus(statuses: PartStatus[]): StackStatus {
   return statuses.includes('SCHEDULED') ? 'SCHEDULED' : 'APPLIED'
 }
 
+// A pair is accepted with one result that holds the pause length and the plan; each offer keeps only its own pick.
+function ownPick(offer: OfferDecision, result?: Record<string, unknown>): Record<string, unknown> | undefined {
+  if (!result) return undefined
+  const { months, planId, ...rest } = result
+  const own = {
+    ...rest,
+    ...(offer.type === 'pause' && months !== undefined && { months }),
+    ...(offer.type === 'plan_change' && planId !== undefined && { planId }),
+  }
+  return Object.keys(own).length > 0 ? own : undefined
+}
+
 function stackedRequestFields(offer: AcceptedOffer): Partial<StackedOfferRequest> {
   const o = offer as BuiltInOfferConfig
   switch (o.type) {
@@ -715,7 +727,7 @@ export class CancelFlowMachine {
     second: OfferDecision,
     result?: Record<string, unknown>,
   ): Promise<void> {
-    const parts = [this.buildAcceptedOffer(offer, result), this.buildAcceptedOffer(second, result)]
+    const parts = [offer, second].map((part) => this.buildAcceptedOffer(part, ownPick(part, result)))
     const outcome =
       this.isTokenMode() && !parts.some((part) => handlerFor(part.type, this.callbacks))
         ? await this.acceptPairOnServer(offer, parts)
