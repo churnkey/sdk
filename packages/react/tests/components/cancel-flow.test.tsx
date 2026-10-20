@@ -585,6 +585,40 @@ describe('local-mode timing declaration', () => {
   })
 })
 
+describe('a pair of offers in local mode', () => {
+  const pairSteps: Step[] = [
+    {
+      type: 'offer',
+      offer: {
+        type: 'rebate',
+        amountMinor: 500,
+        currency: 'USD',
+        stackedOffer: {
+          type: 'discount',
+          percentOff: 20,
+          durationInMonths: 3,
+          copy: { headline: 'Stay for less', body: '', cta: 'Accept', declineCta: 'No thanks' },
+        },
+      },
+    },
+    { type: 'confirm', title: 'Confirm cancellation' },
+  ]
+  const SingleOffer = () => <p>Single offer</p>
+
+  it('leaves a pair out of the flow for a custom Offer, as token mode does', () => {
+    renderFlow({ steps: pairSteps, components: { Offer: SingleOffer } })
+
+    expect(screen.queryByText('Single offer')).not.toBeInTheDocument()
+    expect(screen.getByText('Confirm cancellation')).toBeInTheDocument()
+  })
+
+  it('shows a pair to a StackedOffer next to a custom Offer', () => {
+    renderFlow({ steps: pairSteps, components: { Offer: SingleOffer, StackedOffer: () => <p>Both offers</p> } })
+
+    expect(screen.getByText('Both offers')).toBeInTheDocument()
+  })
+})
+
 describe('per-offer success copy', () => {
   const offerSteps: Step[] = [
     {

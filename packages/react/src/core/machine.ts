@@ -165,23 +165,31 @@ interface PairOutcome {
 
 const WAITING_FIRST_OFFERS = ['pause', 'trial_extension']
 
-function isLeftOutPair(offer: ReasonConfig['offer'], cb: FlowCallbacks, viaServer: boolean): boolean {
+function isLeftOutPair(
+  offer: ReasonConfig['offer'],
+  cb: FlowCallbacks,
+  viaServer: boolean,
+  showsPairs: boolean,
+): boolean {
   const second = (offer as OfferDecision | undefined)?.stackedOffer
   if (!(offer && second)) return false
+  if (!showsPairs) return true
   const [first, last] = [handlerFor(offer.type, cb), handlerFor(second.type, cb)].map(Boolean)
   if (WAITING_FIRST_OFFERS.includes(offer.type)) return !viaServer || first || last
   return viaServer && first !== last
 }
 
-function withoutLeftOutPairs(steps: Step[], cb: FlowCallbacks, viaServer: boolean): Step[] {
+function withoutLeftOutPairs(steps: Step[], cb: FlowCallbacks, viaServer: boolean, showsPairs = true): Step[] {
   return steps.flatMap((step): Step[] => {
-    if (step.type === 'offer') return isLeftOutPair((step as OfferStep).offer, cb, viaServer) ? [] : [step]
+    if (step.type === 'offer') return isLeftOutPair((step as OfferStep).offer, cb, viaServer, showsPairs) ? [] : [step]
     if (step.type !== 'survey') return [step]
     const survey = step as SurveyStep
     return [
       {
         ...survey,
-        reasons: survey.reasons.map((r) => (isLeftOutPair(r.offer, cb, viaServer) ? { ...r, offer: undefined } : r)),
+        reasons: survey.reasons.map((r) =>
+          isLeftOutPair(r.offer, cb, viaServer, showsPairs) ? { ...r, offer: undefined } : r,
+        ),
       },
     ]
   })
@@ -368,7 +376,10 @@ export class CancelFlowMachine {
       if (config.steps) this.localSteps = config.steps
     } else if (config.steps) {
       const merged = applyMergeFieldsToSteps(config.steps, this.directCustomer, this.customerAttributes)
-      this.graph = buildStepGraph(withoutLeftOutPairs(merged, config, false), defaultOfferCopy)
+      this.graph = buildStepGraph(
+        withoutLeftOutPairs(merged, config, false, config.stackedOffers !== false),
+        defaultOfferCopy,
+      )
     }
 
     // Seed state from local props for open-source and analytics modes. Token
