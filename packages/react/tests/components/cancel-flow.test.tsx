@@ -885,6 +885,31 @@ describe('a pair of offers in token mode', () => {
     expect(await screen.findByText('Pair of pause and discount')).toBeInTheDocument()
   })
 
+  it('promises the resume date when a refund and a pause both applied', async () => {
+    const user = userEvent.setup()
+    stubPairFetch(
+      {
+        type: 'rebate',
+        decisionId: 'r1',
+        amountMinor: 500,
+        currency: 'USD',
+        copy,
+        stackedOffer: { type: 'pause', decisionId: 'p1', months: 3, interval: 'month', copy },
+      },
+      [
+        { offerType: 'REBATE', status: 'APPLIED' },
+        { offerType: 'PAUSE', status: 'APPLIED' },
+      ],
+    )
+    render(<CancelFlow session={sessionToken()} />)
+
+    await user.click(await screen.findByText('2 months'))
+    await user.click(screen.getByText('Accept both offers'))
+
+    expect(await screen.findByText('Offers applied.')).toBeInTheDocument()
+    expect(screen.getByText(/You won't be billed again until/)).toBeInTheDocument()
+  })
+
   it('counts a one-day trial extension in the singular', async () => {
     stubPairFetch({ type: 'trial_extension', decisionId: 't1', days: 1, copy, stackedOffer: discount }, [])
     render(<CancelFlow session={sessionToken()} />)

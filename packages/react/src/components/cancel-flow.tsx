@@ -398,7 +398,7 @@ function stackedDescription(messages: CancelFlowMessages, offer: AcceptedOffer |
   if (status === 'scheduled') {
     return offer.type === 'trial_extension' ? copy.afterTrialDescription : copy.afterPauseDescription
   }
-  return copy.description
+  return pauseResumeDescription(messages, offer.stackedOffer ?? null) ?? copy.description
 }
 
 // The built-in pause UI always passes the selected duration on accept;
