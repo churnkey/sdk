@@ -1,4 +1,4 @@
-export type { SessionPayload } from './api'
+export type { SessionPayload, StackedOfferPayload, StackedOfferRequest, StackedOfferResult, StackStatus } from './api'
 export { AnalyticsClient, ChurnkeyApi } from './api'
 export type {
   SdkConfig,
