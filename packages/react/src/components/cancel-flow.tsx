@@ -29,7 +29,10 @@ import { DefaultModal } from './structural/default-modal'
 import { useColorScheme } from './use-color-scheme'
 
 export function CancelFlow(props: CancelFlowProps) {
-  const { machine, state, isLoading, loadError, retry } = useCancelFlowMachine(props)
+  const { machine, state, isLoading, loadError, retry } = useCancelFlowMachine({
+    ...props,
+    stackedOffers: showsStackedOffers(props),
+  })
 
   if (isLoading || loadError) {
     return (
@@ -56,6 +59,12 @@ export function CancelFlow(props: CancelFlowProps) {
       customComponents={props.customComponents}
     />
   )
+}
+
+// A custom Offer, or a custom component for a built-in offer type, would show only the first offer of a pair.
+function showsStackedOffers({ components, customComponents }: CancelFlowProps): boolean {
+  if (components?.StackedOffer) return true
+  return !components?.Offer && !BUILT_IN_OFFER_TYPES.some((type) => customComponents?.[type])
 }
 
 function LoadStatus({
@@ -213,9 +222,12 @@ function StepRenderer({
     case 'offer': {
       const offer = machine.currentOffer
       if (!offer) return null
+      const PairOffer = offer.stackedOffer ? components?.StackedOffer : undefined
       // Custom offer types (e.g. 'change-seats') match against
       // customComponents first; built-ins fall through to DefaultOffer.
-      const CustomOffer = customComponents?.[offer.type] as ((props: CustomOfferProps) => ReactElement) | undefined
+      const CustomOffer = PairOffer
+        ? undefined
+        : (customComponents?.[offer.type] as ((props: CustomOfferProps) => ReactElement) | undefined)
       if (CustomOffer) {
         return (
           <CustomOffer
@@ -231,7 +243,7 @@ function StepRenderer({
       if (!BUILT_IN_OFFER_TYPES.includes(offer.type)) {
         return <UnregisteredOfferFallback offerType={offer.type} onSkip={machine.decline} />
       }
-      const Offer = components?.Offer ?? DefaultOffer
+      const Offer = PairOffer ?? components?.Offer ?? DefaultOffer
       const config = stepConfig as OfferStep | undefined
       return (
         <Offer
@@ -312,6 +324,7 @@ function StepRenderer({
           description={
             isSaved
               ? (config?.savedDescription ??
+                stackedDescription(messages, state.acceptedOffer) ??
                 pauseResumeDescription(messages, state.acceptedOffer) ??
                 perOffer?.description ??
                 messages.success.saved.description)
@@ -360,8 +373,32 @@ const SAVED_OFFER_COPY_TYPES = ['discount', 'pause', 'trial_extension', 'plan_ch
 
 function savedOfferCopy(messages: CancelFlowMessages, offer: AcceptedOffer | null): SavedOfferCopy | undefined {
   if (!offer) return undefined
+  const failedType = offer.stackedOffer?.failedOfferType
+  // A pair that applied in part reads as the offer that applied.
+  if (failedType)
+    return savedOfferCopy(
+      messages,
+      failedType === offer.type ? offer.stackedOffer! : { ...offer, stackedOffer: undefined },
+    )
+  if (offer.stackedOffer) return messages.success.saved.stacked
   if (!(SAVED_OFFER_COPY_TYPES as readonly string[]).includes(offer.type)) return undefined
   return messages.success.saved[offer.type as (typeof SAVED_OFFER_COPY_TYPES)[number]]
+}
+
+function stackedDescription(messages: CancelFlowMessages, offer: AcceptedOffer | null): string | undefined {
+  const status = offer?.stackedOffer?.stackStatus
+  if (!status) return undefined
+  const copy = messages.success.saved.stacked
+  if (status === 'failed') {
+    const failedType = offer.stackedOffer?.failedOfferType
+    return failedType && failedType in copy.failedDescription
+      ? copy.failedDescription[failedType as keyof typeof copy.failedDescription]
+      : undefined
+  }
+  if (status === 'scheduled') {
+    return offer.type === 'trial_extension' ? copy.afterTrialDescription : copy.afterPauseDescription
+  }
+  return pauseResumeDescription(messages, offer.stackedOffer ?? null) ?? copy.description
 }
 
 // The built-in pause UI always passes the selected duration on accept;

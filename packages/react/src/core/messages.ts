@@ -80,6 +80,15 @@ export interface CancelFlowMessages {
       trial_extension: SavedOfferCopy
       plan_change: SavedOfferCopy
       rebate: SavedOfferCopy
+      /** A pair of offers. The description is replaced when the second offer
+       *  waits for a pause or trial to end. When one of them failed, the title
+       *  is the one of the offer that applied and the description names the
+       *  offer that did not. */
+      stacked: SavedOfferCopy & {
+        afterPauseDescription: string
+        afterTrialDescription: string
+        failedDescription: Record<'discount' | 'pause' | 'trial_extension' | 'plan_change' | 'rebate', string>
+      }
     }
     cancelled: {
       title: TimingAware
@@ -117,6 +126,20 @@ export interface CancelFlowMessages {
       /** Tax parenthetical after the money-back label. Supports `{amount}`. */
       inclTax: string
       netLabel: string
+    }
+    /** A pair of offers shown as one card per offer with a single accept. */
+    stacked: {
+      acceptCta: string
+      pauseTitle: string
+      planChangeTitle: string
+      /** Supports `{days}` and `{unit}` (`common.day` or `common.days`). */
+      trialTitle: string
+      /** Supports `{amount}`. */
+      rebateTitle: string
+      /** Under the second offer, when it starts. */
+      afterPause: string
+      afterTrial: string
+      withPlanChange: string
     }
   }
 }
@@ -192,6 +215,19 @@ export const defaultMessages: CancelFlowMessages = {
       trial_extension: { title: 'Trial extended.', description: 'Your trial has been extended successfully.' },
       plan_change: { title: 'Plan changed.', description: 'Your new plan is now in effect.' },
       rebate: { title: 'Refund issued.', description: "Your money's on its way back." },
+      stacked: {
+        title: 'Offers applied.',
+        description: "We're so happy you're still here.",
+        afterPauseDescription: 'Your second offer starts when your subscription resumes.',
+        afterTrialDescription: 'Your second offer starts when your trial ends.',
+        failedDescription: {
+          discount: "We couldn't apply your discount. We'll handle it and let you know.",
+          pause: "We couldn't pause your subscription. We'll handle it and let you know.",
+          trial_extension: "We couldn't extend your trial. We'll handle it and let you know.",
+          plan_change: "We couldn't change your plan. We'll handle it and let you know.",
+          rebate: "We couldn't issue your refund. We'll handle it and let you know.",
+        },
+      },
     },
     cancelled: {
       title: 'Subscription cancelled',
@@ -219,6 +255,16 @@ export const defaultMessages: CancelFlowMessages = {
       moneyBackLabel: 'Money back',
       inclTax: '(incl. {amount} tax)',
       netLabel: 'Your net for this period',
+    },
+    stacked: {
+      acceptCta: 'Accept both offers',
+      pauseTitle: 'Pause your subscription',
+      planChangeTitle: 'Switch to a new plan',
+      trialTitle: '{days} more {unit} of your trial',
+      rebateTitle: '{amount} back on your last payment',
+      afterPause: 'Starts when your subscription resumes.',
+      afterTrial: 'Starts with your first paid billing period.',
+      withPlanChange: 'Applies to your new plan.',
     },
   },
 }
