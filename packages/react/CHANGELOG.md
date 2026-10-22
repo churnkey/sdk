@@ -2,6 +2,21 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.9.0 - 2026-10-22
+
+### Added
+
+- Stacked offers: an offer step can carry a second offer (`offer.stackedOffer`), set up in the dashboard. `DefaultStackedOffer` shows one card per offer and one "Accept both offers" button; replace it through the new `StackedOffer` component slot.
+- Token mode accepts a pair in one request when no `handle*` callback covers either offer. With handlers, each offer goes through its own handler, first offer first, except that a rebate runs last; in token mode a pair a handler covers only in part is left out. A pair that applied in part reads as the offer that applied, and `acceptedOffer.stackedOffer.failedOfferType` names the other. A pair whose second offer waits for a pause or trial to end is left out of the flow in local mode and when a handler covers either offer.
+- `acceptedOffer.stackedOffer` on flow state and `SuccessStepProps`, with `stackStatus` (`'applied'`, `'scheduled'` or `'failed'`). Listeners and `onAccept` fire once per offer that applied.
+- `offer.stacked.*` and `success.saved.stacked` messages.
+- Token-mode requests send the `x-ck-capabilities: stacked-offers` header when the flow shows both offers of a pair, so the server serves pairs only to a UI that can show them. A custom `Offer` component, or a `customComponents` entry for a built-in offer type, gets no pairs unless a `StackedOffer` component is passed too, in local mode as well. `useCancelFlow` takes `stackedOffers: true` to get pairs.
+- `StackedOfferRequest`, `StackedOfferResult`, `StackedOfferPayload` and `StackStatus` are exported with `ChurnkeyApi.acceptStackedOffer`.
+
+### Changed
+
+- `CancelFlowMessages` has new required keys (`offer.stacked`, `success.saved.stacked`). Code that builds a full `CancelFlowMessages` object needs them; a `messages` patch does not.
+
 ## 0.8.1 - 2026-10-09
 
 ### Fixed
