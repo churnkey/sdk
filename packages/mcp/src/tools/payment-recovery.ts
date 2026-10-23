@@ -133,7 +133,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         "List the org's payment recovery (dunning) campaign configurations: name, schedule, enabled state, email/SMS counts. These are the templates that spawn per-customer sequences — also the template library: clone one as a starting point.",
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async () => client.get('/data/payment-recovery/blueprints'),
     },
     {
@@ -142,7 +142,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         "Full campaign configuration: the email sequence (each with guid, subject, content, cadence sendOnDay/timeToSend, sender identity, autoRetry), SMS sequence, and audience filters. Use the email guids with update_recovery_email. Also includes `readiness` (the org's payment recovery readiness, same shape as get_account's `paymentRecovery.readiness`; null if it could not be computed, so call again): check `ready` and `blockers` before publishing or enabling.",
       inputSchema: z.object({ blueprintId }),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async (args) =>
         client.get(
           `/data/payment-recovery/blueprints/${encodeURIComponent((args as { blueprintId: string }).blueprintId)}`,
@@ -157,7 +157,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         confirm: confirmLiteral('clone_recovery_blueprint'),
         blueprintId,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       handler: async (args) => {
         const { blueprintId: id, ...body } = args as { blueprintId: string; confirm: string }
         return client.post(`/data/payment-recovery/blueprints/${encodeURIComponent(id)}/clone`, { body })
@@ -176,7 +176,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         emailGuid: z.string().describe('Email guid from get_recovery_blueprint.'),
         updates: emailUpdates,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const {
           blueprintId: id,
@@ -218,7 +218,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
           .optional()
           .describe('Set/replace the one-time invoice discount, or null to remove it.'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const { blueprintId: id, emailGuid, ...body } = args as { blueprintId: string; emailGuid: string }
         return client.post(
@@ -239,7 +239,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         emailGuid: z.string().describe('The step guid (shared by the email and its SMS) from get_recovery_blueprint.'),
         updates: smsUpdates,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const {
           blueprintId: id,
@@ -258,7 +258,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Append a message step to the campaign: the new email inherits the last step (sender, subject, content, offers) scheduled one day later, with a paired SMS sharing the new guid (off unless the org SMS feature allows it). Then tailor it with update_recovery_email / update_recovery_sms. **Draft-only** — publish to go live.',
       inputSchema: z.object({ blueprintId }),
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       handler: async (args) =>
         client.post(
           `/data/payment-recovery/blueprints/${encodeURIComponent((args as { blueprintId: string }).blueprintId)}/emails`,
@@ -275,7 +275,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         blueprintId,
         emailGuid: z.string().describe('Email guid from get_recovery_blueprint.'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const {
           blueprintId: id,
@@ -294,7 +294,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'The attribute palette for payment recovery audience filters (dunning-scoped: decline type/reason, payment method category, invoice amount/currency, customer country/contactability, plus subscription basics and org custom attributes). Each entry lists its valueType, allowed operands, and fixed values (or suggestedValues where free entry is legal, e.g. decline reason). Call before update_recovery_audience.',
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async () => client.get('/data/payment-recovery/audience-attributes'),
     },
     {
@@ -314,7 +314,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
             'Replacement rule set (AND semantics). [] matches every failed payment not claimed by another campaign.',
           ),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const { blueprintId: id, ...body } = args as {
           blueprintId: string
@@ -341,7 +341,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         blueprintId,
         enabled: z.boolean().describe('true = live, false = off.'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const { blueprintId: id, ...body } = args as { blueprintId: string; enabled: boolean; confirm: string }
         return client.post(`/data/payment-recovery/blueprints/${encodeURIComponent(id)}/enabled`, { body })
@@ -359,7 +359,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         confirm: confirmLiteral('publish_recovery_blueprint'),
         blueprintId,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const { blueprintId: id, ...body } = args as { blueprintId: string; confirm: string }
         return client.post(`/data/payment-recovery/blueprints/${encodeURIComponent(id)}/publish`, { body })
@@ -371,7 +371,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Open/click/bounce/recovery counts and rates per email in the sequence (operational store, no warehouse lag). Use this to decide which email to rewrite; use aggregate_payment_recoveries for dollar amounts.',
       inputSchema: z.object({ blueprintId }),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async (args) =>
         client.get(
           `/data/payment-recovery/blueprints/${encodeURIComponent((args as { blueprintId: string }).blueprintId)}/engagement`,
@@ -395,7 +395,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         limit: z.number().int().min(1).max(500).optional().describe('Default 100, max 500.'),
         skip: z.number().int().min(0).optional().describe('Pagination offset.'),
       }),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async (args) =>
         client.get('/data/payment-recovery/campaigns', { query: args as Record<string, unknown> }),
     },
@@ -405,7 +405,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Every email of one running/finished sequence: what was sent, delivered, opened (with dates), clicked, bounced, whether it recovered the payment, and the auto-retry status. emailTo requires read_pii.',
       inputSchema: z.object({ campaignId }),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async (args) =>
         client.get(
           `/data/payment-recovery/campaigns/${encodeURIComponent((args as { campaignId: string }).campaignId)}/messages`,
@@ -421,7 +421,7 @@ export function paymentRecoveryTools(client: ChurnkeyClient): ToolDefinition[] {
         campaignId,
         reason: z.string().optional().describe('Why the sequence is being stopped (recorded in the audit log).'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const { campaignId: id, ...body } = args as { campaignId: string; confirm: string; reason?: string }
         return client.post(`/data/payment-recovery/campaigns/${encodeURIComponent(id)}/stop`, { body })

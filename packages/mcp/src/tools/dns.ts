@@ -19,7 +19,7 @@ export function dnsTools(client: ChurnkeyClient): ToolDefinition[] {
         BOUNDARY,
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async () => client.get('/data/dns'),
     },
     {
