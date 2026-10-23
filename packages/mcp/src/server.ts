@@ -3,7 +3,8 @@ import { registerDashboard } from './apps/dashboard'
 import { registerMentions } from './apps/mentions'
 import { ChurnkeyClient } from './client'
 import type { ChurnkeyMcpConfig } from './config'
-import { allTools } from './tools'
+import { allTools, type ToolDefinition } from './tools'
+import { internalTools, ORG_INPUT } from './tools/internal'
 import { MODE_DATA_NOTE, MODE_TRAFFIC_NOTE } from './tools/shared'
 
 export const SERVER_NAME = 'churnkey-mcp'
@@ -31,18 +32,34 @@ const SERVER_ICON = {
   sizes: ['any'],
 }
 
+const INTERNAL_INSTRUCTIONS =
+  'Churnkey staff only. Every tool except find_org takes `org`, the workspace to act on (org id or appId). Look it up with find_org, confirm it with the user when a name matches several workspaces, and check the "Acting on workspace" line in each result before relying on it.'
+
 export function createServer(config: ChurnkeyMcpConfig): McpServer {
-  const server = new McpServer({
-    name: SERVER_NAME,
-    title: SERVER_TITLE,
-    version: SERVER_VERSION,
-    description: SERVER_DESCRIPTION,
-    websiteUrl: SERVER_WEBSITE,
-    icons: [SERVER_ICON],
-  })
+  const server = new McpServer(
+    {
+      name: SERVER_NAME,
+      title: config.internal ? `${SERVER_TITLE} internal` : SERVER_TITLE,
+      version: SERVER_VERSION,
+      description: SERVER_DESCRIPTION,
+      websiteUrl: SERVER_WEBSITE,
+      icons: [SERVER_ICON],
+    },
+    config.internal ? { instructions: INTERNAL_INSTRUCTIONS } : undefined,
+  )
   const client = new ChurnkeyClient(config)
 
-  for (const tool of allTools(client)) {
+  // A client per call keeps the target workspace out of state shared between calls.
+  const bindToOrg = (name: string, { org, ...toolArgs }: Record<string, unknown>) => {
+    const callClient = new ChurnkeyClient({ ...config, targetOrg: String(org) })
+    const callTool = allTools(callClient).find((t) => t.name === name) as ToolDefinition
+    return { callClient, callTool, toolArgs }
+  }
+
+  const tools = allTools(client).map((tool) => ({ tool, takesOrg: Boolean(config.internal) }))
+  if (config.internal) tools.unshift(...internalTools(client).map((tool) => ({ tool, takesOrg: false })))
+
+  for (const { tool, takesOrg } of tools) {
     // Mode-scoped tools get a mode-sensitivity note appended to their
     // description (data reads vs live-traffic actions, by readOnlyHint) so the
     // agent knows the result/effect belongs to one mode. Config tools are
@@ -50,18 +67,22 @@ export function createServer(config: ChurnkeyMcpConfig): McpServer {
     const description = tool.modeScoped
       ? `${tool.description}\n\n${tool.annotations?.readOnlyHint ? MODE_DATA_NOTE : MODE_TRAFFIC_NOTE}`
       : tool.description
+    const inputSchema = takesOrg ? tool.inputSchema.extend({ org: ORG_INPUT }) : tool.inputSchema
     server.registerTool(
       tool.name,
       {
         title: tool.title,
         description,
-        inputSchema: tool.inputSchema.shape,
+        inputSchema: inputSchema.shape,
         annotations: tool.annotations,
       },
       async (args: unknown) => {
         try {
-          const parsed = tool.inputSchema.parse(args ?? {})
-          const result = await tool.handler(parsed)
+          const parsed = inputSchema.parse(args ?? {})
+          const { callClient, callTool, toolArgs } = takesOrg
+            ? bindToOrg(tool.name, parsed)
+            : { callClient: client, callTool: tool, toolArgs: parsed }
+          const result = await callTool.handler(toolArgs)
           const content: Array<{ type: 'text'; text: string }> = [
             { type: 'text', text: JSON.stringify(result, null, 2) },
           ]
@@ -69,7 +90,7 @@ export function createServer(config: ChurnkeyMcpConfig): McpServer {
           // X-Churnkey-Acting-Org-* headers) as a separate block — keeps the
           // JSON result intact while letting an agent, or a user with grants in
           // several orgs, always confirm the target workspace.
-          const org = client.lastActingOrg
+          const org = callClient.lastActingOrg
           if (org) {
             content.push({ type: 'text', text: `Acting on workspace: ${org.name ?? org.id} (org ${org.id}).` })
           }
@@ -96,9 +117,12 @@ export function createServer(config: ChurnkeyMcpConfig): McpServer {
 
   // MCP Apps + OpenAI plugin extensions. These carry their own result shape
   // (structuredContent for the UI), so they register outside the JSON-text
-  // wrapper above.
-  registerDashboard(server, client)
-  registerMentions(server, client)
+  // wrapper above. They are customer-facing and have no workspace input, so the
+  // staff endpoint leaves them out.
+  if (!config.internal) {
+    registerDashboard(server, client)
+    registerMentions(server, client)
+  }
 
   return server
 }
