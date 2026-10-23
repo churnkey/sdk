@@ -90,7 +90,8 @@ export function createServer(config: ChurnkeyMcpConfig): McpServer {
           // X-Churnkey-Acting-Org-* headers) as a separate block — keeps the
           // JSON result intact while letting an agent, or a user with grants in
           // several orgs, always confirm the target workspace.
-          const org = callClient.lastActingOrg
+          // find_org acts on no workspace: the org the API echoes for it is the grant's, not a target.
+          const org = config.internal && !takesOrg ? undefined : callClient.lastActingOrg
           if (org) {
             content.push({ type: 'text', text: `Acting on workspace: ${org.name ?? org.id} (org ${org.id}).` })
           }

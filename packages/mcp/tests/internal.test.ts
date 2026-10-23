@@ -28,7 +28,13 @@ async function startApi() {
       authorization: req.headers.authorization,
       targetOrg: req.headers['x-ck-target-org'] as string | undefined,
     })
-    res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ ok: true }))
+    res
+      .writeHead(200, {
+        'content-type': 'application/json',
+        'x-churnkey-acting-org-id': 'grantorg',
+        'x-churnkey-acting-org-name': 'Grant%20Org',
+      })
+      .end(JSON.stringify({ ok: true }))
   })
   await new Promise<void>((resolve) => api?.listen(0, '127.0.0.1', resolve))
   return `http://127.0.0.1:${(api.address() as AddressInfo).port}/v1`
@@ -172,6 +178,16 @@ describe('internal endpoint tools', () => {
     expect(apiCalls).toEqual([
       { path: '/v1/data/internal/orgs?query=Acme+Inc', authorization: `Bearer ${SERVICE_KEY}`, targetOrg: undefined },
     ])
+  })
+
+  it('find_org results carry no acting-workspace line; tools with org do', async () => {
+    const base = await setup()
+    const texts = async (name: string, args: Record<string, string>) => {
+      const { message } = await rpc(`${base}/internal`, STAFF_TOKEN, 'tools/call', { name, arguments: args })
+      return (message.result.content as Array<{ text: string }>).map((c) => c.text)
+    }
+    expect((await texts('find_org', { query: 'Acme' })).some((t) => t.startsWith('Acting on workspace'))).toBe(false)
+    expect(await texts('get_account', { org: 'appone123' })).toContain('Acting on workspace: Grant Org (org grantorg).')
   })
 
   it('the public endpoint is unchanged: no org input, no find_org, no target header', async () => {
