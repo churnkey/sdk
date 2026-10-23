@@ -55,7 +55,11 @@ Mode applies to **session analytics only** (`list_sessions` / `aggregate_session
 
 ## Retention Dashboard (MCP App) and ChatGPT plugin extensions
 
-`open_retention_dashboard` returns the same numbers as text to any client, and hosts that support [MCP Apps](https://github.com/modelcontextprotocol/ext-apps) render them as an interactive view instead: save rate, customers saved, boosted revenue, outcomes by offer type, a monthly trend, and a per-segment table. Picking a time window or a segment re-queries the tool from inside the view.
+`open_retention_dashboard` returns the same numbers as text to any client, and hosts that support [MCP Apps](https://github.com/modelcontextprotocol/ext-apps) render them as an interactive view instead: save rate, customers saved, boosted revenue, outcomes by offer type, a monthly trend, a per-segment table, and **Why they cancel**: each cancel-survey answer with its share of sessions, its save rate and a few recent customer comments (emails and phone numbers removed). Picking a time window or a segment re-queries the tool from inside the view. The comments need the `cancel_flows.sessions.read` scope; without it the panel shows the counts only.
+
+### Changing an offer from the chat
+
+`propose_offer_change` lets the model suggest a change to one offer in a cancel flow, either the main offer step or the offer on a survey answer ("Too expensive"). It only reads: it renders a before/after card in the same app, with **Apply to draft** and **Cancel**. Apply calls `apply_offer_change`, an app-only tool the model cannot call, which saves the change to the flow's draft through the same endpoint as `update_blueprint_offer`. Nothing is published. The card then links to the draft in the Churnkey builder, where the change is reviewed and published. Supported offers: DISCOUNT (an existing coupon, or adaptive), PAUSE and TRIAL_EXTENSION.
 
 The server also carries the metadata for OpenAI's [plugin extensions](https://github.com/openai/mcp-extensions/blob/main/docs/spec.md). Other hosts ignore these fields.
 
@@ -64,7 +68,7 @@ The server also carries the metadata for OpenAI's [plugin extensions](https://gi
 | Global entrypoint | The dashboard opens from the sidebar with no model call. |
 | Thread entrypoint | The dashboard opens as a side-panel tab inside a conversation. |
 | Model context (`ui/update-model-context`) | The view tells the model what the user is looking at, and a selected segment appears as a removable composer attachment. |
-| Messages (`ui/message`) | "Ask about this view" and the per-segment **Ask** button send a question with the numbers attached. |
+| Messages (`ui/message`) | "Ask about this view", the per-segment **Ask** button and each reason's **Ask what to try** send a question with the numbers attached. |
 | Composer @-mentions (`search_mentions`) | Typing `@` lists the workspace's segments and A/B tests. A picked item resolves through `churnkey://segments/<id>` or `churnkey://ab-tests/<id>`. |
 | Display modes / deep links | Renders inline by default and can go fullscreen. The deep link `/segments/<id>?window=30d` opens the dashboard on that segment. **Open in Churnkey** opens the web app: the selected segment's cancel flow in the builder, or cancel-flow analytics. |
 

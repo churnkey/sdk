@@ -9,6 +9,7 @@ import {
   type OutcomeCounts,
   WINDOWS,
 } from './dashboard-types'
+import { loadCancelReasons } from './reasons'
 
 export type { DashboardData, DashboardWindow } from './dashboard-types'
 
@@ -132,7 +133,7 @@ export async function loadDashboard(
   const endDate = isoDate(now)
   const range = { startDate, endDate }
 
-  const [account, metrics, trendRows, segmentRows, segments, inventory] = await Promise.all([
+  const [account, metrics, trendRows, segmentRows, segments, inventory, reasons] = await Promise.all([
     client.get<Account>('/data/account').catch(() => null),
     client.get<FlowMetrics>('/data/flow-metrics', { query: { ...range, segmentId: args.segmentId } }),
     client.get('/data/warehouse/session-aggregation', {
@@ -141,6 +142,7 @@ export async function loadDashboard(
     client.get('/data/warehouse/session-aggregation', { query: { ...range, breakdown: 'segmentId-saveType' } }),
     client.get<Segment[]>('/data/segments').catch(() => [] as Segment[]),
     client.get<BlueprintInventory>('/data/blueprints').catch(() => null),
+    loadCancelReasons(client, range, args.segmentId),
   ])
   const web = webBase()
   const draftBySegment = new Map(
@@ -196,6 +198,7 @@ export async function loadDashboard(
       startDate,
     ).map(([month, counts]) => ({ month, ...counts })),
     segments: segmentTable,
+    reasons,
     churnkeyUrl: `${web}/cancellation/analytics`,
   }
 }
@@ -246,14 +249,14 @@ export function registerDashboard(server: McpServer, client: ChurnkeyClient): vo
     {
       title: 'Retention Dashboard',
       description: [
-        'Open the Churnkey Retention Dashboard: save rate, customers saved, boosted revenue, session outcomes by offer type, a monthly trend, and per-segment save rates for a time window.',
+        'Open the Churnkey Retention Dashboard: save rate, customers saved, boosted revenue, session outcomes by offer type, a monthly trend, per-segment save rates, and why customers cancel (survey answers with their save rate and recent customer comments) for a time window.',
         '',
         'Hosts that support MCP Apps render it as an interactive view the user can filter and click into; others receive the same numbers as text. Use it when the user wants an overview or asks to "show" retention performance. For a single number, get_flow_metrics or aggregate_sessions are cheaper.',
         '',
         'Data source: the Churnkey analytics warehouse (~3-hour refresh). Boosted revenue covers live mode only.',
       ].join('\n'),
       inputSchema: dashboardInput.shape,
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       _meta: {
         ui: { resourceUri: DASHBOARD_URI },
         // Legacy flat key still read by older MCP Apps hosts.
@@ -291,6 +294,12 @@ export function textSummary(data: DashboardData): string {
     lines.push('', 'Segments by volume:')
     for (const s of data.segments) {
       lines.push(`- ${s.name}${s.enabled ? '' : ' (disabled)'}: ${s.total} sessions, ${pct(s.saveRate)} saved`)
+    }
+  }
+  if (data.reasons) {
+    lines.push('', 'Why they cancel (survey answers):')
+    for (const r of data.reasons.rows) {
+      lines.push(`- ${r.reason}: ${pct(r.share)} of sessions, ${pct(r.saveRate)} saved`)
     }
   }
   return lines.join('\n')
