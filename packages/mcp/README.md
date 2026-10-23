@@ -203,6 +203,7 @@ For MCP client configs, point the client directly at the built server:
 | `CHURNKEY_MCP_HOST` | no | `127.0.0.1` |
 | `CHURNKEY_MCP_PORT` | no | `3333` |
 | `CHURNKEY_MCP_PATH` | no | `/mcp` |
+| `CHURNKEY_MCP_INTERNAL_PATH` | no | unset (off) |
 | `CHURNKEY_MCP_ALLOWED_HOSTS` | no | — |
 | `CHURNKEY_MCP_CORS_ORIGIN` | no | — |
 | `CHURNKEY_MCP_PUBLIC_URL` | no | `http://<host>:<port>` |
@@ -212,6 +213,8 @@ For MCP client configs, point the client directly at the built server:
 `CHURNKEY_MCP_PUBLIC_URL` is the canonical public URL of the HTTP endpoint (e.g. `https://mcp.churnkey.co`). The server advertises it as the OAuth resource identifier: `GET /.well-known/oauth-protected-resource` returns RFC 9728 metadata pointing at the Churnkey API's authorization server, and unauthenticated requests get a `WWW-Authenticate: Bearer resource_metadata="…"` header — so OAuth-capable MCP clients (Claude, etc.) can discover and run the sign-in flow themselves when connecting to a hosted endpoint.
 
 `CHURNKEY_MCP_ALLOWED_HOSTS` is a comma-separated list of accepted `Host` headers, including ports when present (for example, `mcp.churnkey.co,localhost:3333`). `CHURNKEY_MCP_CORS_ORIGIN` is intentionally opt-in; set it to one exact browser origin, or `*`, only when a browser-based MCP client needs CORS.
+
+`CHURNKEY_MCP_INTERNAL_PATH` turns on a second endpoint for Churnkey staff, for example `/internal`. Every tool there takes an `org` argument (org id or appId) and runs on that workspace, and a `find_org` tool looks workspaces up. It accepts only a staff OAuth sign-in, which asks for the `internal.cross_org` scope, or a staff service key (`ck_sk_…`); the Churnkey API refuses the workspace switch for anyone else. Unset, the endpoint does not exist.
 
 `CHURNKEY_WEB_URL` is the Churnkey web app the Retention Dashboard's **Open in Churnkey** button links to. Point it at a staging app for non-production deployments.
 

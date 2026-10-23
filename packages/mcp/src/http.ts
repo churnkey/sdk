@@ -1,6 +1,6 @@
 import { createServer as createNodeServer, type IncomingHttpHeaders, type ServerResponse } from 'node:http'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { BASELINE_SCOPES } from './auth/oauth'
+import { BASELINE_SCOPES, INTERNAL_SCOPES } from './auth/oauth'
 import { type ChurnkeyMcpHttpConfig, loadHttpRequestConfig, loadHttpServerConfig, resolveBaseUrl } from './config'
 import { createServer } from './server'
 
@@ -42,6 +42,7 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
   let resourceMetadataUrl = `${publicUrl}${PROTECTED_RESOURCE_PATH}`
 
   const httpServer = createNodeServer(async (req, res) => {
+    let internal = false
     try {
       setCorsHeaders(req.headers, res, env)
 
@@ -57,7 +58,10 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
       // Served at both the root well-known and the path-aware variant
       // (`/.well-known/oauth-protected-resource/mcp`) — some clients (Claude.ai,
       // ChatGPT) probe the path-inserted form derived from the MCP endpoint URL.
+      const internalMetadata =
+        config.internalPath !== undefined && requestUrl.pathname === `${PROTECTED_RESOURCE_PATH}${config.internalPath}`
       if (
+        internalMetadata ||
         requestUrl.pathname === PROTECTED_RESOURCE_PATH ||
         requestUrl.pathname === `${PROTECTED_RESOURCE_PATH}${config.path}`
       ) {
@@ -69,7 +73,7 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
             // Where a client looks when the 401 challenge carries no `scope`.
             // Omitting the field entirely makes clients send an empty scope set,
             // which the authorization server rejects outright.
-            scopes_supported: BASELINE_SCOPES,
+            scopes_supported: internalMetadata ? INTERNAL_SCOPES : BASELINE_SCOPES,
             resource_documentation: 'https://docs.churnkey.co/data-integrations/mcp',
           }),
         )
@@ -91,7 +95,8 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
         return
       }
 
-      if (requestUrl.pathname !== config.path) {
+      internal = config.internalPath !== undefined && requestUrl.pathname === config.internalPath
+      if (requestUrl.pathname !== config.path && !internal) {
         res.writeHead(404, { 'content-type': 'text/plain' }).end('Not found')
         return
       }
@@ -131,8 +136,13 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
       } catch (err) {
         throw new MissingCredentialsError(err instanceof Error ? err.message : String(err))
       }
+      if (internal && requestConfig.auth.kind !== 'bearer') {
+        throw new MissingCredentialsError(
+          'The internal endpoint needs a Churnkey staff sign-in or service key, not a Data API key.',
+        )
+      }
 
-      const server = createServer(requestConfig)
+      const server = createServer({ ...requestConfig, internal })
       const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
       // Per-request lifetime: tear both down once the response is done, or the
       // per-request servers would accumulate exactly like the sessions did.
@@ -153,10 +163,12 @@ export async function startHttpServer(env: NodeJS.ProcessEnv = process.env): Pro
         // Point OAuth-capable clients at the resource metadata, and name the
         // scopes we want (RFC 6750 §3). Clients prefer this over the metadata
         // document, so it covers the ones that never fetch it.
+        const metadataUrl = internal ? `${resourceMetadataUrl}${config.internalPath}` : resourceMetadataUrl
+        const scopes = internal ? INTERNAL_SCOPES : BASELINE_SCOPES
         res
           .writeHead(401, {
             'content-type': 'text/plain',
-            'www-authenticate': `Bearer resource_metadata="${resourceMetadataUrl}", scope="${BASELINE_SCOPES.join(' ')}"`,
+            'www-authenticate': `Bearer resource_metadata="${metadataUrl}", scope="${scopes.join(' ')}"`,
           })
           .end(message)
         return

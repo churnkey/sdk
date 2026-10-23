@@ -59,6 +59,7 @@ export class ChurnkeyClient {
 
   private withMode(headers: Record<string, string>): Record<string, string> {
     if (this.config.mode === 'test') headers['x-ck-mode'] = 'test'
+    if (this.config.targetOrg) headers['x-ck-target-org'] = this.config.targetOrg
     return headers
   }
 
