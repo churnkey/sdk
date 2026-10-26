@@ -33,7 +33,7 @@ const SERVER_ICON = {
 }
 
 const INTERNAL_INSTRUCTIONS =
-  'Churnkey staff only. Every tool except find_org takes `org`, the workspace to act on (org id or appId). Look it up with find_org, confirm it with the user when a name matches several workspaces, and check the "Acting on workspace" line in each result before relying on it.'
+  'Churnkey staff only. Every tool except find_org takes `org`, the workspace to act on (org id or appId). Look it up with find_org, confirm it with the user when a name matches several workspaces, and check the "Acting on workspace" line in each result before relying on it. If calls fail with "requires Churnkey staff access" or a missing internal.cross_org scope, this connection was approved without the cross-org scope, which Churnkey grants only to Claude Code, Codex and Cursor: ask the user to reconnect from one of those.'
 
 export function createServer(config: ChurnkeyMcpConfig): McpServer {
   const server = new McpServer(
