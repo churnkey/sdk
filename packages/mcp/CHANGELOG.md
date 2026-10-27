@@ -12,8 +12,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- A Churnkey staff endpoint on the HTTP transport, served at `CHURNKEY_MCP_INTERNAL_PATH` when that is set. Every tool there takes a required `org` (org id or appId) that is sent to the API as `x-ck-target-org`, a new `find_org` tool looks workspaces up, and the customer-facing dashboard and mention tools are left out. Its OAuth metadata and 401 challenge ask for the `internal.cross_org` scope on top of the full scope set, and it refuses Data API keys. The public endpoint is unchanged.
-- The hosted transport passes a staff service key (`ck_sk_…`) through as a bearer token instead of reading it as a Data API key.
+- Groundwork for Churnkey's internal support tooling on the hosted server.
 - `open_retention_dashboard`, an [MCP App](https://github.com/modelcontextprotocol/ext-apps). It returns save rate, customers saved, boosted revenue, outcomes by offer type, a monthly trend and per-segment save rates for a window, as `structuredContent` plus a text summary. Hosts that render MCP Apps show an interactive view that re-queries the tool when the user changes the window or segment. Every other client gets the text, so nothing changes for Claude Code or Cursor beyond one more read-only tool.
 - OpenAI [plugin extensions](https://github.com/openai/mcp-extensions) metadata, so ChatGPT can open the dashboard from its sidebar (global entrypoint) or as a tab in a thread (thread entrypoint) without a model call. The view also shares what the user is looking at as model context and can send a question with the numbers attached.
 - **Open in Churnkey** in the dashboard header opens the Churnkey web app through the host's `openLink`. With a segment selected it opens that segment's cancel flow in the builder (the draft blueprint, as the Flows page does); otherwise it opens cancel-flow analytics. Set `CHURNKEY_WEB_URL` for a non-production web app.
