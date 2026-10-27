@@ -8,7 +8,7 @@ import { internalTools, ORG_INPUT } from './tools/internal'
 import { MODE_DATA_NOTE, MODE_TRAFFIC_NOTE } from './tools/shared'
 
 export const SERVER_NAME = 'churnkey-mcp'
-export const SERVER_VERSION = '2.3.0'
+export const SERVER_VERSION = '2.4.0'
 
 // Directories build their listing from whatever `initialize` returns. Sending
 // only name and version is why Smithery rendered us as a lowercase "churnkey"
