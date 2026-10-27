@@ -81,6 +81,18 @@ pnpm --filter @churnkey/react dev    # rebuilds on change
 pnpm --filter @churnkey/playground dev   # runs the playground app
 ```
 
+## Releasing
+
+A merge to `main` that raises a package's `package.json` version publishes it. In the PR:
+
+1. Bump `version` in the package's `package.json`.
+2. Move the `Unreleased` entries in its `CHANGELOG.md` under a `## <version> - <date>` heading. That section becomes the GitHub release notes.
+3. For `@churnkey/mcp`, also set the version in `server.json` and `src/server.ts`.
+
+On merge, the Release workflow runs the CI gate, publishes to npm with provenance, pushes the `<name>@<version>` tag and creates the GitHub release. For `@churnkey/mcp` it then runs the registry publish. A merge that does not change a version publishes nothing. If a release fails partway, fix the cause and run the Release workflow by hand; it skips whatever already landed.
+
+Publishing authenticates with [npm trusted publishing](https://docs.npmjs.com/trusted-publishers), so there is no npm token in this repo. Each package lists this repo's `release.yml` as its trusted publisher in its settings on npmjs.com.
+
 ## License
 
 MIT

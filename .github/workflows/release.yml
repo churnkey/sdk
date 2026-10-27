@@ -1,0 +1,115 @@
+name: Release
+
+# Publishes a package when a merge to main raises its package.json version
+# above what npm has. The version bump and CHANGELOG entry are made by hand in
+# the PR, so the merge is the release decision; this carries it out: publish
+# to npm (trusted publishing, so no token lives in this repo), tag, and cut a
+# GitHub release from the CHANGELOG section. `workflow_dispatch` re-runs the
+# same check for a release that failed partway.
+on:
+  push:
+    branches: [main]
+    paths: ['packages/*/package.json']
+  workflow_dispatch:
+
+# Two merges in a row must not publish in parallel.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write # tags and GitHub releases
+  id-token: write # npm trusted publishing
+  actions: write # dispatch the MCP registry workflow
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.plan.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - id: plan
+        run: node .github/scripts/release-plan.mjs >> "$GITHUB_OUTPUT"
+
+  # Same gate as CI, run here so a release never rides on a check that ran in
+  # another workflow and might still be going.
+  verify:
+    needs: plan
+    if: needs.plan.outputs.packages != '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  publish:
+    needs: [plan, verify]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.packages) }}
+    env:
+      NAME: ${{ matrix.name }}
+      VERSION: ${{ matrix.version }}
+      DIR: ${{ matrix.dir }}
+      TAG: ${{ matrix.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      # Node 24 for its npm: trusted publishing needs npm 11.5.1 or newer.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo build --filter "$NAME"
+
+      - name: Publish to npm
+        working-directory: ${{ matrix.dir }}
+        run: npm publish --access public --provenance
+
+      # Pushing the tag from here does not fire the tag-triggered workflows
+      # (GITHUB_TOKEN events never start other runs), hence the explicit
+      # dispatch of the MCP registry workflow below.
+      - name: Tag
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+            echo "Tag $TAG already exists."
+          else
+            git tag "$TAG"
+            git push origin "refs/tags/$TAG"
+          fi
+
+      - name: GitHub release
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists."
+            exit 0
+          fi
+          # The CHANGELOG section for this version, heading excluded.
+          awk -v v="$VERSION" '
+            /^## / { if (on) exit; on = index($0, "## " v " ") == 1 || $0 == "## " v; next }
+            on { print }
+          ' "$DIR/CHANGELOG.md" > notes.md
+          if [ ! -s notes.md ]; then
+            echo "No CHANGELOG section for $VERSION in $DIR/CHANGELOG.md." > notes.md
+          fi
+          gh release create "$TAG" --title "$TAG" --notes-file notes.md
+
+      - name: Publish MCP registry record
+        if: matrix.name == '@churnkey/mcp'
+        run: gh workflow run publish-mcp-registry.yml --ref "$TAG"
