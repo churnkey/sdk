@@ -95,6 +95,13 @@ describe('ChurnkeyApi action paths', () => {
     expect(spy.mock.calls[0][1]?.body).toBeUndefined()
   })
 
+  it('fetchConfig sends language alongside customAttributes', async () => {
+    const spy = spyFetch()
+    const api = new ChurnkeyApi(creds, 'https://api.test/v1')
+    await api.fetchConfig({ plan: 'pro' }, 'es-419')
+    expect(calledBody(spy)).toEqual({ customAttributes: { plan: 'pro' }, language: 'es-419' })
+  })
+
   it('fetchConfig sends customAttributes as the request body for segment matching', async () => {
     const spy = spyFetch()
     const api = new ChurnkeyApi(creds, 'https://api.test/v1')

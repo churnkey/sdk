@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## Unreleased
+
+### Fixed
+
+- Connected mode now renders flow content (step titles, survey reasons, offer copy) in the customer's language when the org has Automatic Translations on. The config request sends `i18n.locale` (or the browser language) and the server resolves each node's translation, falling back to the source copy where none exists. Previously connected flows always rendered the source language, which the docs already claimed was not the case.
+
 ## 0.9.0 - 2026-10-22
 
 ### Added

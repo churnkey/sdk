@@ -201,11 +201,13 @@ export class ChurnkeyApi {
   // picked. The body must not also carry a Direct `customer` — that tells the
   // server to skip the provider lookup, and segments should match against the
   // real provider customer plus this attribute layer.
-  async fetchConfig(customAttributes?: Record<string, unknown>): Promise<SdkConfig> {
-    const res = await this.request(
-      this.orgUrl('cancel-flow/config'),
-      customAttributes ? { customAttributes } : undefined,
-    )
+  //
+  // language (BCP-47) picks which Automatic Translation the flow copy comes
+  // back in; the server falls back to the source language when the org
+  // doesn't translate into it.
+  async fetchConfig(customAttributes?: Record<string, unknown>, language?: string): Promise<SdkConfig> {
+    const body = { ...(customAttributes && { customAttributes }), ...(language && { language }) }
+    const res = await this.request(this.orgUrl('cancel-flow/config'), Object.keys(body).length ? body : undefined)
     return (await res.json()) as SdkConfig
   }
 

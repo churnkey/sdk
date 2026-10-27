@@ -158,7 +158,11 @@ export type MessagesPatch<T = CancelFlowMessages> = {
 }
 
 export interface I18nConfig {
-  /** UI language. Defaults to the browser language, falling back to `'en'`. */
+  /**
+   * UI language. Defaults to the browser language, falling back to `'en'`.
+   * In connected mode it's also sent with the config request, so flow content
+   * comes back in this language when the org's Automatic Translations cover it.
+   */
   locale?: string
   /** Per-locale message overrides, e.g. `{ en: { confirm: { cta: 'Turn off auto-renew' } } }`. */
   messages?: Record<string, MessagesPatch>
