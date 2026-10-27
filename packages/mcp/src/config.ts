@@ -5,7 +5,7 @@ export type ChurnkeyAuth =
   | { kind: 'data-api-key'; appId: string; apiKey: string }
   /** Per-user OAuth managed via the local token store (`npx @churnkey/mcp auth login`). */
   | { kind: 'oauth' }
-  /** A caller-supplied OAuth access token (hosted Streamable HTTP transport). */
+  /** A caller-supplied OAuth access token or staff service key (hosted Streamable HTTP transport). */
   | { kind: 'bearer'; token: string }
 
 export interface ChurnkeyMcpConfig {
@@ -13,12 +13,18 @@ export interface ChurnkeyMcpConfig {
   auth: ChurnkeyAuth
   /** OAuth/bearer requests select test mode explicitly (Data API keys encode it in the key prefix). */
   mode?: 'live' | 'test'
+  /** Churnkey staff endpoint: every tool takes the workspace to act on. */
+  internal?: boolean
+  /** Workspace (org id or appId) a staff call acts on, sent as x-ck-target-org. */
+  targetOrg?: string
 }
 
 export interface ChurnkeyMcpHttpConfig {
   host: string
   port: number
   path: string
+  /** Churnkey staff endpoint; served only when CHURNKEY_MCP_INTERNAL_PATH is set. */
+  internalPath?: string
   allowedHosts?: string[]
 }
 
@@ -81,11 +87,17 @@ export function loadHttpServerConfig(env: NodeJS.ProcessEnv = process.env): Chur
     throw new Error('CHURNKEY_MCP_PATH must start with /')
   }
 
+  const internalPath = env.CHURNKEY_MCP_INTERNAL_PATH || undefined
+  if (internalPath && (!internalPath.startsWith('/') || internalPath === path)) {
+    throw new Error('CHURNKEY_MCP_INTERNAL_PATH must start with / and differ from CHURNKEY_MCP_PATH')
+  }
+
   const allowedHosts = splitCsv(env.CHURNKEY_MCP_ALLOWED_HOSTS)
   return {
     host: env.CHURNKEY_MCP_HOST ?? '127.0.0.1',
     port,
     path,
+    internalPath,
     allowedHosts: allowedHosts.length ? allowedHosts : undefined,
   }
 }
@@ -95,14 +107,14 @@ export function loadHttpServerConfig(env: NodeJS.ProcessEnv = process.env): Chur
  *
  * `Authorization: Bearer ck_oat_…` (a Churnkey MCP OAuth access token) is the
  * hosted-auth path — no app id needed, the API resolves user/org/scopes from
- * the token. Data API keys (x-ck-api-key or a non-OAuth bearer value) remain
+ * the token. A Churnkey staff service key (`ck_sk_…`) takes the same path. Data API keys (x-ck-api-key or a non-OAuth bearer value) remain
  * accepted for read-only use and still require x-ck-app.
  */
 export function loadHttpRequestConfig(headers: Headers, env: NodeJS.ProcessEnv = process.env): ChurnkeyMcpConfig {
   const baseUrl = resolveBaseUrl(env)
   const bearer = readBearerToken(headers)
 
-  if (bearer?.startsWith('ck_oat_')) {
+  if (bearer?.startsWith('ck_oat_') || bearer?.startsWith('ck_sk_')) {
     const modeHeader = headers.get('x-ck-mode')?.toLowerCase()
     return {
       baseUrl,

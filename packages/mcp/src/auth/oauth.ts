@@ -53,6 +53,12 @@ export const SUPPORTED_SCOPES = [
 // existing first.
 export const BASELINE_SCOPES = SUPPORTED_SCOPES.filter((scope) => !scope.endsWith('read_pii'))
 
+// Lets a Churnkey staff token act on any workspace. Only staff can be granted it.
+export const CROSS_ORG_SCOPE = 'internal.cross_org'
+
+// What the internal endpoint asks for. Staff review the consent screen and can drop the PII scopes there.
+export const INTERNAL_SCOPES = [...SUPPORTED_SCOPES, CROSS_ORG_SCOPE]
+
 export interface PkcePair {
   verifier: string
   challenge: string
