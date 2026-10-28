@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "Terusake",
+    "back": "Bali",
+    "close": "Tutup",
+    "done": "Rampung",
+    "processing": "Lagi diproses...",
+    "tryAgain": "Coba maneh",
+    "loading": "Lagi mbukak pilihanmu...",
+    "loadError": "Pilihan pembatalanmu ora bisa dimuat. Coba maneh ya.",
+    "error": "Ana sing salah. Coba maneh ya.",
+    "day": "dina",
+    "days": "dina",
+    "month": "sasi",
+    "months": "sasi"
+  },
+  "survey": {
+    "title": "Kok mandheg langganan ngapa?",
+    "followupPlaceholder": "Critakna luwih akeh (opsional)",
+    "followupAriaLabel": "Katrangan tambahan"
+  },
+  "feedback": {
+    "title": "Ana saran liyane?",
+    "placeholder": "Tulisen pendapatmu…",
+    "placeholderWithMin": "Paling ora {minLength} karakter…"
+  },
+  "confirm": {
+    "title": "Konfirmasi pembatalan",
+    "lossesLabel": "Kowe bakal ilang akses menyang:",
+    "cta": "Batalake langganan",
+    "goBack": "Bali",
+    "periodEndNotice": {
+      "atPeriodEnd": "Aksesmu tetep aktif nganti {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Sugeng rawuh maneh!",
+      "description": "Penawaranmu wis ditrapake.",
+      "discount": {
+        "title": "Potongan wis ditrapake.",
+        "description": "Kita seneng banget kowe isih ana kene."
+      },
+      "pause": {
+        "title": "Langganan wis dijedhakake.",
+        "description": "Kowe ora bakal ditagih nganti langgananmu diterusake.",
+        "resumeDescription": "Kowe ora bakal ditagih maneh nganti {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Uji coba diperpanjang.",
+        "description": "Masa cobamu wis kasil dipanjangake."
+      },
+      "plan_change": {
+        "title": "Paket wis diganti.",
+        "description": "Paket anyarmu wis aktif."
+      },
+      "rebate": {
+        "title": "Dhuwit wis dibalekake.",
+        "description": "Dhuwitmu lagi dalan bali."
+      },
+      "stacked": {
+        "title": "Penawaran ditrapake.",
+        "description": "Kita seneng banget kowe isih ana kene.",
+        "afterPauseDescription": "Penawaran kapindho diwiwiti nalika langgananmu diterusake.",
+        "afterTrialDescription": "Penawaran kapindho diwiwiti nalika masa cobamu rampung.",
+        "failedDescription": {
+          "discount": "Diskonmu ora bisa ditrapake. Kita bakal ngurus lan ngabari kowe.",
+          "pause": "Langgananmu ora bisa dijeda. Kita bakal ngurus lan ngabari kowe.",
+          "trial_extension": "Masa cobamu ora bisa dipanjangake. Kita bakal ngurus lan ngabari kowe.",
+          "plan_change": "Paketmu ora bisa diganti. Kita bakal ngurus lan ngabari kowe.",
+          "rebate": "Dhuwitmu ora bisa dibalekake. Kita bakal ngurus lan ngabari kowe."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Langganan dibatalake",
+      "description": "Kita sedhih kowe lunga."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Penawaran wektu winates",
+    "pauseEyebrow": "Ketemu maneh tanggal",
+    "newEndDateLabel": "Tanggal rampung anyar",
+    "currentPlanBadge": "Saiki",
+    "switchToCta": "Ganti menyang {planName}",
+    "rebate": {
+      "paidLabel": "Sing wis kok bayar periode iki",
+      "moneyBackLabel": "Dhuwit bali",
+      "inclTax": "(kalebu pajak {amount})",
+      "netLabel": "Total bersihmu periode iki"
+    },
+    "stacked": {
+      "acceptCta": "Tampa loro-lorone",
+      "pauseTitle": "Jeda langgananmu",
+      "planChangeTitle": "Ganti menyang paket anyar",
+      "trialTitle": "Masa coba ditambah {days} {unit}",
+      "rebateTitle": "{amount} bali saka pembayaran pungkasanmu",
+      "afterPause": "Diwiwiti nalika langgananmu diterusake.",
+      "afterTrial": "Diwiwiti ing periode tagihan mbayar sing sepisanan.",
+      "withPlanChange": "Berlaku kanggo paket anyarmu."
+    }
+  }
+}

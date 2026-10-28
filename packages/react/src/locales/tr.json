@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "Devam et",
+    "back": "Geri",
+    "close": "Kapat",
+    "done": "Bitti",
+    "processing": "İşleniyor...",
+    "tryAgain": "Tekrar deneyin",
+    "loading": "Seçenekleriniz yükleniyor...",
+    "loadError": "İptal seçenekleriniz yüklenemedi. Lütfen tekrar deneyin.",
+    "error": "Bir sorun oluştu. Lütfen tekrar deneyin.",
+    "day": "gün",
+    "days": "gün",
+    "month": "ay",
+    "months": "ay"
+  },
+  "survey": {
+    "title": "Neden iptal ediyorsunuz?",
+    "followupPlaceholder": "Bize biraz daha anlatın (isteğe bağlı)",
+    "followupAriaLabel": "Ek ayrıntı"
+  },
+  "feedback": {
+    "title": "Başka geri bildiriminiz var mı?",
+    "placeholder": "Düşüncelerinizi yazın…",
+    "placeholderWithMin": "En az {minLength} karakter…"
+  },
+  "confirm": {
+    "title": "İptali onaylayın",
+    "lossesLabel": "Şunlara erişiminizi kaybedeceksiniz:",
+    "cta": "Aboneliği iptal et",
+    "goBack": "Geri dön",
+    "periodEndNotice": {
+      "atPeriodEnd": "Erişiminiz {periodEnd} tarihine kadar devam eder."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Tekrar hoş geldiniz!",
+      "description": "Teklifiniz uygulandı.",
+      "discount": {
+        "title": "İndirim uygulandı.",
+        "description": "Hâlâ aramızda olduğunuz için çok mutluyuz."
+      },
+      "pause": {
+        "title": "Abonelik duraklatıldı.",
+        "description": "Aboneliğiniz yeniden başlayana kadar ücret alınmayacak.",
+        "resumeDescription": "{resumeDate} tarihine kadar yeniden ücret alınmayacak."
+      },
+      "trial_extension": {
+        "title": "Deneme süresi uzatıldı.",
+        "description": "Deneme süreniz başarıyla uzatıldı."
+      },
+      "plan_change": {
+        "title": "Plan değiştirildi.",
+        "description": "Yeni planınız artık geçerli."
+      },
+      "rebate": {
+        "title": "İade yapıldı.",
+        "description": "Paranız size geri dönüyor."
+      },
+      "stacked": {
+        "title": "Teklifler uygulandı.",
+        "description": "Hâlâ aramızda olduğunuz için çok mutluyuz.",
+        "afterPauseDescription": "İkinci teklifiniz, aboneliğiniz yeniden başladığında başlar.",
+        "afterTrialDescription": "İkinci teklifiniz, deneme süreniz bittiğinde başlar.",
+        "failedDescription": {
+          "discount": "İndiriminizi uygulayamadık. Konuyu çözüp size haber vereceğiz.",
+          "pause": "Aboneliğinizi duraklatamadık. Konuyu çözüp size haber vereceğiz.",
+          "trial_extension": "Deneme sürenizi uzatamadık. Konuyu çözüp size haber vereceğiz.",
+          "plan_change": "Planınızı değiştiremedik. Konuyu çözüp size haber vereceğiz.",
+          "rebate": "İadenizi yapamadık. Konuyu çözüp size haber vereceğiz."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Abonelik iptal edildi",
+      "description": "Ayrıldığınız için üzgünüz."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Sınırlı süreli teklif",
+    "pauseEyebrow": "Şu tarihte tekrar görüşürüz:",
+    "newEndDateLabel": "Yeni bitiş tarihi",
+    "currentPlanBadge": "Mevcut",
+    "switchToCta": "{planName} planına geç",
+    "rebate": {
+      "paidLabel": "Bu dönem ödediğiniz tutar",
+      "moneyBackLabel": "İade edilen tutar",
+      "inclTax": "({amount} vergi dahil)",
+      "netLabel": "Bu dönem net ödemeniz"
+    },
+    "stacked": {
+      "acceptCta": "Her iki teklifi de kabul et",
+      "pauseTitle": "Aboneliğinizi duraklatın",
+      "planChangeTitle": "Yeni bir plana geçin",
+      "trialTitle": "Deneme sürenize {days} {unit} daha",
+      "rebateTitle": "Son ödemenizden {amount} iade",
+      "afterPause": "Aboneliğiniz yeniden başladığında başlar.",
+      "afterTrial": "İlk ücretli faturalandırma döneminizle başlar.",
+      "withPlanChange": "Yeni planınız için geçerlidir."
+    }
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "Davam et",
+    "back": "Geri",
+    "close": "Bağla",
+    "done": "Hazırdır",
+    "processing": "Emal olunur...",
+    "tryAgain": "Yenidən cəhd et",
+    "loading": "Seçimləriniz yüklənir...",
+    "loadError": "Ləğv seçimlərinizi yükləyə bilmədik. Lütfən, yenidən cəhd edin.",
+    "error": "Xəta baş verdi. Lütfən, yenidən cəhd edin.",
+    "day": "gün",
+    "days": "gün",
+    "month": "ay",
+    "months": "ay"
+  },
+  "survey": {
+    "title": "Niyə ləğv edirsiniz?",
+    "followupPlaceholder": "Bizə daha ətraflı deyin (ixtiyari)",
+    "followupAriaLabel": "Əlavə məlumat"
+  },
+  "feedback": {
+    "title": "Başqa rəyiniz var?",
+    "placeholder": "Fikirlərinizi yazın…",
+    "placeholderWithMin": "Ən azı {minLength} simvol…"
+  },
+  "confirm": {
+    "title": "Ləğvi təsdiqləyin",
+    "lossesLabel": "Bunlara girişi itirəcəksiniz:",
+    "cta": "Abunəliyi ləğv et",
+    "goBack": "Geri qayıt",
+    "periodEndNotice": {
+      "atPeriodEnd": "Girişiniz {periodEnd} tarixinədək davam edir."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Yenidən xoş gəldiniz!",
+      "description": "Təklifiniz tətbiq olundu.",
+      "discount": {
+        "title": "Endirim tətbiq olundu.",
+        "description": "Hələ də bizimlə olduğunuz üçün çox şadıq."
+      },
+      "pause": {
+        "title": "Abunə dayandırıldı.",
+        "description": "Abunəliyiniz bərpa olunana qədər ödəniş tutulmayacaq.",
+        "resumeDescription": "{resumeDate} tarixinədək yenidən ödəniş tutulmayacaq."
+      },
+      "trial_extension": {
+        "title": "Sınaq müddəti uzanıb.",
+        "description": "Sınaq müddətiniz uğurla uzadıldı."
+      },
+      "plan_change": {
+        "title": "Plan dəyişdirildi.",
+        "description": "Yeni planınız artıq qüvvədədir."
+      },
+      "rebate": {
+        "title": "Geri ödəniş edildi.",
+        "description": "Pulunuz geri qayıdır."
+      },
+      "stacked": {
+        "title": "Təkliflər tətbiq olundu.",
+        "description": "Hələ də bizimlə olduğunuz üçün çox şadıq.",
+        "afterPauseDescription": "İkinci təklifiniz abunəliyiniz bərpa olunanda başlayır.",
+        "afterTrialDescription": "İkinci təklifiniz sınaq müddətiniz bitəndə başlayır.",
+        "failedDescription": {
+          "discount": "Endiriminizi tətbiq edə bilmədik. Biz özümüz həll edib sizə xəbər verəcəyik.",
+          "pause": "Abunəliyinizi dayandıra bilmədik. Biz özümüz həll edib sizə xəbər verəcəyik.",
+          "trial_extension": "Sınaq müddətinizi uzada bilmədik. Biz özümüz həll edib sizə xəbər verəcəyik.",
+          "plan_change": "Planınızı dəyişə bilmədik. Biz özümüz həll edib sizə xəbər verəcəyik.",
+          "rebate": "Geri ödənişinizi edə bilmədik. Biz özümüz həll edib sizə xəbər verəcəyik."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Abunəlik ləğv edildi",
+      "description": "Getməyinizə üzülürük."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Məhdud müddətli təklif",
+    "pauseEyebrow": "Sizi yenidən gözləyirik:",
+    "newEndDateLabel": "Yeni bitmə tarixi",
+    "currentPlanBadge": "Cari",
+    "switchToCta": "{planName} planına keç",
+    "rebate": {
+      "paidLabel": "Bu dövr üçün ödədiyiniz",
+      "moneyBackLabel": "Geri qaytarılan məbləğ",
+      "inclTax": "({amount} vergi daxil)",
+      "netLabel": "Bu dövr üçün xalis məbləğ"
+    },
+    "stacked": {
+      "acceptCta": "Hər iki təklifi qəbul et",
+      "pauseTitle": "Abunəliyinizi dayandırın",
+      "planChangeTitle": "Yeni plana keçin",
+      "trialTitle": "Sınaq müddətinizə daha {days} {unit}",
+      "rebateTitle": "Son ödənişinizdən {amount} geri",
+      "afterPause": "Abunəliyiniz bərpa olunanda başlayır.",
+      "afterTrial": "İlk ödənişli dövrünüzlə başlayır.",
+      "withPlanChange": "Yeni planınıza tətbiq olunur."
+    }
+  }
+}

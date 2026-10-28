@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "Continuer",
+    "back": "Retour",
+    "close": "Fermer",
+    "done": "Terminé",
+    "processing": "Traitement en cours...",
+    "tryAgain": "Réessayer",
+    "loading": "Chargement de vos options...",
+    "loadError": "Nous n'avons pas pu charger vos options de résiliation. Veuillez réessayer.",
+    "error": "Une erreur s'est produite. Veuillez réessayer.",
+    "day": "jour",
+    "days": "jours",
+    "month": "mois",
+    "months": "mois"
+  },
+  "survey": {
+    "title": "Pourquoi résiliez-vous ?",
+    "followupPlaceholder": "Dites-nous-en plus (facultatif)",
+    "followupAriaLabel": "Précisions supplémentaires"
+  },
+  "feedback": {
+    "title": "Un autre commentaire ?",
+    "placeholder": "Écrivez votre avis…",
+    "placeholderWithMin": "Au moins {minLength} caractères…"
+  },
+  "confirm": {
+    "title": "Confirmer la résiliation",
+    "lossesLabel": "Vous perdrez l'accès à :",
+    "cta": "Résilier l'abonnement",
+    "goBack": "Retour",
+    "periodEndNotice": {
+      "atPeriodEnd": "Votre accès reste actif jusqu'au {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Content de vous revoir !",
+      "description": "Votre offre a été appliquée.",
+      "discount": {
+        "title": "Remise appliquée.",
+        "description": "Nous sommes ravis de vous compter encore parmi nous."
+      },
+      "pause": {
+        "title": "Abonnement mis en pause.",
+        "description": "Vous ne serez pas facturé avant la reprise de votre abonnement.",
+        "resumeDescription": "Vous ne serez plus facturé avant le {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Essai prolongé.",
+        "description": "Votre période d'essai a bien été prolongée."
+      },
+      "plan_change": {
+        "title": "Plan modifié.",
+        "description": "Votre nouvelle formule est désormais active."
+      },
+      "rebate": {
+        "title": "Remboursement effectué.",
+        "description": "Votre argent est en route."
+      },
+      "stacked": {
+        "title": "Offres appliquées.",
+        "description": "Nous sommes ravis de vous compter encore parmi nous.",
+        "afterPauseDescription": "Votre seconde offre démarrera à la reprise de votre abonnement.",
+        "afterTrialDescription": "Votre seconde offre démarrera à la fin de votre période d'essai.",
+        "failedDescription": {
+          "discount": "Nous n'avons pas pu appliquer votre réduction. Nous nous en occupons et vous tiendrons informé.",
+          "pause": "Nous n'avons pas pu mettre votre abonnement en pause. Nous nous en occupons et vous tiendrons informé.",
+          "trial_extension": "Nous n'avons pas pu prolonger votre période d'essai. Nous nous en occupons et vous tiendrons informé.",
+          "plan_change": "Nous n'avons pas pu changer votre formule. Nous nous en occupons et vous tiendrons informé.",
+          "rebate": "Nous n'avons pas pu effectuer votre remboursement. Nous nous en occupons et vous tiendrons informé."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Abonnement résilié",
+      "description": "Nous regrettons de vous voir partir."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Offre à durée limitée",
+    "pauseEyebrow": "Rendez-vous le",
+    "newEndDateLabel": "Nouvelle date de fin",
+    "currentPlanBadge": "Actuelle",
+    "switchToCta": "Passer à {planName}",
+    "rebate": {
+      "paidLabel": "Vous avez payé pour cette période",
+      "moneyBackLabel": "Remboursement",
+      "inclTax": "(dont {amount} de taxes)",
+      "netLabel": "Votre coût net pour cette période"
+    },
+    "stacked": {
+      "acceptCta": "Accepter les deux offres",
+      "pauseTitle": "Mettez votre abonnement en pause",
+      "planChangeTitle": "Passez à une nouvelle formule",
+      "trialTitle": "{days} {unit} d'essai en plus",
+      "rebateTitle": "{amount} remboursés sur votre dernier paiement",
+      "afterPause": "Démarre à la reprise de votre abonnement.",
+      "afterTrial": "Démarre dès votre première période de facturation payante.",
+      "withPlanChange": "S'applique à votre nouvelle formule."
+    }
+  }
+}

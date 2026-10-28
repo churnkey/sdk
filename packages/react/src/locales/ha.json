@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "Ci gaba",
+    "back": "Danjin",
+    "close": "Rufe",
+    "done": "An gama",
+    "processing": "Ana aiwatarwa...",
+    "tryAgain": "Sake gwadawa",
+    "loading": "Ana loda zaɓuɓɓukanka...",
+    "loadError": "Ba mu iya loda zaɓuɓɓukan soke biyan kuɗinka ba. Don Allah a sake gwadawa.",
+    "error": "Wani abu ya faru ba daidai ba. Don Allah a sake gwadawa.",
+    "day": "rana",
+    "days": "kwanaki",
+    "month": "wata",
+    "months": "watanni"
+  },
+  "survey": {
+    "title": "Me ya sa kake soke wa?",
+    "followupPlaceholder": "Ƙara faɗa mana (zaɓi ne)",
+    "followupAriaLabel": "Ƙarin bayani"
+  },
+  "feedback": {
+    "title": "Akwai wani ra'ayi kuma?",
+    "placeholder": "Rubuta ra'ayinka…",
+    "placeholderWithMin": "Aƙalla haruffa {minLength}…"
+  },
+  "confirm": {
+    "title": "Tabbatar da soke wa",
+    "lossesLabel": "Za ka rasa damar shiga:",
+    "cta": "Soke biyan kuɗi",
+    "goBack": "Koma baya",
+    "periodEndNotice": {
+      "atPeriodEnd": "Damar shigarka za ta ci gaba har zuwa {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Barka da dawowa!",
+      "description": "An yi amfani da tayinka.",
+      "discount": {
+        "title": "Ragin an yi amfani da shi.",
+        "description": "Muna farin cikin cewa kana nan tare da mu."
+      },
+      "pause": {
+        "title": "Biyan kuɗi an dakatar da shi.",
+        "description": "Ba za a caje ka ba sai biyan kuɗinka ya ci gaba.",
+        "resumeDescription": "Ba za a sake cajin ka ba sai {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Gwagwarmaya an tsawaita.",
+        "description": "An ƙara wa'adin gwajinka cikin nasara."
+      },
+      "plan_change": {
+        "title": "Tsari an canza.",
+        "description": "Sabon tsarinka ya fara aiki yanzu."
+      },
+      "rebate": {
+        "title": "An aika da maido da kuɗi.",
+        "description": "Kuɗinka na kan hanyar dawowa."
+      },
+      "stacked": {
+        "title": "An yi amfani da tayin.",
+        "description": "Muna farin cikin cewa kana nan tare da mu.",
+        "afterPauseDescription": "Tayinka na biyu zai fara idan biyan kuɗinka ya ci gaba.",
+        "afterTrialDescription": "Tayinka na biyu zai fara idan wa'adin gwajinka ya ƙare.",
+        "failedDescription": {
+          "discount": "Ba mu iya yin amfani da rangwamenka ba. Za mu magance shi mu sanar da kai.",
+          "pause": "Ba mu iya dakatar da biyan kuɗinka ba. Za mu magance shi mu sanar da kai.",
+          "trial_extension": "Ba mu iya ƙara wa'adin gwajinka ba. Za mu magance shi mu sanar da kai.",
+          "plan_change": "Ba mu iya canja tsarinka ba. Za mu magance shi mu sanar da kai.",
+          "rebate": "Ba mu iya maido maka da kuɗinka ba. Za mu magance shi mu sanar da kai."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "An soke biyan kuɗi",
+      "description": "Mun yi baƙin cikin rabuwa da kai."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Tayin ɗan lokaci kaɗan",
+    "pauseEyebrow": "Sai mun sake ganin ka a",
+    "newEndDateLabel": "Sabon ranar ƙarewa",
+    "currentPlanBadge": "Na yanzu",
+    "switchToCta": "Koma zuwa {planName}",
+    "rebate": {
+      "paidLabel": "Ka biya a wannan lokaci",
+      "moneyBackLabel": "Maido da kuɗi",
+      "inclTax": "(har da harajin {amount})",
+      "netLabel": "Abin da ka biya a wannan lokaci"
+    },
+    "stacked": {
+      "acceptCta": "Karɓi tayin biyu",
+      "pauseTitle": "Dakatar da biyan kuɗinka",
+      "planChangeTitle": "Koma sabon tsari",
+      "trialTitle": "Ƙarin {unit} {days} na gwajinka",
+      "rebateTitle": "{amount} a dawo maka daga biyan ƙarshe",
+      "afterPause": "Yana farawa idan biyan kuɗinka ya ci gaba.",
+      "afterTrial": "Yana farawa da lokacin biyan kuɗi na farko.",
+      "withPlanChange": "Yana shafar sabon tsarinka."
+    }
+  }
+}

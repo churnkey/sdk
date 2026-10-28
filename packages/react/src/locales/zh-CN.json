@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "继续",
+    "back": "返回",
+    "close": "关闭",
+    "done": "完成",
+    "processing": "处理中...",
+    "tryAgain": "重试",
+    "loading": "正在加载您的选项...",
+    "loadError": "无法加载您的取消选项,请重试。",
+    "error": "出了点问题,请重试。",
+    "day": "天",
+    "days": "天",
+    "month": "个月",
+    "months": "个月"
+  },
+  "survey": {
+    "title": "您为什么要取消?",
+    "followupPlaceholder": "请告诉我们更多(选填)",
+    "followupAriaLabel": "补充说明"
+  },
+  "feedback": {
+    "title": "还有其他反馈吗?",
+    "placeholder": "写下您的想法…",
+    "placeholderWithMin": "至少 {minLength} 个字符…"
+  },
+  "confirm": {
+    "title": "确认取消",
+    "lossesLabel": "您将失去以下权益:",
+    "cta": "取消订阅",
+    "goBack": "返回",
+    "periodEndNotice": {
+      "atPeriodEnd": "您可继续使用至 {periodEnd}。"
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "欢迎回来!",
+      "description": "您的优惠已生效。",
+      "discount": {
+        "title": "折扣已应用。",
+        "description": "很高兴您继续留下来。"
+      },
+      "pause": {
+        "title": "订阅已暂停。",
+        "description": "订阅恢复前,您不会被扣费。",
+        "resumeDescription": "在 {resumeDate} 之前,您不会再被扣费。"
+      },
+      "trial_extension": {
+        "title": "试用期已延长。",
+        "description": "您的试用期已成功延长。"
+      },
+      "plan_change": {
+        "title": "计划已更改。",
+        "description": "您的新套餐现已生效。"
+      },
+      "rebate": {
+        "title": "退款已发起。",
+        "description": "您的款项正在退回途中。"
+      },
+      "stacked": {
+        "title": "优惠已生效。",
+        "description": "很高兴您继续留下来。",
+        "afterPauseDescription": "您的第二项优惠将在订阅恢复时开始。",
+        "afterTrialDescription": "您的第二项优惠将在试用结束时开始。",
+        "failedDescription": {
+          "discount": "我们未能应用您的折扣。我们会处理并通知您。",
+          "pause": "我们未能暂停您的订阅。我们会处理并通知您。",
+          "trial_extension": "我们未能延长您的试用期。我们会处理并通知您。",
+          "plan_change": "我们未能更改您的套餐。我们会处理并通知您。",
+          "rebate": "我们未能发起您的退款。我们会处理并通知您。"
+        }
+      }
+    },
+    "cancelled": {
+      "title": "订阅已取消",
+      "description": "很遗憾看到您离开。"
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "限时优惠",
+    "pauseEyebrow": "期待您在以下日期回来",
+    "newEndDateLabel": "新的结束日期",
+    "currentPlanBadge": "当前",
+    "switchToCta": "切换到 {planName}",
+    "rebate": {
+      "paidLabel": "您本期已支付",
+      "moneyBackLabel": "退还金额",
+      "inclTax": "(含税 {amount})",
+      "netLabel": "您本期的实付金额"
+    },
+    "stacked": {
+      "acceptCta": "接受两项优惠",
+      "pauseTitle": "暂停您的订阅",
+      "planChangeTitle": "切换到新套餐",
+      "trialTitle": "试用期再延长 {days} {unit}",
+      "rebateTitle": "上次付款返还 {amount}",
+      "afterPause": "订阅恢复时开始。",
+      "afterTrial": "从您首个付费账期开始。",
+      "withPlanChange": "适用于您的新套餐。"
+    }
+  }
+}
