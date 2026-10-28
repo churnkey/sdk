@@ -1,10 +1,9 @@
-// Decides what a Release run publishes and writes it as the `packages` output.
-//
-// A package is planned when its package.json version is missing any of: the
-// npm version, the `<name>@<version>` tag, the GitHub release. So a run that
-// failed after `npm publish` is finished by running the workflow again. Each
-// entry carries the commit that set the version, and that is what gets built
-// and tagged, not whatever main points at when the run happens.
+// Decides what a Release run publishes. Writes two outputs: `packages`, every
+// package missing any of its npm version, `<name>@<version>` tag or GitHub
+// release, and `builds`, the subset not yet on npm. So a run that failed after
+// `npm publish` is finished by running the workflow again. Each entry carries
+// the commit that set the version, and that is what gets built and tagged,
+// not whatever main points at when the run happens.
 import { execFileSync } from 'node:child_process'
 import { appendFileSync, readdirSync, readFileSync } from 'node:fs'
 
@@ -55,9 +54,11 @@ function belowLatest(version, latest) {
   return false
 }
 
-// The newest commit touching package.json whose parent had a different version.
+// The newest commit on main whose parent had a different version. First-parent
+// only: without it a merge commit is simplified away and the answer is a commit
+// inside the PR branch, missing whatever the PR changed after the bump.
 function versionCommit(dir, version) {
-  const shas = run('git', ['log', '--format=%H', '--', `${dir}/package.json`])
+  const shas = run('git', ['log', '--first-parent', '--format=%H', '--', `${dir}/package.json`])
     .split('\n')
     .filter(Boolean)
   for (const sha of shas) {
@@ -107,6 +108,7 @@ for (const entry of readdirSync('packages')) {
     name: pkg.name,
     version: pkg.version,
     dir,
+    slug: entry,
     tag,
     sha: versionCommit(dir, pkg.version),
     published,
@@ -117,6 +119,9 @@ for (const entry of readdirSync('packages')) {
 if (failed) process.exit(1)
 
 console.log(packages.length ? `To release: ${packages.map((p) => p.tag).join(', ')}` : 'Nothing to release.')
-const line = `packages=${JSON.stringify(packages)}`
-if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${line}\n`)
-else console.log(line)
+const outputs = [
+  `packages=${JSON.stringify(packages)}`,
+  `builds=${JSON.stringify(packages.filter((p) => !p.published))}`,
+]
+if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${outputs.join('\n')}\n`)
+else console.log(outputs.join('\n'))

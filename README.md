@@ -89,11 +89,11 @@ A merge to `main` that raises a package's `package.json` version publishes it. I
 2. Move the `Unreleased` entries in its `CHANGELOG.md` under a `## <version> - <date>` heading. That section becomes the GitHub release notes.
 3. Move the copies of the version kept in code: `server.json` and `src/server.ts` for `@churnkey/mcp`, `src/index.ts` for `@churnkey/node`. The release plan refuses to run while they disagree with `package.json`.
 
-On merge, the Release workflow checks out the commit that set the version, runs the CI gate, publishes that build to npm with provenance, tags it `<name>@<version>` and creates the GitHub release. For `@churnkey/mcp` it then runs the registry publish. A merge that does not change a version publishes nothing. Prereleases and versions below the current `latest` are left alone; publish those by hand with `--tag`.
+On merge, the Release workflow checks out the commit that set the version (the merge or squash commit on `main`; rebase merging is off for this reason), runs the CI gate, publishes that build to npm with provenance, tags it `<name>@<version>` and creates the GitHub release. For `@churnkey/mcp` it then runs the registry publish. A merge that does not change a version publishes nothing. Prereleases and versions below the current `latest` are left alone; publish those by hand with `--tag`.
 
 A release that stops partway is finished by running the Release workflow again from `main`: the plan picks up any package whose npm version, tag or release is missing and skips the parts that already landed. Manual runs from other branches do nothing.
 
-Publishing authenticates with [npm trusted publishing](https://docs.npmjs.com/trusted-publishers), so there is no npm token in this repo. Each package lists this repo's `release.yml` as its trusted publisher in its settings on npmjs.com.
+Publishing authenticates with [npm trusted publishing](https://docs.npmjs.com/trusted-publishers), so there is no npm token in this repo. Each package lists this repo's `release.yml` with the `release` environment as its trusted publisher in its settings on npmjs.com. That environment only deploys from `main`.
 
 ## License
 
