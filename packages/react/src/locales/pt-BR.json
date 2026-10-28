@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "Continuar",
+    "back": "Voltar",
+    "close": "Fechar",
+    "done": "Concluir",
+    "processing": "Processando...",
+    "tryAgain": "Tentar novamente",
+    "loading": "Carregando suas opções...",
+    "loadError": "Não foi possível carregar suas opções de cancelamento. Tente novamente.",
+    "error": "Algo deu errado. Tente novamente.",
+    "day": "dia",
+    "days": "dias",
+    "month": "mês",
+    "months": "meses"
+  },
+  "survey": {
+    "title": "Por que você está cancelando?",
+    "followupPlaceholder": "Conte mais (opcional)",
+    "followupAriaLabel": "Detalhes adicionais"
+  },
+  "feedback": {
+    "title": "Mais algum comentário?",
+    "placeholder": "Escreva o que você pensa…",
+    "placeholderWithMin": "Pelo menos {minLength} caracteres…"
+  },
+  "confirm": {
+    "title": "Confirmar cancelamento",
+    "lossesLabel": "Você perderá o acesso a:",
+    "cta": "Cancelar assinatura",
+    "goBack": "Voltar",
+    "periodEndNotice": {
+      "atPeriodEnd": "Seu acesso continua até {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Que bom ter você de volta!",
+      "description": "Sua oferta foi aplicada.",
+      "discount": {
+        "title": "Desconto aplicado.",
+        "description": "Estamos muito felizes por você continuar com a gente."
+      },
+      "pause": {
+        "title": "Assinatura pausada.",
+        "description": "Você não será cobrado até a assinatura ser retomada.",
+        "resumeDescription": "Você não será cobrado novamente até {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Teste prorrogado.",
+        "description": "Seu período de teste foi prorrogado com sucesso."
+      },
+      "plan_change": {
+        "title": "Plano alterado.",
+        "description": "Seu novo plano já está em vigor."
+      },
+      "rebate": {
+        "title": "Reembolso emitido.",
+        "description": "Seu dinheiro já está a caminho."
+      },
+      "stacked": {
+        "title": "Ofertas aplicadas.",
+        "description": "Estamos muito felizes por você continuar com a gente.",
+        "afterPauseDescription": "Sua segunda oferta começa quando a assinatura for retomada.",
+        "afterTrialDescription": "Sua segunda oferta começa quando o período de teste terminar.",
+        "failedDescription": {
+          "discount": "Não foi possível aplicar seu desconto. Vamos resolver isso e avisar você.",
+          "pause": "Não foi possível pausar sua assinatura. Vamos resolver isso e avisar você.",
+          "trial_extension": "Não foi possível prorrogar seu período de teste. Vamos resolver isso e avisar você.",
+          "plan_change": "Não foi possível alterar seu plano. Vamos resolver isso e avisar você.",
+          "rebate": "Não foi possível emitir seu reembolso. Vamos resolver isso e avisar você."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Assinatura cancelada",
+      "description": "Sentimos muito por você ir embora."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Oferta por tempo limitado",
+    "pauseEyebrow": "Esperamos você de volta em",
+    "newEndDateLabel": "Nova data de término",
+    "currentPlanBadge": "Atual",
+    "switchToCta": "Mudar para {planName}",
+    "rebate": {
+      "paidLabel": "Você pagou neste período",
+      "moneyBackLabel": "Valor reembolsado",
+      "inclTax": "(incl. {amount} de impostos)",
+      "netLabel": "Seu custo líquido neste período"
+    },
+    "stacked": {
+      "acceptCta": "Aceitar as duas ofertas",
+      "pauseTitle": "Pause sua assinatura",
+      "planChangeTitle": "Mude para um novo plano",
+      "trialTitle": "Mais {days} {unit} de teste",
+      "rebateTitle": "{amount} de volta no seu último pagamento",
+      "afterPause": "Começa quando a assinatura for retomada.",
+      "afterTrial": "Começa no primeiro período de cobrança pago.",
+      "withPlanChange": "Aplica-se ao seu novo plano."
+    }
+  }
+}

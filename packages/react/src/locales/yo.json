@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "Tẹ̀síwájú",
+    "back": "Ẹsẹ́",
+    "close": "Ti i",
+    "done": "Ó parí",
+    "processing": "Ó ń ṣiṣẹ́...",
+    "tryAgain": "Gbìyànjú lẹ́ẹ̀kan sí i",
+    "loading": "Ó ń gbé àwọn àṣàyàn rẹ jáde...",
+    "loadError": "A kò lè gbé àwọn àṣàyàn ìfagilé rẹ jáde. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i.",
+    "error": "Nǹkan kan ṣẹlẹ̀ tí kò tọ́. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i.",
+    "day": "ọjọ́",
+    "days": "ọjọ́",
+    "month": "oṣù",
+    "months": "oṣù"
+  },
+  "survey": {
+    "title": "Kí ló dé tí o fi ń fagilé?",
+    "followupPlaceholder": "Sọ ìsọfúnni sí i fún wa (àṣàyàn)",
+    "followupAriaLabel": "Àlàyé àfikún"
+  },
+  "feedback": {
+    "title": "Ṣé ìmọ̀ràn mìíràn wà?",
+    "placeholder": "Kọ èrò rẹ síbí…",
+    "placeholderWithMin": "O kéré tán, àwọn ẹyọ ọ̀rọ̀ {minLength}…"
+  },
+  "confirm": {
+    "title": "Jẹ́rìí ìfagilé",
+    "lossesLabel": "Wàá pàdánù àyè sí:",
+    "cta": "Fagilé ìforúkọsílẹ̀",
+    "goBack": "Padà sẹ́yìn",
+    "periodEndNotice": {
+      "atPeriodEnd": "Àyè rẹ yóò wà títí di {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Káàbọ̀ padà!",
+      "description": "A ti lo ìfilọ́lẹ̀ rẹ.",
+      "discount": {
+        "title": "Ẹ̀bun ti lo.",
+        "description": "Inú wa dùn gan-an pé o ṣì wà pẹ̀lú wa."
+      },
+      "pause": {
+        "title": "Fíìlè ti dákẹ́.",
+        "description": "A kò ní gba owó lọ́wọ́ rẹ títí ìforúkọsílẹ̀ rẹ yóò fi tún bẹ̀rẹ̀.",
+        "resumeDescription": "A kò ní gba owó lọ́wọ́ rẹ mọ́ títí di {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Iṣẹ́-ìdánwò ti fa.",
+        "description": "A ti fa àkókò ìdánwò rẹ gùn ní àṣeyọrí."
+      },
+      "plan_change": {
+        "title": "Ètò ti yípadà.",
+        "description": "Ìpèsè tuntun rẹ ti bẹ̀rẹ̀ iṣẹ́ báyìí."
+      },
+      "rebate": {
+        "title": "A ti dá owó rẹ padà.",
+        "description": "Owó rẹ ń padà bọ̀ wá."
+      },
+      "stacked": {
+        "title": "A ti lo àwọn ìfilọ́lẹ̀.",
+        "description": "Inú wa dùn gan-an pé o ṣì wà pẹ̀lú wa.",
+        "afterPauseDescription": "Ìfilọ́lẹ̀ kejì rẹ yóò bẹ̀rẹ̀ nígbà tí ìforúkọsílẹ̀ rẹ bá tún bẹ̀rẹ̀.",
+        "afterTrialDescription": "Ìfilọ́lẹ̀ kejì rẹ yóò bẹ̀rẹ̀ nígbà tí àkókò ìdánwò rẹ bá parí.",
+        "failedDescription": {
+          "discount": "A kò lè lo ẹ̀dínwó rẹ. A óò ṣe é, a óò sì fi tó ọ létí.",
+          "pause": "A kò lè da ìforúkọsílẹ̀ rẹ dúró. A óò ṣe é, a óò sì fi tó ọ létí.",
+          "trial_extension": "A kò lè fa àkókò ìdánwò rẹ gùn. A óò ṣe é, a óò sì fi tó ọ létí.",
+          "plan_change": "A kò lè yí ìpèsè rẹ padà. A óò ṣe é, a óò sì fi tó ọ létí.",
+          "rebate": "A kò lè dá owó rẹ padà. A óò ṣe é, a óò sì fi tó ọ létí."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "A ti fagilé ìforúkọsílẹ̀",
+      "description": "Ó dùn wá pé o ń lọ."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Ìfilọ́lẹ̀ fún àkókò kúkúrú",
+    "pauseEyebrow": "A óò tún rí ọ ní",
+    "newEndDateLabel": "Ọjọ́ ìparí tuntun",
+    "currentPlanBadge": "Ti báyìí",
+    "switchToCta": "Yípadà sí {planName}",
+    "rebate": {
+      "paidLabel": "O san ní àkókò yìí",
+      "moneyBackLabel": "Owó tí a dá padà",
+      "inclTax": "(pẹ̀lú owó orí {amount})",
+      "netLabel": "Iye tó kù lọ́wọ́ rẹ fún àkókò yìí"
+    },
+    "stacked": {
+      "acceptCta": "Gba àwọn ìfilọ́lẹ̀ méjèèjì",
+      "pauseTitle": "Da ìforúkọsílẹ̀ rẹ dúró",
+      "planChangeTitle": "Yípadà sí ìpèsè tuntun",
+      "trialTitle": "{days} {unit} sí i fún ìdánwò rẹ",
+      "rebateTitle": "{amount} padà lórí ìsanwó rẹ ìkẹyìn",
+      "afterPause": "Yóò bẹ̀rẹ̀ nígbà tí ìforúkọsílẹ̀ rẹ bá tún bẹ̀rẹ̀.",
+      "afterTrial": "Yóò bẹ̀rẹ̀ pẹ̀lú àkókò ìsanwó àkọ́kọ́ rẹ.",
+      "withPlanChange": "Ó kan ìpèsè tuntun rẹ."
+    }
+  }
+}

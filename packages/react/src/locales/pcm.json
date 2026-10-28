@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "Continue",
+    "back": "Go back",
+    "close": "Close",
+    "done": "Don finish",
+    "processing": "Dey process...",
+    "tryAgain": "Try again",
+    "loading": "Dey load your options...",
+    "loadError": "We no fit load your cancellation options. Abeg try again.",
+    "error": "Something go wrong. Abeg try again.",
+    "day": "day",
+    "days": "days",
+    "month": "month",
+    "months": "months"
+  },
+  "survey": {
+    "title": "Why you wan cancel?",
+    "followupPlaceholder": "Tell us more (if you want)",
+    "followupAriaLabel": "Extra detail"
+  },
+  "feedback": {
+    "title": "You get any other feedback?",
+    "placeholder": "Write wetin dey your mind…",
+    "placeholderWithMin": "At least {minLength} characters…"
+  },
+  "confirm": {
+    "title": "Confirm say you wan cancel",
+    "lossesLabel": "You go lose access to:",
+    "cta": "Cancel subscription",
+    "goBack": "Go back",
+    "periodEndNotice": {
+      "atPeriodEnd": "Your access go still dey until {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Welcome back!",
+      "description": "We don apply your offer.",
+      "discount": {
+        "title": "Discount don apply.",
+        "description": "We dey very happy say you still dey with us."
+      },
+      "pause": {
+        "title": "Subscription don pause.",
+        "description": "We no go charge you until your subscription resume.",
+        "resumeDescription": "We no go charge you again until {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Trial don extend.",
+        "description": "We don extend your trial well well."
+      },
+      "plan_change": {
+        "title": "Plan don change.",
+        "description": "Your new plan don start work now."
+      },
+      "rebate": {
+        "title": "Refund don commot.",
+        "description": "Your money dey on the way come back."
+      },
+      "stacked": {
+        "title": "Offers don apply.",
+        "description": "We dey very happy say you still dey with us.",
+        "afterPauseDescription": "Your second offer go start when your subscription resume.",
+        "afterTrialDescription": "Your second offer go start when your trial end.",
+        "failedDescription": {
+          "discount": "We no fit apply your discount. We go sort am and tell you.",
+          "pause": "We no fit pause your subscription. We go sort am and tell you.",
+          "trial_extension": "We no fit extend your trial. We go sort am and tell you.",
+          "plan_change": "We no fit change your plan. We go sort am and tell you.",
+          "rebate": "We no fit issue your refund. We go sort am and tell you."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Subscription don cancel",
+      "description": "E pain us say you dey go."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Offer for small time only",
+    "pauseEyebrow": "We go see you again on",
+    "newEndDateLabel": "New end date",
+    "currentPlanBadge": "Current",
+    "switchToCta": "Switch to {planName}",
+    "rebate": {
+      "paidLabel": "Wetin you pay this period",
+      "moneyBackLabel": "Money back",
+      "inclTax": "(with {amount} tax)",
+      "netLabel": "Wetin you pay finally for this period"
+    },
+    "stacked": {
+      "acceptCta": "Accept the two offers",
+      "pauseTitle": "Pause your subscription",
+      "planChangeTitle": "Switch to new plan",
+      "trialTitle": "{days} more {unit} for your trial",
+      "rebateTitle": "{amount} back from your last payment",
+      "afterPause": "E go start when your subscription resume.",
+      "afterTrial": "E go start with your first paid billing period.",
+      "withPlanChange": "E go work for your new plan."
+    }
+  }
+}

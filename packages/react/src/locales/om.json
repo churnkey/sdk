@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "Itti fufi",
+    "back": "Duubatti",
+    "close": "Cufi",
+    "done": "Xumurameera",
+    "processing": "Hojjetamaa jira...",
+    "tryAgain": "Irra deebi'ii yaali",
+    "loading": "Filannoowwan keessan fe'amaa jiru...",
+    "loadError": "Filannoowwan haqaa keessan fe'uu hin dandeenye. Maaloo irra deebi'ii yaalaa.",
+    "error": "Wanti tokko dogoggoreera. Maaloo irra deebi'ii yaalaa.",
+    "day": "guyyaa",
+    "days": "guyyoota",
+    "month": "ji'a",
+    "months": "ji'oota"
+  },
+  "survey": {
+    "title": "Maaliif haquu barbaaddu?",
+    "followupPlaceholder": "Nuuf ibsaa (filannoo)",
+    "followupAriaLabel": "Ibsa dabalataa"
+  },
+  "feedback": {
+    "title": "Yaada biroo qabduu?",
+    "placeholder": "Yaada keessan barreessaa…",
+    "placeholderWithMin": "Yoo xiqqaate arfii {minLength}…"
+  },
+  "confirm": {
+    "title": "Haquu mirkaneessi",
+    "lossesLabel": "Kanneen kana dhaabdu:",
+    "cta": "Maallaqa kaffaltii haqi",
+    "goBack": "Deebi'i",
+    "periodEndNotice": {
+      "atPeriodEnd": "Argachuun keessan hanga {periodEnd} itti fufa."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Baga nagaan deebitan!",
+      "description": "Dhiyeessiin keessan hojiirra ooleera.",
+      "discount": {
+        "title": "Hir'inni hojiirra oole.",
+        "description": "Amma iyyuu nu waliin waan jirtaniif baay'ee gammadne."
+      },
+      "pause": {
+        "title": "Galmeen yeroof dhaabame.",
+        "description": "Hanga maallaqa kaffaltii keessan deebi'ee jalqabutti hin gaafatamtan.",
+        "resumeDescription": "Hanga {resumeDate} irra deebi'amee hin gaafatamtan."
+      },
+      "trial_extension": {
+        "title": "Yaaliin dabalameera.",
+        "description": "Yeroon qorannoo keessanii milkaa'inaan dheeraateera."
+      },
+      "plan_change": {
+        "title": "Karoorri jijjiirame.",
+        "description": "Karoorri keessan haaraan amma hojiirra jira."
+      },
+      "rebate": {
+        "title": "Maallaqni deebifameera.",
+        "description": "Maallaqni keessan gara keessanii deebi'aa jira."
+      },
+      "stacked": {
+        "title": "Dhiyeessiiwwan hojiirra oolaniiru.",
+        "description": "Amma iyyuu nu waliin waan jirtaniif baay'ee gammadne.",
+        "afterPauseDescription": "Dhiyeessiin keessan inni lammaffaan yeroo kaffaltiin keessan deebi'ee jalqabamu jalqaba.",
+        "afterTrialDescription": "Dhiyeessiin keessan inni lammaffaan yeroo qorannoon keessan xumuramu jalqaba.",
+        "failedDescription": {
+          "discount": "Hir'ina gatii keessan hojiirra oolchuu hin dandeenye. Nuti ni raawwanna, isiniinis beeksifna.",
+          "pause": "Kaffaltii keessan yeroodhaaf dhaabuu hin dandeenye. Nuti ni raawwanna, isiniinis beeksifna.",
+          "trial_extension": "Yeroo qorannoo keessanii dheeressuu hin dandeenye. Nuti ni raawwanna, isiniinis beeksifna.",
+          "plan_change": "Karoora keessan jijjiiruu hin dandeenye. Nuti ni raawwanna, isiniinis beeksifna.",
+          "rebate": "Maallaqa keessan deebisuu hin dandeenye. Nuti ni raawwanna, isiniinis beeksifna."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Kaffaltiin haqameera",
+      "description": "Deemuun keessan nu gaddisiise."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Dhiyeessii yeroo murtaa'eef",
+    "pauseEyebrow": "Deebitanii isin argina guyyaa",
+    "newEndDateLabel": "Guyyaa xumuraa haaraa",
+    "currentPlanBadge": "Ammaa",
+    "switchToCta": "Gara {planName} jijjiiri",
+    "rebate": {
+      "paidLabel": "Yeroo kana kaffaltan",
+      "moneyBackLabel": "Maallaqa deebi'u",
+      "inclTax": "(gibira {amount} dabalatee)",
+      "netLabel": "Dhuma keessan yeroo kanaaf"
+    },
+    "stacked": {
+      "acceptCta": "Dhiyeessii lamaanuu fudhadhu",
+      "pauseTitle": "Kaffaltii keessan yeroodhaaf dhaabi",
+      "planChangeTitle": "Gara karoora haaraatti jijjiiri",
+      "trialTitle": "Qorannoo keessan {unit} {days} dabalataa",
+      "rebateTitle": "Kaffaltii keessan isa dhumaa irraa {amount} deebi'a",
+      "afterPause": "Yeroo kaffaltiin keessan deebi'ee jalqabamu jalqaba.",
+      "afterTrial": "Yeroo kaffaltii jalqabaa irraa jalqaba.",
+      "withPlanChange": "Karoora keessan haaraa irratti hojiirra oola."
+    }
+  }
+}

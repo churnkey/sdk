@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "close": "Close",
+    "done": "Done",
+    "processing": "Processing...",
+    "tryAgain": "Try again",
+    "loading": "Loading your options...",
+    "loadError": "We couldn't load your cancellation options. Please try again.",
+    "error": "Something went wrong. Please try again.",
+    "day": "day",
+    "days": "days",
+    "month": "month",
+    "months": "months"
+  },
+  "survey": {
+    "title": "Why are you cancelling?",
+    "followupPlaceholder": "Tell us more (optional)",
+    "followupAriaLabel": "Additional detail"
+  },
+  "feedback": {
+    "title": "Any other feedback?",
+    "placeholder": "Type your thoughts…",
+    "placeholderWithMin": "At least {minLength} characters…"
+  },
+  "confirm": {
+    "title": "Confirm cancellation",
+    "lossesLabel": "You'll lose access to:",
+    "cta": "Cancel subscription",
+    "goBack": "Go back",
+    "periodEndNotice": {
+      "atPeriodEnd": "Your access continues until {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Welcome back!",
+      "description": "Your offer has been applied.",
+      "discount": {
+        "title": "Discount applied.",
+        "description": "We're so happy you're still here."
+      },
+      "pause": {
+        "title": "Subscription paused.",
+        "description": "You won't be billed until your subscription resumes.",
+        "resumeDescription": "You won't be billed again until {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Trial extended.",
+        "description": "Your trial has been extended successfully."
+      },
+      "plan_change": {
+        "title": "Plan changed.",
+        "description": "Your new plan is now in effect."
+      },
+      "rebate": {
+        "title": "Refund issued.",
+        "description": "Your money's on its way back."
+      },
+      "stacked": {
+        "title": "Offers applied.",
+        "description": "We're so happy you're still here.",
+        "afterPauseDescription": "Your second offer starts when your subscription resumes.",
+        "afterTrialDescription": "Your second offer starts when your trial ends.",
+        "failedDescription": {
+          "discount": "We couldn't apply your discount. We'll handle it and let you know.",
+          "pause": "We couldn't pause your subscription. We'll handle it and let you know.",
+          "trial_extension": "We couldn't extend your trial. We'll handle it and let you know.",
+          "plan_change": "We couldn't change your plan. We'll handle it and let you know.",
+          "rebate": "We couldn't issue your refund. We'll handle it and let you know."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Subscription cancelled",
+      "description": "We're sorry to see you go."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Limited-time offer",
+    "pauseEyebrow": "We'll see you back on",
+    "newEndDateLabel": "New end date",
+    "currentPlanBadge": "Current",
+    "switchToCta": "Switch to {planName}",
+    "rebate": {
+      "paidLabel": "You paid this period",
+      "moneyBackLabel": "Money back",
+      "inclTax": "(incl. {amount} tax)",
+      "netLabel": "Your net for this period"
+    },
+    "stacked": {
+      "acceptCta": "Accept both offers",
+      "pauseTitle": "Pause your subscription",
+      "planChangeTitle": "Switch to a new plan",
+      "trialTitle": "{days} more {unit} of your trial",
+      "rebateTitle": "{amount} back on your last payment",
+      "afterPause": "Starts when your subscription resumes.",
+      "afterTrial": "Starts with your first paid billing period.",
+      "withPlanChange": "Applies to your new plan."
+    }
+  }
+}

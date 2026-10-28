@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "Continuă",
+    "back": "Înapoi",
+    "close": "Închide",
+    "done": "Gata",
+    "processing": "Se procesează...",
+    "tryAgain": "Încearcă din nou",
+    "loading": "Se încarcă opțiunile tale...",
+    "loadError": "Nu am putut încărca opțiunile de anulare. Încearcă din nou.",
+    "error": "Ceva nu a funcționat. Încearcă din nou.",
+    "day": "zi",
+    "days": "zile",
+    "month": "lună",
+    "months": "luni"
+  },
+  "survey": {
+    "title": "De ce anulezi?",
+    "followupPlaceholder": "Spune-ne mai multe (opțional)",
+    "followupAriaLabel": "Detalii suplimentare"
+  },
+  "feedback": {
+    "title": "Alte păreri?",
+    "placeholder": "Scrie ce gândești…",
+    "placeholderWithMin": "Cel puțin {minLength} caractere…"
+  },
+  "confirm": {
+    "title": "Confirmă anularea",
+    "lossesLabel": "Vei pierde accesul la:",
+    "cta": "Anulează abonamentul",
+    "goBack": "Înapoi",
+    "periodEndNotice": {
+      "atPeriodEnd": "Accesul tău continuă până la {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Bine ai revenit!",
+      "description": "Oferta ta a fost aplicată.",
+      "discount": {
+        "title": "Reducerea a fost aplicată.",
+        "description": "Ne bucurăm foarte mult că rămâi alături de noi."
+      },
+      "pause": {
+        "title": "Abonamentul a fost pus pe pauză.",
+        "description": "Nu vei fi taxat până la reluarea abonamentului.",
+        "resumeDescription": "Nu vei fi taxat din nou până la {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Perioada de probă a fost extinsă.",
+        "description": "Perioada ta de probă a fost prelungită cu succes."
+      },
+      "plan_change": {
+        "title": "Planul a fost schimbat.",
+        "description": "Noul tău plan este acum activ."
+      },
+      "rebate": {
+        "title": "Rambursare efectuată.",
+        "description": "Banii tăi sunt pe drum spre tine."
+      },
+      "stacked": {
+        "title": "Ofertele au fost aplicate.",
+        "description": "Ne bucurăm foarte mult că rămâi alături de noi.",
+        "afterPauseDescription": "A doua ofertă începe când abonamentul se reia.",
+        "afterTrialDescription": "A doua ofertă începe când se încheie perioada de probă.",
+        "failedDescription": {
+          "discount": "Nu am putut aplica reducerea. Ne ocupăm noi și te anunțăm.",
+          "pause": "Nu am putut pune abonamentul în pauză. Ne ocupăm noi și te anunțăm.",
+          "trial_extension": "Nu am putut prelungi perioada de probă. Ne ocupăm noi și te anunțăm.",
+          "plan_change": "Nu am putut schimba planul. Ne ocupăm noi și te anunțăm.",
+          "rebate": "Nu am putut efectua rambursarea. Ne ocupăm noi și te anunțăm."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Abonament anulat",
+      "description": "Ne pare rău că pleci."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Ofertă limitată în timp",
+    "pauseEyebrow": "Ne revedem pe",
+    "newEndDateLabel": "Noua dată de încheiere",
+    "currentPlanBadge": "Actual",
+    "switchToCta": "Treci la {planName}",
+    "rebate": {
+      "paidLabel": "Ai plătit pentru această perioadă",
+      "moneyBackLabel": "Banii înapoi",
+      "inclTax": "(incl. taxe de {amount})",
+      "netLabel": "Costul tău net pentru această perioadă"
+    },
+    "stacked": {
+      "acceptCta": "Acceptă ambele oferte",
+      "pauseTitle": "Pune abonamentul în pauză",
+      "planChangeTitle": "Treci la un plan nou",
+      "trialTitle": "Încă {days} {unit} de probă",
+      "rebateTitle": "{amount} înapoi din ultima plată",
+      "afterPause": "Începe când abonamentul se reia.",
+      "afterTrial": "Începe cu prima perioadă de facturare plătită.",
+      "withPlanChange": "Se aplică noului tău plan."
+    }
+  }
+}

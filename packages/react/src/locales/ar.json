@@ -1,0 +1,103 @@
+{
+  "common": {
+    "continue": "متابعة",
+    "back": "رجوع",
+    "close": "إغلاق",
+    "done": "تم",
+    "processing": "جارٍ المعالجة...",
+    "tryAgain": "حاول مرة أخرى",
+    "loading": "جارٍ تحميل خياراتك...",
+    "loadError": "تعذّر تحميل خيارات الإلغاء. يُرجى المحاولة مرة أخرى.",
+    "error": "حدث خطأ ما. يُرجى المحاولة مرة أخرى.",
+    "day": "يوم",
+    "days": "أيام",
+    "month": "شهر",
+    "months": "أشهر"
+  },
+  "survey": {
+    "title": "لماذا تريد الإلغاء؟",
+    "followupPlaceholder": "أخبرنا المزيد (اختياري)",
+    "followupAriaLabel": "تفاصيل إضافية"
+  },
+  "feedback": {
+    "title": "هل لديك ملاحظات أخرى؟",
+    "placeholder": "اكتب رأيك…",
+    "placeholderWithMin": "{minLength} أحرف على الأقل…"
+  },
+  "confirm": {
+    "title": "تأكيد الإلغاء",
+    "lossesLabel": "ستفقد إمكانية الوصول إلى:",
+    "cta": "إلغاء الاشتراك",
+    "goBack": "رجوع",
+    "periodEndNotice": {
+      "atPeriodEnd": "يستمر وصولك حتى {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "أهلًا بعودتك!",
+      "description": "تم تطبيق عرضك.",
+      "discount": {
+        "title": "تم تطبيق الخصم.",
+        "description": "يسعدنا جدًا بقاؤك معنا."
+      },
+      "pause": {
+        "title": "تم إيقاف الاشتراك.",
+        "description": "لن يتم تحصيل أي مبلغ منك حتى يُستأنف اشتراكك.",
+        "resumeDescription": "لن يتم تحصيل أي مبلغ منك مجددًا حتى {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "تم تمديد التجربة.",
+        "description": "تم تمديد فترتك التجريبية بنجاح."
+      },
+      "plan_change": {
+        "title": "تم تغيير الخطة.",
+        "description": "أصبحت باقتك الجديدة سارية الآن."
+      },
+      "rebate": {
+        "title": "تم إصدار المبلغ المسترد.",
+        "description": "أموالك في طريقها إليك."
+      },
+      "stacked": {
+        "title": "تم تطبيق العروض.",
+        "description": "يسعدنا جدًا بقاؤك معنا.",
+        "afterPauseDescription": "يبدأ عرضك الثاني عند استئناف اشتراكك.",
+        "afterTrialDescription": "يبدأ عرضك الثاني عند انتهاء فترتك التجريبية.",
+        "failedDescription": {
+          "discount": "تعذّر تطبيق الخصم. سنتولى الأمر ونُعلمك.",
+          "pause": "تعذّر إيقاف اشتراكك مؤقتًا. سنتولى الأمر ونُعلمك.",
+          "trial_extension": "تعذّر تمديد فترتك التجريبية. سنتولى الأمر ونُعلمك.",
+          "plan_change": "تعذّر تغيير باقتك. سنتولى الأمر ونُعلمك.",
+          "rebate": "تعذّر إصدار المبلغ المسترد. سنتولى الأمر ونُعلمك."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "تم إلغاء الاشتراك",
+      "description": "يؤسفنا رحيلك."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "عرض لفترة محدودة",
+    "pauseEyebrow": "نراك مجددًا في",
+    "newEndDateLabel": "تاريخ الانتهاء الجديد",
+    "currentPlanBadge": "الحالية",
+    "switchToCta": "التبديل إلى {planName}",
+    "rebate": {
+      "paidLabel": "ما دفعته في هذه الفترة",
+      "moneyBackLabel": "المبلغ المسترد",
+      "inclTax": "(شامل ضريبة {amount})",
+      "netLabel": "صافي ما تدفعه لهذه الفترة"
+    },
+    "stacked": {
+      "acceptCta": "قبول العرضين",
+      "pauseTitle": "إيقاف اشتراكك مؤقتًا",
+      "planChangeTitle": "التبديل إلى باقة جديدة",
+      "trialTitle": "{days} {unit} إضافية لفترتك التجريبية",
+      "rebateTitle": "استرداد {amount} من دفعتك الأخيرة",
+      "afterPause": "يبدأ عند استئناف اشتراكك.",
+      "afterTrial": "يبدأ مع أول فترة فوترة مدفوعة.",
+      "withPlanChange": "ينطبق على باقتك الجديدة."
+    }
+  }
+}
