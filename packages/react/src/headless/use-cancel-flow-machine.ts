@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChurnkeyApi } from '../core/api'
 import { CancelFlowMachine } from '../core/machine'
+import { resolveLocale } from '../core/messages'
 import { decodeSessionToken } from '../core/token'
 import type { FlowCallbacks, FlowConfig, FlowState } from '../core/types'
 
@@ -86,7 +87,7 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
       // Read through the ref, not the closure: an inline `customerAttributes`
       // object literal would otherwise join the dep list and re-fetch (and
       // reset the flow) on every render.
-      .fetchConfig(callbacksRef.current.customerAttributes)
+      .fetchConfig(callbacksRef.current.customerAttributes, resolveLocale(callbacksRef.current.i18n?.locale))
       .then((sdkConfig) => {
         if (cancelled) return
         machine.initializeFromConfig(sdkConfig, api, creds)

@@ -733,8 +733,9 @@ export interface FlowConfig extends FlowCallbacks {
   /**
    * Locale and message overrides for the SDK's own strings (buttons, loading
    * and confirmation chrome). Flow content — step titles, offer copy — is
-   * authored in the dashboard and localized server-side; override it there or
-   * via `steps`. Read once at mount, like `steps`.
+   * authored in the dashboard and localized server-side into `locale` (or the
+   * browser language) by Automatic Translations; override it there or via
+   * `steps`. Read once at mount, like `steps`.
    */
   i18n?: I18nConfig
   /**

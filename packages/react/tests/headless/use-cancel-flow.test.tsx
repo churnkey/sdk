@@ -42,6 +42,7 @@ describe('useCancelFlow', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.restoreAllMocks()
     console.error = originalError
   })
 
@@ -93,7 +94,37 @@ describe('useCancelFlow', () => {
     })
     const [url, init] = fetchMock.mock.calls[0]
     expect(String(url)).toContain('/cancel-flow/config')
-    expect(JSON.parse(init.body)).toEqual({ customAttributes: { videosCreated: 28 } })
+    expect(JSON.parse(init.body)).toMatchObject({ customAttributes: { videosCreated: 28 } })
+  })
+
+  // The server reads flow copy from the blueprint's Automatic Translations
+  // for this language. Without it every connected-mode flow rendered the
+  // source language regardless of the customer's locale.
+  it('sends i18n.locale as the config request language', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => goodResponse } as Response)
+
+    await act(async () => {
+      renderHook(() => useCancelFlow({ session: TOKEN, i18n: { locale: 'es-MX' } }))
+    })
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ language: 'es-MX' })
+  })
+
+  it('falls back to the browser language when i18n.locale is unset', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => goodResponse } as Response)
+    vi.spyOn(navigator, 'language', 'get').mockReturnValue('tr-TR')
+
+    await act(async () => {
+      renderHook(() => useCancelFlow({ session: TOKEN }))
+    })
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ language: 'tr-TR' })
   })
 
   it('asks for pairs of offers only when the UI says it shows them', async () => {
