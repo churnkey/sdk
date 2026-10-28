@@ -15,7 +15,7 @@ import type {
 import { AnalyticsClient, directDataToSessionCustomer, toApiMode } from './api'
 import type { SdkConfig } from './api-types'
 import { applyMergeFieldsToSteps } from './merge-fields'
-import { buildMessages, type CancelFlowMessages, type I18nConfig } from './messages'
+import { buildMessages, type CancelFlowMessages, type I18nConfig, type MessagesPatch } from './messages'
 import { buildStepGraph, type ResolvedStep, type StepGraph } from './step-graph'
 import type { SessionCredentials } from './token'
 import { defaultOfferCopy, transformSdkConfig } from './transform'
@@ -335,6 +335,10 @@ export class CancelFlowMachine {
   private customStepResults: Record<string, unknown> = {}
   private configMode: Mode = 'live'
   private i18nConfig: I18nConfig | undefined
+  // Language the chrome renders in. Starts as the explicit `i18n.locale` or
+  // English; the hook settles it once it knows what the content is in.
+  private locale: string
+  private localePack: MessagesPatch | undefined
   private localCancelAtPeriodEnd: boolean | null = null
   private resolvedMessages: CancelFlowMessages
   private stepEnteredAt: number = Date.now()
@@ -349,7 +353,8 @@ export class CancelFlowMachine {
     // every callback by name without a separate copy.
     this.callbacks = config
     this.i18nConfig = config.i18n
-    this.resolvedMessages = buildMessages(config.i18n)
+    this.locale = config.i18n?.locale ?? 'en'
+    this.resolvedMessages = this.resolveMessages()
     // Local mode only — in token mode the server-resolved value is
     // authoritative, and when the server omits it the timing must stay
     // unknown rather than silently adopting the local claim. `null` copy
@@ -586,9 +591,7 @@ export class CancelFlowMachine {
 
     // Re-resolve with the org's dashboard-configured overrides, which ride
     // along on the config payload. Developer i18n.messages still win.
-    if (config.translations) {
-      this.resolvedMessages = buildMessages(this.i18nConfig, config.translations)
-    }
+    if (config.translations) this.resolvedMessages = this.resolveMessages()
 
     const result = transformSdkConfig(config)
     this.blueprintId = result.blueprintId
@@ -602,6 +605,27 @@ export class CancelFlowMachine {
     const first = this.firstStep()
     if (first) this.trackStepEnter(first)
     this.notify()
+  }
+
+  /**
+   * Switch the chrome to `locale`, with its built-in translation (a separate
+   * chunk, so it lands after construction). Called by the hook once the
+   * language is settled; the catalog is re-resolved with the pack under the
+   * org and developer layers.
+   * @internal
+   */
+  setLocale(locale: string, pack: MessagesPatch | undefined): void {
+    this.locale = locale
+    this.localePack = pack
+    this.resolvedMessages = this.resolveMessages()
+    // Messages live outside FlowState, so a fresh snapshot is what makes
+    // useSyncExternalStore subscribers re-render.
+    this.cachedSnapshot = { ...this.state }
+    this.notify()
+  }
+
+  private resolveMessages(): CancelFlowMessages {
+    return buildMessages({ ...this.i18nConfig, locale: this.locale }, this.config?.translations, this.localePack)
   }
 
   // --- Internal helpers ---

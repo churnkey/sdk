@@ -121,6 +121,25 @@ describe('resolveLocale / buildMessages', () => {
     expect(resolved.common.close).toBe('Close')
   })
 
+  it('does not read the browser language: unset means English', () => {
+    vi.stubGlobal('navigator', { language: 'fr-CA' })
+    const resolved = buildMessages({ messages: { fr: { common: { continue: 'Continuer' } } } })
+    expect(resolved.common.continue).toBe('Continue')
+  })
+
+  it('keeps an English override under the built-in pack, so it never leaks into another language', () => {
+    const pack = { common: { continue: 'Continuar', back: 'Atrás' } }
+    const resolved = buildMessages(
+      { locale: 'es', messages: { en: { common: { continue: 'Keep going', close: 'Dismiss' } } } },
+      { en: { common: { back: 'Go back' } }, es: { common: { back: 'Volver' } } },
+      pack,
+    )
+    expect(resolved.common.continue).toBe('Continuar')
+    expect(resolved.common.back).toBe('Volver')
+    // No pack string for it: the English edit shows through.
+    expect(resolved.common.close).toBe('Dismiss')
+  })
+
   it('matches locale keys case-insensitively', () => {
     const resolved = buildMessages({
       locale: 'pt-br',

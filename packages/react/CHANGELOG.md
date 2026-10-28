@@ -2,6 +2,19 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## Unreleased
+
+### Added
+
+- Built-in translations of the SDK's own strings (buttons, loading, confirm and success copy) in the same 50 languages the embed ships. Only the pack for the language in use is loaded, as its own chunk; English visitors download nothing extra. Dashboard SDK translations still override the pack, and `i18n.messages` still override both.
+
+### Changed
+
+- The chrome follows the content. In connected mode the config response now says which language the flow copy came back in (`language`; the API echoes it when the org's Automatic Translations covered the request), and the SDK takes its own strings from that. Without an explicit `i18n.locale` the browser language is only a request: when the server keeps the source copy, the buttons stay English too, where before they followed the browser language on their own. Local mode no longer reads the browser language at all; set `i18n.locale` to the language your steps are in.
+- `i18n` is read once at mount, as documented; a later `i18n.locale` no longer refetches the config and restarts the flow. Remount to switch language.
+- An `en` entry in `i18n.messages` or the dashboard translations no longer shows through in another language where a translation exists.
+- In local mode `isLoading` is true while a non-English pack loads the first time; a remount in the same language starts in that language at once.
+
 ## 0.9.1 - 2026-10-28
 
 ### Fixed

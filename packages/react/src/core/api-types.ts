@@ -19,6 +19,13 @@ export interface SdkConfig {
    * `i18n.messages`.
    */
   translations?: Record<string, MessagesPatch>
+  /**
+   * Language the flow copy came back in, when the request asked for one and
+   * the org's Automatic Translations covered it. Absent when the copy is in
+   * the source language; the chrome then stays English unless `i18n.locale`
+   * is explicit.
+   */
+  language?: string
   /** Bandit key used for auto-optimization, if it ran. */
   autoOptimizationKey?: string
 }
