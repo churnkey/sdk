@@ -1,0 +1,195 @@
+name: Release
+
+# Publishes a package when a merge to main raises its package.json version.
+# The version bump and CHANGELOG entry are made by hand in the PR, so the
+# merge is the release decision; this carries it out: npm publish (trusted
+# publishing, so no token lives in this repo), a `<name>@<version>` tag on the
+# commit that set the version, and a GitHub release from the CHANGELOG section.
+# `workflow_dispatch` runs the same plan, which also picks up a release that
+# stopped partway (published but not tagged, tagged but no release).
+#
+# Three jobs so that nothing that runs dependency code sits next to a token
+# that can publish: `plan` reads, `build` installs, tests and packs with read
+# access only, `publish` takes the tarball and holds the write scopes.
+on:
+  push:
+    branches: [main]
+    paths: ['packages/*/package.json']
+  workflow_dispatch:
+
+# Two merges in a row must not publish in parallel.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    # `bash` here means `-e -o pipefail`; the default shell has no pipefail,
+    # so a failing command behind a pipe would pass the step.
+    shell: bash
+
+jobs:
+  plan:
+    # A manual run from another branch must not publish unreviewed code.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.plan.outputs.packages }}
+      builds: ${{ steps.plan.outputs.builds }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0 # the plan walks history to find the version commit
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/release-plan.mjs
+
+  # Same gate as CI, on the exact build that ships. Read-only: the dependency
+  # lifecycle scripts and the test suite run here, with no OIDC and no write
+  # token in reach.
+  build:
+    needs: plan
+    if: github.ref == 'refs/heads/main' && needs.plan.outputs.builds != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.builds) }}
+    env:
+      NAME: ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ matrix.sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint, typecheck, test, build
+        run: |
+          pnpm lint
+          pnpm turbo typecheck test build --filter "$NAME..."
+      - name: Pack
+        working-directory: ${{ matrix.dir }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/tarball" # npm pack does not create it
+          npm pack --pack-destination "$RUNNER_TEMP/tarball"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: tarball-${{ matrix.slug }}
+          path: ${{ runner.temp }}/tarball/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: [plan, build]
+    # Runs when build passed or had nothing to do (every planned package is
+    # already on npm and only needs its tag and release).
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.plan.result == 'success' && needs.plan.outputs.packages != '[]' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    # The environment is limited to main in the repo settings and named in the
+    # npm trusted publisher config, so a token minted from any other ref, even
+    # by an edited copy of this file, is not accepted by npm.
+    environment: release
+    permissions:
+      contents: write # tag and GitHub release
+      id-token: write # npm trusted publishing
+      actions: write # dispatch the MCP registry workflow
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.packages) }}
+    env:
+      NAME: ${{ matrix.name }}
+      VERSION: ${{ matrix.version }}
+      DIR: ${{ matrix.dir }}
+      TAG: ${{ matrix.tag }}
+      SHA: ${{ matrix.sha }}
+    steps:
+      # For the CHANGELOG and the remote URL only. No install happens here.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ matrix.sha }}
+          persist-credentials: false
+      # Node 24 for its npm: trusted publishing needs npm 11.5.1 or newer.
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        if: ${{ !matrix.published }}
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: ${{ !matrix.published }}
+        with:
+          name: tarball-${{ matrix.slug }}
+          path: ${{ runner.temp }}/tarball
+
+      # The registry caches the packument for five minutes, so a version the
+      # previous run just published can still look absent here. npm's refusal
+      # to publish over it is then the signal, not a failure.
+      - name: Publish to npm
+        if: ${{ !matrix.published }}
+        working-directory: ${{ runner.temp }}/tarball
+        run: |
+          if [ "$(npm view "$NAME@$VERSION" version 2>/dev/null)" = "$VERSION" ]; then
+            echo "$TAG is already on npm."
+            exit 0
+          fi
+          if ! npm publish ./*.tgz --access public --provenance 2>&1 | tee publish.log; then
+            if grep -qE 'cannot publish over|previously published|EPUBLISHCONFLICT' publish.log; then
+              echo "$TAG is already on npm."
+              exit 0
+            fi
+            exit 1
+          fi
+
+      # `gh release create --target` makes the tag. A tag someone pushed by
+      # hand wins (the package on npm was built from it), with a warning when
+      # it is not on the version commit.
+      - name: GitHub release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists."
+            echo "created_tag=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Peeled, so an annotated tag reports its commit.
+          existing=$(git ls-remote origin "refs/tags/$TAG" "refs/tags/$TAG^{}" | tail -n1 | cut -f1)
+          if [ -n "$existing" ] && [ "$existing" != "$SHA" ]; then
+            echo "::warning::Tag $TAG is at $existing, not the version commit $SHA; releasing from the tag."
+          fi
+          # The CHANGELOG section for this version, heading excluded.
+          awk -v v="$VERSION" '
+            /^## / { if (on) exit; on = index($0, "## " v " ") == 1 || $0 == "## " v; next }
+            on { print }
+          ' "$DIR/CHANGELOG.md" > notes.md
+          if [ ! -s notes.md ]; then
+            echo "No CHANGELOG section for $VERSION in $DIR/CHANGELOG.md." > notes.md
+          fi
+          gh release create "$TAG" --target "$SHA" --title "$TAG" --notes-file notes.md --latest=false
+          if [ -z "$existing" ]; then
+            echo "created_tag=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "created_tag=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # A tag pushed with GITHUB_TOKEN does not fire tag-triggered workflows,
+      # so dispatch it. Only when this run made the tag: a hand-pushed one
+      # already ran it through `on: push: tags`.
+      - name: Publish MCP registry record
+        if: matrix.name == '@churnkey/mcp' && steps.release.outputs.created_tag == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run publish-mcp-registry.yml --ref "$TAG"
