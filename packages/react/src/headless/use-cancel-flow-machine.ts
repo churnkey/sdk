@@ -9,6 +9,7 @@ import { CancelFlowMachine } from '../core/machine'
 import { resolveLocale } from '../core/messages'
 import { decodeSessionToken } from '../core/token'
 import type { FlowCallbacks, FlowConfig, FlowState } from '../core/types'
+import { hasLocalePack, loadLocaleMessages, peekLocaleMessages } from '../locales'
 
 const HANDLER_NAMES = [
   'handleDiscount',
@@ -45,6 +46,10 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
   const callbacksRef = useRef(config)
   callbacksRef.current = config
 
+  // `i18n` is read once at mount, like `steps`: the machine keeps the
+  // messages and a locale change would otherwise restart the flow.
+  const [explicitLocale] = useState(() => config.i18n?.locale)
+
   const [machine] = useState(() => {
     const cb = callbacksRef
     const dispatch: FlowCallbacks = {
@@ -64,17 +69,41 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
     for (const name of HANDLER_NAMES) {
       Object.defineProperty(machineConfig, name, { get: () => cb.current[name], enumerable: true })
     }
-    return new CancelFlowMachine(machineConfig)
+    const machine = new CancelFlowMachine(machineConfig)
+    // A pack an earlier mount already loaded goes on before the first render,
+    // so reopening the flow does not flash a spinner or English.
+    const cached = explicitLocale && peekLocaleMessages(explicitLocale)
+    if (cached) machine.setLocale(explicitLocale, cached)
+    return machine
   })
 
   const [state, setState] = useState<FlowState>(() => machine.getSnapshot())
-  const [isLoading, setIsLoading] = useState(!!config.session)
+  // Local modes with an explicit, non-English locale wait for its pack (a
+  // separate chunk) so the first step never shows in English. The server
+  // render and the first client render both see no cached pack, so they
+  // agree on the spinner.
+  const awaitingLocalPack =
+    !config.session && !!explicitLocale && hasLocalePack(explicitLocale) && !peekLocaleMessages(explicitLocale)
+  const [isLoading, setIsLoading] = useState(!!config.session || awaitingLocalPack)
   const [loadError, setLoadError] = useState<Error | null>(null)
 
   useEffect(() => {
     setState(machine.getSnapshot())
     return machine.subscribe(() => setState(machine.getSnapshot()))
   }, [machine])
+
+  useEffect(() => {
+    if (config.session || !explicitLocale || !hasLocalePack(explicitLocale)) return
+    let cancelled = false
+    loadLocaleMessages(explicitLocale).then((pack) => {
+      if (cancelled) return
+      machine.setLocale(explicitLocale, pack)
+      setIsLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [config.session, explicitLocale, machine])
 
   const loadConfig = useCallback(() => {
     if (!config.session) return
@@ -83,13 +112,30 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
     let cancelled = false
     const creds = decodeSessionToken(config.session)
     const api = new ChurnkeyApi(creds, config.apiBaseUrl, callbacksRef.current.stackedOffers)
-    api
+    // The server translates the flow into `language` when the org's Automatic
+    // Translations cover it, and says so on the response. An explicit locale
+    // is the chrome language regardless, so its pack goes on as soon as it
+    // lands (even the loading copy is translated). A detected one is only a
+    // guess until the server answers: the pack is fetched alongside the config
+    // and applied when the content came back in that language, so the chrome
+    // never switches language on its own.
+    const language = resolveLocale(explicitLocale)
+    const pack = loadLocaleMessages(language)
+    if (explicitLocale) {
+      pack.then((messages) => {
+        if (!cancelled) machine.setLocale(explicitLocale, messages)
+      })
+    }
+    Promise.all([
       // Read through the ref, not the closure: an inline `customerAttributes`
       // object literal would otherwise join the dep list and re-fetch (and
       // reset the flow) on every render.
-      .fetchConfig(callbacksRef.current.customerAttributes, resolveLocale(callbacksRef.current.i18n?.locale))
-      .then((sdkConfig) => {
+      api.fetchConfig(callbacksRef.current.customerAttributes, language),
+      pack,
+    ])
+      .then(([sdkConfig, messages]) => {
         if (cancelled) return
+        if (!explicitLocale && sdkConfig.language) machine.setLocale(sdkConfig.language, messages)
         machine.initializeFromConfig(sdkConfig, api, creds)
         setIsLoading(false)
       })
@@ -101,7 +147,7 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
     return () => {
       cancelled = true
     }
-  }, [config.session, config.apiBaseUrl, machine])
+  }, [config.session, config.apiBaseUrl, explicitLocale, machine])
 
   useEffect(() => {
     if (!config.session) return
