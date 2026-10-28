@@ -82,7 +82,9 @@ jobs:
           pnpm turbo typecheck test build --filter "$NAME..."
       - name: Pack
         working-directory: ${{ matrix.dir }}
-        run: npm pack --pack-destination "$RUNNER_TEMP/tarball"
+        run: |
+          mkdir -p "$RUNNER_TEMP/tarball" # npm pack does not create it
+          npm pack --pack-destination "$RUNNER_TEMP/tarball"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: tarball-${{ matrix.slug }}
@@ -94,7 +96,7 @@ jobs:
     needs: [plan, build]
     # Runs when build passed or had nothing to do (every planned package is
     # already on npm and only needs its tag and release).
-    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.plan.outputs.packages != '[]' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.plan.result == 'success' && needs.plan.outputs.packages != '[]' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
     runs-on: ubuntu-latest
     # The environment is limited to main in the repo settings and named in the
     # npm trusted publisher config, so a token minted from any other ref, even
