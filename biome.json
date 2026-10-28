@@ -44,6 +44,6 @@
     }
   },
   "files": {
-    "includes": ["packages/*/src/**", "packages/*/tests/**", "apps/*/src/**", "scripts/**"]
+    "includes": ["packages/*/src/**", "packages/*/tests/**", "apps/*/src/**", "scripts/**", ".github/scripts/**"]
   }
 }

@@ -1,11 +1,12 @@
 name: Release
 
-# Publishes a package when a merge to main raises its package.json version
-# above what npm has. The version bump and CHANGELOG entry are made by hand in
-# the PR, so the merge is the release decision; this carries it out: publish
-# to npm (trusted publishing, so no token lives in this repo), tag, and cut a
-# GitHub release from the CHANGELOG section. `workflow_dispatch` re-runs the
-# same check for a release that failed partway.
+# Publishes a package when a merge to main raises its package.json version.
+# The version bump and CHANGELOG entry are made by hand in the PR, so the
+# merge is the release decision; this carries it out: npm publish (trusted
+# publishing, so no token lives in this repo), a `<name>@<version>` tag on the
+# commit that set the version, and a GitHub release from the CHANGELOG section.
+# `workflow_dispatch` runs the same plan, which also picks up a release that
+# stopped partway (published but not tagged, tagged but no release).
 on:
   push:
     branches: [main]
@@ -18,45 +19,37 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write # tags and GitHub releases
-  id-token: write # npm trusted publishing
-  actions: write # dispatch the MCP registry workflow
+  contents: read
 
 jobs:
   plan:
+    # A manual run from another branch must not publish unreviewed code.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.plan.outputs.packages }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0 # the plan walks history to find the version commit
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
       - id: plan
-        run: node .github/scripts/release-plan.mjs >> "$GITHUB_OUTPUT"
-
-  # Same gate as CI, run here so a release never rides on a check that ran in
-  # another workflow and might still be going.
-  verify:
-    needs: plan
-    if: needs.plan.outputs.packages != '[]'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/release-plan.mjs
 
   publish:
-    needs: [plan, verify]
+    needs: plan
+    if: github.ref == 'refs/heads/main' && needs.plan.outputs.packages != '[]'
     runs-on: ubuntu-latest
+    # Only this job can publish, tag or dispatch. `plan` and the install/test
+    # steps' dependency scripts never see these scopes.
+    permissions:
+      contents: write # tag and GitHub release
+      id-token: write # npm trusted publishing
+      actions: write # dispatch the MCP registry workflow
     strategy:
       fail-fast: false
       matrix:
@@ -66,39 +59,67 @@ jobs:
       VERSION: ${{ matrix.version }}
       DIR: ${{ matrix.dir }}
       TAG: ${{ matrix.tag }}
-      GH_TOKEN: ${{ github.token }}
+      SHA: ${{ matrix.sha }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ matrix.sha }}
+      # A version already on npm only needs its tag and release; nothing is
+      # built or published for it, so the install and gate are skipped.
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        if: ${{ !matrix.published }}
       # Node 24 for its npm: trusted publishing needs npm 11.5.1 or newer.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        if: ${{ !matrix.published }}
         with:
           node-version: 24
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm turbo build --filter "$NAME"
+      - if: ${{ !matrix.published }}
+        run: pnpm install --frozen-lockfile
 
-      - name: Publish to npm
-        working-directory: ${{ matrix.dir }}
-        run: npm publish --access public --provenance
-
-      # Pushing the tag from here does not fire the tag-triggered workflows
-      # (GITHUB_TOKEN events never start other runs), hence the explicit
-      # dispatch of the MCP registry workflow below.
-      - name: Tag
+      # Same gate as CI, on the build that ships: this job publishes the dist
+      # it just tested, nothing is rebuilt elsewhere.
+      - name: Lint, typecheck, test, build
+        if: ${{ !matrix.published }}
         run: |
-          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
-            echo "Tag $TAG already exists."
-          else
-            git tag "$TAG"
-            git push origin "refs/tags/$TAG"
+          pnpm lint
+          pnpm turbo typecheck test build --filter "$NAME..."
+
+      # The registry caches the packument for five minutes, so a version the
+      # previous run just published can still look absent here. npm's refusal
+      # to publish over it is then the signal, not a failure.
+      - name: Publish to npm
+        if: ${{ !matrix.published }}
+        working-directory: ${{ matrix.dir }}
+        run: |
+          if [ "$(npm view "$NAME@$VERSION" version 2>/dev/null)" = "$VERSION" ]; then
+            echo "$TAG is already on npm."
+            exit 0
+          fi
+          if ! npm publish --access public --provenance 2>&1 | tee publish.log; then
+            if grep -qE 'cannot publish over|previously published|EPUBLISHCONFLICT' publish.log; then
+              echo "$TAG is already on npm."
+              exit 0
+            fi
+            exit 1
           fi
 
+      # `gh release create --target` makes the tag. A tag someone pushed by
+      # hand wins (the package on npm was built from it), with a warning when
+      # it is not on the version commit.
       - name: GitHub release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG already exists."
+            echo "created_tag=false" >> "$GITHUB_OUTPUT"
             exit 0
+          fi
+          existing=$(git ls-remote --tags origin "refs/tags/$TAG" | cut -f1)
+          if [ -n "$existing" ] && [ "$existing" != "$SHA" ]; then
+            echo "::warning::Tag $TAG is at $existing, not the version commit $SHA; releasing from the tag."
           fi
           # The CHANGELOG section for this version, heading excluded.
           awk -v v="$VERSION" '
@@ -108,8 +129,18 @@ jobs:
           if [ ! -s notes.md ]; then
             echo "No CHANGELOG section for $VERSION in $DIR/CHANGELOG.md." > notes.md
           fi
-          gh release create "$TAG" --title "$TAG" --notes-file notes.md
+          gh release create "$TAG" --target "$SHA" --title "$TAG" --notes-file notes.md --latest=false
+          if [ -z "$existing" ]; then
+            echo "created_tag=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "created_tag=false" >> "$GITHUB_OUTPUT"
+          fi
 
+      # A tag pushed with GITHUB_TOKEN does not fire tag-triggered workflows,
+      # so dispatch it. Only when this run made the tag: a hand-pushed one
+      # already ran it through `on: push: tags`.
       - name: Publish MCP registry record
-        if: matrix.name == '@churnkey/mcp'
+        if: matrix.name == '@churnkey/mcp' && steps.release.outputs.created_tag == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: gh workflow run publish-mcp-registry.yml --ref "$TAG"
