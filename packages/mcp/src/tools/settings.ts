@@ -4,8 +4,16 @@ import type { ToolDefinition } from './types'
 
 const stripeSettingsUpdates = z
   .object({
-    planChangeProrate: z.boolean().optional().describe('Apply proration on plan changes.'),
-    planChangeImmediate: z.boolean().optional().describe('Apply plan changes immediately vs end of cycle.'),
+    planChangeProrate: z
+      .boolean()
+      .optional()
+      .describe('Apply proration on plan changes. No effect on Stripe while planChangeImmediate is false.'),
+    planChangeImmediate: z
+      .boolean()
+      .optional()
+      .describe(
+        'Apply cancel flow plan changes immediately (true) or at the end of the billing term (false). Read by Stripe, Chargebee and Paddle Billing; no effect on Braintree or Paddle Classic.',
+      ),
     cancelImmediate: z
       .boolean()
       .optional()

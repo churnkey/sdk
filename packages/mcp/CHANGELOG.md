@@ -2,6 +2,12 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- `update_stripe_settings` describes `planChangeImmediate` as applying cancel flow plan changes at the end of the billing term when false, and names the providers that read it: Stripe, Chargebee and Paddle Billing. It used to say "end of cycle" with no provider, while Stripe ignored the setting, so an agent could tell a Stripe merchant their plan changes would wait when they did not. Stripe now honours it. `planChangeProrate` notes that it has no effect on Stripe while `planChangeImmediate` is false.
+
 ## 2.4.0 - 2026-10-27
 
 ### Changed
