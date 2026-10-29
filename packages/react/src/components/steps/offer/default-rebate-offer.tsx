@@ -20,6 +20,7 @@ export function DefaultRebateOffer({
   isProcessing,
   classNames,
   messages,
+  locale,
 }: OfferStepProps) {
   const msg = messages ?? defaultMessages
   const o = offer as RebateDecision
@@ -44,7 +45,7 @@ export function DefaultRebateOffer({
           {o.amountPaidMinor != null && (
             <div className="ck-offer-rebate-row">
               <span>{msg.offer.rebate.paidLabel}</span>
-              <span>{formatPriceFromMinor(o.amountPaidMinor, currency)}</span>
+              <span>{formatPriceFromMinor(o.amountPaidMinor, currency, locale)}</span>
             </div>
           )}
           <div className="ck-offer-rebate-row ck-offer-rebate-credit">
@@ -53,16 +54,18 @@ export function DefaultRebateOffer({
               {taxRefunded > 0 && (
                 <span className="ck-offer-rebate-tax">
                   {' '}
-                  {formatMessage(msg.offer.rebate.inclTax, { amount: formatPriceFromMinor(taxRefunded, currency) })}
+                  {formatMessage(msg.offer.rebate.inclTax, {
+                    amount: formatPriceFromMinor(taxRefunded, currency, locale),
+                  })}
                 </span>
               )}
             </span>
-            <span>−{formatPriceFromMinor(refund, currency)}</span>
+            <span>−{formatPriceFromMinor(refund, currency, locale)}</span>
           </div>
           {o.netAfterRebateMinor != null && (
             <div className="ck-offer-rebate-row ck-offer-rebate-total">
               <span>{msg.offer.rebate.netLabel}</span>
-              <span>{formatPriceFromMinor(o.netAfterRebateMinor, currency)}</span>
+              <span>{formatPriceFromMinor(o.netAfterRebateMinor, currency, locale)}</span>
             </div>
           )}
         </div>

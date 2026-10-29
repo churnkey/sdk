@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "Dalej",
+    "back": "Wstecz",
+    "close": "Zamknij",
+    "done": "Gotowe",
+    "processing": "Przetwarzanie...",
+    "tryAgain": "Spróbuj ponownie",
+    "loading": "Wczytywanie opcji...",
+    "loadError": "Nie udało się wczytać opcji anulowania. Prosimy spróbować ponownie.",
+    "error": "Coś poszło nie tak. Prosimy spróbować ponownie.",
+    "day": "dzień",
+    "days": "dni",
+    "month": "miesiąc",
+    "months": "miesięcy"
+  },
+  "survey": {
+    "title": "Jaki jest powód rezygnacji?",
+    "followupPlaceholder": "Więcej szczegółów (opcjonalnie)",
+    "followupAriaLabel": "Dodatkowe informacje"
+  },
+  "feedback": {
+    "title": "Jakieś inne uwagi?",
+    "placeholder": "Treść opinii…",
+    "placeholderWithMin": "Co najmniej {minLength} znaków…"
+  },
+  "confirm": {
+    "title": "Potwierdzenie rezygnacji",
+    "lossesLabel": "Utracony zostanie dostęp do:",
+    "cta": "Anuluj subskrypcję",
+    "goBack": "Wróć",
+    "periodEndNotice": {
+      "atPeriodEnd": "Dostęp pozostaje aktywny do {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Witamy z powrotem!",
+      "description": "Oferta została zastosowana.",
+      "discount": {
+        "title": "Zniżka zastosowana.",
+        "description": "Bardzo się cieszymy, że nadal jesteśmy razem."
+      },
+      "pause": {
+        "title": "Subskrypcja wstrzymana.",
+        "description": "Opłaty nie będą pobierane do czasu wznowienia subskrypcji.",
+        "resumeDescription": "Kolejna opłata zostanie pobrana najwcześniej {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Okres próbny przedłużony.",
+        "description": "Okres próbny został pomyślnie przedłużony."
+      },
+      "plan_change": {
+        "title": "Plan zmieniony.",
+        "description": "Nowy plan jest już aktywny."
+      },
+      "rebate": {
+        "title": "Zwrot zlecony.",
+        "description": "Pieniądze są już w drodze."
+      },
+      "stacked": {
+        "title": "Oferty zastosowane.",
+        "description": "Bardzo się cieszymy, że nadal jesteśmy razem.",
+        "afterPauseDescription": "Druga oferta zacznie obowiązywać po wznowieniu subskrypcji.",
+        "afterTrialDescription": "Druga oferta zacznie obowiązywać po zakończeniu okresu próbnego.",
+        "failedDescription": {
+          "discount": "Nie udało się zastosować rabatu. Zajmiemy się tym i damy znać.",
+          "pause": "Nie udało się wstrzymać subskrypcji. Zajmiemy się tym i damy znać.",
+          "trial_extension": "Nie udało się przedłużyć okresu próbnego. Zajmiemy się tym i damy znać.",
+          "plan_change": "Nie udało się zmienić planu. Zajmiemy się tym i damy znać.",
+          "rebate": "Nie udało się zrealizować zwrotu. Zajmiemy się tym i damy znać."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Subskrypcja anulowana",
+      "description": "Szkoda, że to już koniec."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Oferta ograniczona czasowo",
+    "pauseEyebrow": "Do zobaczenia {date}",
+    "newEndDateLabel": "Nowa data zakończenia",
+    "currentPlanBadge": "Obecny",
+    "switchToCta": "Przejdź na {planName}",
+    "rebate": {
+      "paidLabel": "Opłacono za ten okres",
+      "moneyBackLabel": "Zwrot środków",
+      "inclTax": "(w tym podatek: {amount})",
+      "netLabel": "Koszt netto za ten okres"
+    },
+    "stacked": {
+      "acceptCta": "Skorzystaj z obu ofert",
+      "pauseTitle": "Wstrzymanie subskrypcji",
+      "planChangeTitle": "Przejście na nowy plan",
+      "trialTitle": "Okres próbny dłuższy o {days} {unit}",
+      "rebateTitle": "Zwrot {amount} za ostatnią płatność",
+      "afterPause": "Start po wznowieniu subskrypcji.",
+      "afterTrial": "Start wraz z pierwszym płatnym okresem rozliczeniowym.",
+      "withPlanChange": "Dotyczy nowego planu."
+    },
+    "discount": {
+      "percentOff": "{percent}% zniżki",
+      "amountOff": "{amount} zniżki",
+      "unspecified": "Zniżka",
+      "nextRenewal": "{discount} przy następnym odnowieniu",
+      "forLife": "{discount} na zawsze",
+      "forMonths": "{discount} przez {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Co powiecie na {percent}% zniżki?",
+        "body": "Chcemy zaproponować Wam {percent}% zniżki przez {months} {unit}.",
+        "headlineNoAmount": "Oferta specjalna",
+        "bodyNoAmount": "Chcemy zaproponować Wam zniżkę.",
+        "cta": "Skorzystaj z oferty"
+      },
+      "pause": {
+        "headline": "Może zamiast tego przerwa?",
+        "body": "Wstrzymaj subskrypcję nawet na {months} {unit}.",
+        "cta": "Wstrzymaj subskrypcję"
+      },
+      "plan_change": {
+        "headline": "Zmienić plan na inny?",
+        "body": "Mamy inne plany, które mogą lepiej pasować.",
+        "cta": "Zmień plan"
+      },
+      "trial_extension": {
+        "headline": "Potrzebujecie więcej czasu?",
+        "body": "Przedłużymy Wasz okres próbny o {days} {unit}.",
+        "cta": "Przedłuż okres próbny"
+      },
+      "contact": {
+        "headline": "Porozmawiajmy najpierw?",
+        "body": "Nasz zespół chętnie pomoże rozwiązać wszelkie problemy.",
+        "cta": "Skontaktuj się z pomocą"
+      },
+      "redirect": {
+        "headline": "Zanim odejdziecie...",
+        "body": "Zajrzyjcie tutaj — to może zmienić Wasze zdanie."
+      },
+      "rebate": {
+        "headline": "Odzyskaj pieniądze",
+        "body": "Zostańcie z nami, a zwrócimy część ostatniej płatności.",
+        "cta": "Przyjmij zwrot"
+      },
+      "custom": {
+        "headline": "Zanim odejdziecie...",
+        "body": "Mamy dla Was propozycję.",
+        "cta": "Przyjmij"
+      },
+      "declineCta": "Nie, dziękuję"
+    }
+  }
+}

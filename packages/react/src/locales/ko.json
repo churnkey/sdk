@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "계속",
+    "back": "뒤로",
+    "close": "닫기",
+    "done": "완료",
+    "processing": "처리 중...",
+    "tryAgain": "다시 시도",
+    "loading": "혜택을 불러오는 중...",
+    "loadError": "해지 옵션을 불러오지 못했어요. 다시 시도해 주세요.",
+    "error": "문제가 발생했어요. 다시 시도해 주세요.",
+    "day": "일",
+    "days": "일",
+    "month": "개월",
+    "months": "개월"
+  },
+  "survey": {
+    "title": "해지하시는 이유가 무엇인가요?",
+    "followupPlaceholder": "자세히 알려 주세요 (선택)",
+    "followupAriaLabel": "추가 설명"
+  },
+  "feedback": {
+    "title": "더 남기실 의견이 있나요?",
+    "placeholder": "의견을 입력해 주세요…",
+    "placeholderWithMin": "{minLength}자 이상 입력해 주세요…"
+  },
+  "confirm": {
+    "title": "해지 확인",
+    "lossesLabel": "다음 이용 권한이 사라져요:",
+    "cta": "구독 해지",
+    "goBack": "돌아가기",
+    "periodEndNotice": {
+      "atPeriodEnd": "{periodEnd}까지 계속 이용하실 수 있어요."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "다시 오신 것을 환영해요!",
+      "description": "혜택이 적용되었어요.",
+      "discount": {
+        "title": "할인이 적용되었습니다.",
+        "description": "계속 함께해 주셔서 정말 기뻐요."
+      },
+      "pause": {
+        "title": "구독이 일시 정지되었습니다.",
+        "description": "구독이 재개될 때까지 결제되지 않아요.",
+        "resumeDescription": "{resumeDate}까지 다시 결제되지 않아요."
+      },
+      "trial_extension": {
+        "title": "체험이 연장되었습니다.",
+        "description": "체험 기간이 연장되었어요."
+      },
+      "plan_change": {
+        "title": "요금제가 변경되었습니다.",
+        "description": "새 요금제가 적용되었어요."
+      },
+      "rebate": {
+        "title": "환불이 완료되었어요.",
+        "description": "환불금이 곧 입금될 거예요."
+      },
+      "stacked": {
+        "title": "혜택이 적용되었어요.",
+        "description": "계속 함께해 주셔서 정말 기뻐요.",
+        "afterPauseDescription": "두 번째 혜택은 구독이 재개될 때 시작돼요.",
+        "afterTrialDescription": "두 번째 혜택은 체험 기간이 끝나면 시작돼요.",
+        "failedDescription": {
+          "discount": "할인을 적용하지 못했어요. 저희가 처리한 후 알려 드릴게요.",
+          "pause": "구독을 일시중지하지 못했어요. 저희가 처리한 후 알려 드릴게요.",
+          "trial_extension": "체험 기간을 연장하지 못했어요. 저희가 처리한 후 알려 드릴게요.",
+          "plan_change": "요금제를 변경하지 못했어요. 저희가 처리한 후 알려 드릴게요.",
+          "rebate": "환불을 진행하지 못했어요. 저희가 처리한 후 알려 드릴게요."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "구독이 해지되었어요",
+      "description": "떠나시게 되어 아쉬워요."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "기간 한정 혜택",
+    "pauseEyebrow": "{date}에 다시 만나요",
+    "newEndDateLabel": "새 종료일",
+    "currentPlanBadge": "현재",
+    "switchToCta": "{planName}(으)로 변경",
+    "rebate": {
+      "paidLabel": "이번 기간 결제 금액",
+      "moneyBackLabel": "환불 금액",
+      "inclTax": "(세금 {amount} 포함)",
+      "netLabel": "이번 기간 실제 부담 금액"
+    },
+    "stacked": {
+      "acceptCta": "두 혜택 모두 받기",
+      "pauseTitle": "구독 일시중지",
+      "planChangeTitle": "새 요금제로 변경",
+      "trialTitle": "체험 기간 {days}{unit} 추가",
+      "rebateTitle": "지난 결제 금액 중 {amount} 환불",
+      "afterPause": "구독이 재개될 때 시작돼요.",
+      "afterTrial": "첫 유료 결제 기간부터 시작돼요.",
+      "withPlanChange": "새 요금제에 적용돼요."
+    },
+    "discount": {
+      "percentOff": "{percent}% 할인",
+      "amountOff": "{amount} 할인",
+      "unspecified": "할인 혜택",
+      "nextRenewal": "다음 갱신 시 {discount}",
+      "forLife": "평생 {discount}",
+      "forMonths": "{months}{unit} 동안 {discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}% 할인은 어때요?",
+        "body": "{months}{unit} 동안 {percent}% 할인해 드릴게요.",
+        "headlineNoAmount": "특별 혜택",
+        "bodyNoAmount": "할인 혜택을 드리고 싶어요.",
+        "cta": "혜택 받기"
+      },
+      "pause": {
+        "headline": "대신 잠시 쉬어갈까요?",
+        "body": "구독을 최대 {months}{unit} 동안 일시중지할 수 있어요.",
+        "cta": "구독 일시중지"
+      },
+      "plan_change": {
+        "headline": "다른 요금제로 바꿔볼까요?",
+        "body": "더 잘 맞는 다른 요금제가 있어요.",
+        "cta": "요금제 변경"
+      },
+      "trial_extension": {
+        "headline": "시간이 더 필요하세요?",
+        "body": "체험 기간을 {days}{unit} 연장해 드릴게요.",
+        "cta": "체험 연장"
+      },
+      "contact": {
+        "headline": "먼저 문의해 보실래요?",
+        "body": "저희 팀이 문제를 해결해 드릴게요.",
+        "cta": "고객 지원 문의"
+      },
+      "redirect": {
+        "headline": "떠나시기 전에...",
+        "body": "한번 확인해 보세요. 마음이 바뀔지도 몰라요."
+      },
+      "rebate": {
+        "headline": "환급 받기",
+        "body": "구독을 유지하시면 최근 결제 금액의 일부를 환불해 드려요.",
+        "cta": "환불 받기"
+      },
+      "custom": {
+        "headline": "떠나시기 전에...",
+        "body": "드리고 싶은 혜택이 있어요.",
+        "cta": "수락"
+      },
+      "declineCta": "괜찮아요"
+    }
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "繼續",
+    "back": "返返",
+    "close": "關閉",
+    "done": "完成",
+    "processing": "處理緊…",
+    "tryAgain": "再試一次",
+    "loading": "載入緊你嘅選項…",
+    "loadError": "載入唔到你嘅取消選項，請再試一次。",
+    "error": "出咗啲問題，請再試一次。",
+    "day": "日",
+    "days": "日",
+    "month": "個月",
+    "months": "個月"
+  },
+  "survey": {
+    "title": "點解你想取消？",
+    "followupPlaceholder": "話我哋知多啲（選填）",
+    "followupAriaLabel": "補充詳情"
+  },
+  "feedback": {
+    "title": "仲有冇其他意見？",
+    "placeholder": "輸入你嘅想法…",
+    "placeholderWithMin": "最少 {minLength} 個字…"
+  },
+  "confirm": {
+    "title": "確認取消",
+    "lossesLabel": "你將會失去以下使用權：",
+    "cta": "取消訂閱",
+    "goBack": "返回",
+    "periodEndNotice": {
+      "atPeriodEnd": "你可以繼續使用到 {periodEnd}。"
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "歡迎返嚟！",
+      "description": "你嘅優惠已經套用。",
+      "discount": {
+        "title": "折扣已應用。",
+        "description": "好開心你仍然留低。"
+      },
+      "pause": {
+        "title": "訂閱已暫停。",
+        "description": "訂閱恢復之前，唔會向你收費。",
+        "resumeDescription": "喺 {resumeDate} 之前，唔會再向你收費。"
+      },
+      "trial_extension": {
+        "title": "試用期已延長。",
+        "description": "你嘅試用期已成功延長。"
+      },
+      "plan_change": {
+        "title": "計劃已更改。",
+        "description": "你嘅新方案已經生效。"
+      },
+      "rebate": {
+        "title": "已退款。",
+        "description": "你嘅款項正在退回途中。"
+      },
+      "stacked": {
+        "title": "優惠已套用。",
+        "description": "好開心你仍然留低。",
+        "afterPauseDescription": "你嘅第二個優惠會喺訂閱恢復時開始。",
+        "afterTrialDescription": "你嘅第二個優惠會喺試用期完結時開始。",
+        "failedDescription": {
+          "discount": "我哋套用唔到你嘅折扣，我哋會跟進處理並通知你。",
+          "pause": "我哋暫停唔到你嘅訂閱，我哋會跟進處理並通知你。",
+          "trial_extension": "我哋延長唔到你嘅試用期，我哋會跟進處理並通知你。",
+          "plan_change": "我哋更改唔到你嘅方案，我哋會跟進處理並通知你。",
+          "rebate": "我哋退唔到你嘅款，我哋會跟進處理並通知你。"
+        }
+      }
+    },
+    "cancelled": {
+      "title": "訂閱已取消",
+      "description": "好可惜你要走。"
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "限時優惠",
+    "pauseEyebrow": "我哋{date}再見",
+    "newEndDateLabel": "新結束日期",
+    "currentPlanBadge": "目前",
+    "switchToCta": "轉用 {planName}",
+    "rebate": {
+      "paidLabel": "你本期已付",
+      "moneyBackLabel": "退款",
+      "inclTax": "（包含 {amount} 稅項）",
+      "netLabel": "你本期實付"
+    },
+    "stacked": {
+      "acceptCta": "兩個優惠都接受",
+      "pauseTitle": "暫停你嘅訂閱",
+      "planChangeTitle": "轉用新方案",
+      "trialTitle": "試用期再加 {days} {unit}",
+      "rebateTitle": "上次付款退回 {amount}",
+      "afterPause": "訂閱恢復時開始。",
+      "afterTrial": "由你首個付費結算期開始。",
+      "withPlanChange": "適用於你嘅新方案。"
+    },
+    "discount": {
+      "percentOff": "{percent}% 折扣",
+      "amountOff": "減 {amount}",
+      "unspecified": "一個優惠",
+      "nextRenewal": "下次續訂{discount}",
+      "forLife": "終身{discount}",
+      "forMonths": "{months}{unit}享{discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "減 {percent}% 好唔好?",
+        "body": "我哋想送你 {months}{unit}的 {percent}% 折扣。",
+        "headlineNoAmount": "限定優惠",
+        "bodyNoAmount": "我哋想送你一個折扣。",
+        "cta": "接受優惠"
+      },
+      "pause": {
+        "headline": "不如休息一下?",
+        "body": "最多可暫停訂閱 {months}{unit}。",
+        "cta": "暫停訂閱"
+      },
+      "plan_change": {
+        "headline": "轉另一個方案?",
+        "body": "我哋有其他方案,可能更啱你。",
+        "cta": "轉換方案"
+      },
+      "trial_extension": {
+        "headline": "需要多啲時間?",
+        "body": "我哋會將你嘅試用期延長 {days}{unit}。",
+        "cta": "延長試用"
+      },
+      "contact": {
+        "headline": "不如先同我哋傾下?",
+        "body": "我哋團隊好樂意幫你解決任何問題。",
+        "cta": "聯絡客服"
+      },
+      "redirect": {
+        "headline": "走之前...",
+        "body": "睇下呢個——可能會改變你嘅決定。"
+      },
+      "rebate": {
+        "headline": "取回部分款項",
+        "body": "繼續訂閱,我哋會退還你最近一次付款嘅一部分。",
+        "cta": "接受退款"
+      },
+      "custom": {
+        "headline": "走之前...",
+        "body": "我哋想送你啲嘢。",
+        "cta": "接受"
+      },
+      "declineCta": "唔使喇,多謝"
+    }
+  }
+}

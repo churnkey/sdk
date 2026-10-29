@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "Endelea",
+    "back": "Nyuma",
+    "close": "Funga",
+    "done": "Imekamilika",
+    "processing": "Inashughulikia...",
+    "tryAgain": "Jaribu tena",
+    "loading": "Inapakia chaguo zako...",
+    "loadError": "Hatukuweza kupakia chaguo zako za kughairi. Tafadhali jaribu tena.",
+    "error": "Hitilafu imetokea. Tafadhali jaribu tena.",
+    "day": "siku",
+    "days": "siku",
+    "month": "mwezi",
+    "months": "miezi"
+  },
+  "survey": {
+    "title": "Kwa nini unaghairi?",
+    "followupPlaceholder": "Tuambie zaidi (si lazima)",
+    "followupAriaLabel": "Maelezo ya ziada"
+  },
+  "feedback": {
+    "title": "Una maoni mengine?",
+    "placeholder": "Andika mawazo yako…",
+    "placeholderWithMin": "Angalau herufi {minLength}…"
+  },
+  "confirm": {
+    "title": "Thibitisha kughairi",
+    "lossesLabel": "Utapoteza ufikiaji wa:",
+    "cta": "Ghairi usajili",
+    "goBack": "Rudi nyuma",
+    "periodEndNotice": {
+      "atPeriodEnd": "Ufikiaji wako unaendelea hadi {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Karibu tena!",
+      "description": "Ofa yako imetumika.",
+      "discount": {
+        "title": "Punguzo limetumika.",
+        "description": "Tunafurahi sana kuwa bado uko nasi."
+      },
+      "pause": {
+        "title": "Usajili umesimamishwa.",
+        "description": "Hutatozwa hadi usajili wako utakapoendelea.",
+        "resumeDescription": "Hutatozwa tena hadi {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Jaribio limeongezwa.",
+        "description": "Kipindi chako cha majaribio kimeongezwa kikamilifu."
+      },
+      "plan_change": {
+        "title": "Mpango umebadilishwa.",
+        "description": "Mpango wako mpya umeanza kutumika."
+      },
+      "rebate": {
+        "title": "Pesa zimerejeshwa.",
+        "description": "Pesa zako ziko njiani kurudi kwako."
+      },
+      "stacked": {
+        "title": "Ofa zimetumika.",
+        "description": "Tunafurahi sana kuwa bado uko nasi.",
+        "afterPauseDescription": "Ofa yako ya pili inaanza usajili wako utakapoendelea.",
+        "afterTrialDescription": "Ofa yako ya pili inaanza kipindi chako cha majaribio kitakapoisha.",
+        "failedDescription": {
+          "discount": "Hatukuweza kutumia punguzo lako. Tutalishughulikia na kukujulisha.",
+          "pause": "Hatukuweza kusitisha usajili wako. Tutalishughulikia na kukujulisha.",
+          "trial_extension": "Hatukuweza kuongeza muda wa majaribio yako. Tutalishughulikia na kukujulisha.",
+          "plan_change": "Hatukuweza kubadilisha mpango wako. Tutalishughulikia na kukujulisha.",
+          "rebate": "Hatukuweza kurejesha pesa zako. Tutalishughulikia na kukujulisha."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Usajili umeghairiwa",
+      "description": "Tunasikitika kukuona ukiondoka."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Ofa ya muda mfupi",
+    "pauseEyebrow": "Tutakuona tena tarehe {date}",
+    "newEndDateLabel": "Tarehe mpya ya kuisha",
+    "currentPlanBadge": "Sasa",
+    "switchToCta": "Badili hadi {planName}",
+    "rebate": {
+      "paidLabel": "Ulilipa kipindi hiki",
+      "moneyBackLabel": "Pesa zinazorejeshwa",
+      "inclTax": "(pamoja na kodi ya {amount})",
+      "netLabel": "Gharama yako halisi kwa kipindi hiki"
+    },
+    "stacked": {
+      "acceptCta": "Kubali ofa zote mbili",
+      "pauseTitle": "Sitisha usajili wako",
+      "planChangeTitle": "Badili hadi mpango mpya",
+      "trialTitle": "{unit} {days} zaidi za majaribio yako",
+      "rebateTitle": "{amount} irudi kutoka malipo yako ya mwisho",
+      "afterPause": "Inaanza usajili wako utakapoendelea.",
+      "afterTrial": "Inaanza na kipindi chako cha kwanza cha malipo.",
+      "withPlanChange": "Inatumika kwenye mpango wako mpya."
+    },
+    "discount": {
+      "percentOff": "Punguzo la {percent}%",
+      "amountOff": "Punguzo la {amount}",
+      "unspecified": "Punguzo",
+      "nextRenewal": "{discount} katika kusasisha kwako kujacho",
+      "forLife": "{discount} maishani",
+      "forMonths": "{discount} kwa {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Je, punguzo la {percent}%?",
+        "body": "Tungependa kukupa punguzo la {percent}% kwa {months} {unit}.",
+        "headlineNoAmount": "Ofa maalum",
+        "bodyNoAmount": "Tungependa kukupa punguzo.",
+        "cta": "Kubali ofa"
+      },
+      "pause": {
+        "headline": "Pumzika badala yake?",
+        "body": "Sitisha usajili wako hadi kwa {months} {unit}.",
+        "cta": "Sitisha usajili"
+      },
+      "plan_change": {
+        "headline": "Badili uende mpango mwingine?",
+        "body": "Tuna mipango mingine inayoweza kukufaa zaidi.",
+        "cta": "Badili mpango"
+      },
+      "trial_extension": {
+        "headline": "Unahitaji muda zaidi?",
+        "body": "Tutaongeza muda wa jaribio lako kwa {days} {unit}.",
+        "cta": "Ongeza muda wa jaribio"
+      },
+      "contact": {
+        "headline": "Zungumza nasi kwanza?",
+        "body": "Timu yetu itafurahi kukusaidia kutatua tatizo lolote.",
+        "cta": "Wasiliana na msaada"
+      },
+      "redirect": {
+        "headline": "Kabla hujaondoka...",
+        "body": "Angalia hili — huenda likabadilisha mawazo yako."
+      },
+      "rebate": {
+        "headline": "Rudishiwa pesa",
+        "body": "Endelea na usajili wako nasi tutakurudishia sehemu ya malipo yako ya hivi karibuni.",
+        "cta": "Kubali kurudishiwa"
+      },
+      "custom": {
+        "headline": "Kabla hujaondoka...",
+        "body": "Tungependa kukupa kitu.",
+        "cta": "Kubali"
+      },
+      "declineCta": "Hapana, asante"
+    }
+  }
+}

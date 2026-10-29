@@ -1,9 +1,9 @@
 // Message catalog for every string the SDK renders that isn't flow content.
 // Flow content (step titles, offer copy) is authored per-org in the dashboard
 // and arrives resolved in token mode; this catalog covers the chrome around
-// it. Overrides layer lowest-to-highest: built-in defaults, then each entry
-// in the locale fallback chain of `i18n.messages`, and per-step props
-// (confirmLabel, savedTitle, …) win over everything at the render site.
+// it. `buildMessages` layers the built-in translation, dashboard overrides and
+// `i18n.messages` over these defaults; per-step props (confirmLabel,
+// savedTitle, …) win over everything at the render site.
 
 /** Both timing variants of a message. Which one renders is decided by the
  *  flow's effective cancel timing (`FlowState.cancelAtPeriodEnd`). */
@@ -23,6 +23,13 @@ export type TimingAware = string | TimingVariants
 export interface SavedOfferCopy {
   title: string
   description: string
+}
+
+/** Default copy for one offer type in local mode. */
+export interface OfferCopyDefaults {
+  headline: string
+  body: string
+  cta: string
 }
 
 export interface CancelFlowMessages {
@@ -97,6 +104,8 @@ export interface CancelFlowMessages {
   }
   offer: {
     limitedTimeEyebrow: string
+    /** Over the resume date on the pause card. Supports `{date}`; a value
+     *  without it gets the date after it. */
     pauseEyebrow: string
     newEndDateLabel: string
     currentPlanBadge: string
@@ -141,6 +150,45 @@ export interface CancelFlowMessages {
       afterTrial: string
       withPlanChange: string
     }
+    /** The discount in one phrase ("25% off for 3 months"): the amount, then
+     *  how long it lasts. */
+    discount: {
+      /** Supports `{percent}`. */
+      percentOff: string
+      /** Supports `{amount}`, already formatted. */
+      amountOff: string
+      /** When the offer carries neither a percentage nor an amount. */
+      unspecified: string
+      /** Supports `{discount}`, one of the three above. */
+      nextRenewal: string
+      /** Supports `{discount}`. */
+      forLife: string
+      /** Supports `{discount}`, `{months}` and `{unit}` (`common.month` or `common.months`). */
+      forMonths: string
+    }
+    /** Copy for a local-mode offer declared without `copy`. Connected mode
+     *  gets its copy from the server. */
+    defaultCopy: {
+      discount: OfferCopyDefaults & {
+        /** `headline` and `body` support `{percent}`, `{months}` and `{unit}`;
+         *  these two are used when the offer has no `percentOff`. */
+        headlineNoAmount: string
+        bodyNoAmount: string
+      }
+      /** The body supports `{months}` and `{unit}`. */
+      pause: OfferCopyDefaults
+      plan_change: OfferCopyDefaults
+      /** The body supports `{days}` and `{unit}` (`common.day` or `common.days`). */
+      trial_extension: OfferCopyDefaults
+      /** The offer's `label`, when set, replaces the CTA. */
+      contact: OfferCopyDefaults
+      /** The CTA is the offer's `label`. */
+      redirect: Omit<OfferCopyDefaults, 'cta'>
+      rebate: OfferCopyDefaults
+      /** Any other offer type. */
+      custom: OfferCopyDefaults
+      declineCta: string
+    }
   }
 }
 
@@ -159,9 +207,18 @@ export type MessagesPatch<T = CancelFlowMessages> = {
 
 export interface I18nConfig {
   /**
-   * UI language. Defaults to the browser language, falling back to `'en'`.
-   * In connected mode it's also sent with the config request, so flow content
-   * comes back in this language when the org's Automatic Translations cover it.
+   * Language of the SDK's own strings. The SDK ships them in the embed's 50
+   * languages and loads the matching one on demand.
+   *
+   * Set it to the language your flow is in; it is the chrome language even
+   * when the content is not translated into it. Left unset, connected mode
+   * sends the browser language with the config request and the chrome
+   * follows the content: it switches language only when the server
+   * translated the flow into it (the org's Automatic Translations), so a
+   * visitor never sees Spanish buttons around English copy. Local mode
+   * without a locale stays English, since your steps are in whatever
+   * language you wrote them. Dates and amounts are formatted in the same
+   * language.
    */
   locale?: string
   /** Per-locale message overrides, e.g. `{ en: { confirm: { cta: 'Turn off auto-renew' } } }`. */
@@ -240,7 +297,7 @@ export const defaultMessages: CancelFlowMessages = {
   },
   offer: {
     limitedTimeEyebrow: 'Limited-time offer',
-    pauseEyebrow: "We'll see you back on",
+    pauseEyebrow: "We'll see you back on {date}",
     newEndDateLabel: 'New end date',
     currentPlanBadge: 'Current',
     switchToCta: 'Switch to {planName}',
@@ -269,6 +326,58 @@ export const defaultMessages: CancelFlowMessages = {
       afterPause: 'Starts when your subscription resumes.',
       afterTrial: 'Starts with your first paid billing period.',
       withPlanChange: 'Applies to your new plan.',
+    },
+    discount: {
+      percentOff: '{percent}% off',
+      amountOff: '{amount} off',
+      unspecified: 'A discount',
+      nextRenewal: '{discount} your next renewal',
+      forLife: '{discount} for life',
+      forMonths: '{discount} for {months} {unit}',
+    },
+    defaultCopy: {
+      discount: {
+        headline: 'How about {percent}% off?',
+        body: "We'd like to offer you {percent}% off for {months} {unit}.",
+        headlineNoAmount: 'Special offer',
+        bodyNoAmount: "We'd like to offer you a discount.",
+        cta: 'Accept offer',
+      },
+      pause: {
+        headline: 'Take a break instead?',
+        body: 'Pause your subscription for up to {months} {unit}.',
+        cta: 'Pause subscription',
+      },
+      plan_change: {
+        headline: 'Switch to a different plan?',
+        body: 'We have other plans that might be a better fit.',
+        cta: 'Switch plan',
+      },
+      trial_extension: {
+        headline: 'Need more time?',
+        body: "We'll extend your trial by {days} {unit}.",
+        cta: 'Extend trial',
+      },
+      contact: {
+        headline: 'Talk to us first?',
+        body: 'Our team would love to help resolve any issues.',
+        cta: 'Contact support',
+      },
+      redirect: {
+        headline: 'Before you go...',
+        body: 'Check this out — it might change your mind.',
+      },
+      rebate: {
+        headline: 'Get money back',
+        body: "Stay subscribed and we'll refund part of your most recent payment.",
+        cta: 'Accept refund',
+      },
+      custom: {
+        headline: 'Before you go...',
+        body: "We'd like to offer you something.",
+        cta: 'Accept',
+      },
+      declineCta: 'No thanks',
     },
   },
 }
@@ -361,46 +470,48 @@ export function mergeMessages(base: CancelFlowMessages, patch: MessagesPatch | u
   return mergeValue(base, patch, '') as CancelFlowMessages
 }
 
+/** Language to ask the server for: the explicit locale, else the browser's. */
 export function resolveLocale(explicit?: string): string {
   if (explicit) return explicit
   if (typeof navigator !== 'undefined' && navigator.language) return navigator.language
   return 'en'
 }
 
-// Fallback chain, least to most specific: 'en' first so an English override
-// still shows through a partial regional catalog, then the base language,
-// then the exact tag. Keys are matched case-insensitively ('pt-BR' ≡ 'pt-br').
-function localeChain(locale: string): string[] {
-  const exact = locale.toLowerCase()
-  const base = exact.split('-')[0]
-  const chain = ['en']
-  if (base !== 'en') chain.push(base)
-  if (exact !== base) chain.push(exact)
-  return chain
-}
-
-function applyLocaleLayer(
-  base: CancelFlowMessages,
-  byLang: Record<string, MessagesPatch> | undefined,
-  chain: string[],
-): CancelFlowMessages {
-  if (!byLang) return base
-  const byLowerKey = new Map(Object.entries(byLang).map(([k, v]) => [k.toLowerCase(), v]))
-  let resolved = base
-  for (const lang of chain) {
-    resolved = mergeMessages(resolved, byLowerKey.get(lang))
-  }
-  return resolved
+function lowerKeys(byLang: Record<string, MessagesPatch> | undefined): Map<string, MessagesPatch> {
+  return new Map(Object.entries(byLang ?? {}).map(([k, v]) => [k.toLowerCase(), v]))
 }
 
 /**
- * Resolve the full catalog for a locale. Layers, lowest to highest: built-in
- * defaults, then `orgMessages` (dashboard-configured overrides delivered on
- * the token-mode config), then the config's own per-locale messages — the
- * developer's overrides always end up on top. Both per-language layers run
- * through the same locale fallback chain.
+ * Resolve the full catalog for `i18n.locale` (English when unset; the hook
+ * passes the language it settled on). Layers, lowest to highest:
+ *
+ *   1. built-in English defaults
+ *   2. the `en` entries of `orgMessages` (dashboard SDK translations) and
+ *      `i18n.messages`: edits to the English baseline
+ *   3. `localePack`, the built-in translation of that baseline
+ *   4. the base-language, then exact-tag entries of `orgMessages`
+ *   5. the same entries of `i18n.messages`: the developer always ends up on top
+ *
+ * English overrides sit under the pack so a customized `en` string does not
+ * surface in another language where a translation exists; it still shows
+ * through for strings no pack carries (the empty-by-design ones). Keys are
+ * matched case-insensitively (`pt-BR` ≡ `pt-br`).
  */
-export function buildMessages(i18n?: I18nConfig, orgMessages?: Record<string, MessagesPatch>): CancelFlowMessages {
-  const chain = localeChain(resolveLocale(i18n?.locale))
-  return applyLocaleLayer(applyLocaleLayer(defaultMessages, orgMessages, chain), i18n?.messages, chain)
+export function buildMessages(
+  i18n?: I18nConfig,
+  orgMessages?: Record<string, MessagesPatch>,
+  localePack?: MessagesPatch,
+): CancelFlowMessages {
+  const exact = (i18n?.locale ?? 'en').toLowerCase()
+  const base = exact.split('-')[0]
+  // The `en` entries are already on; a regional English tag still gets its own.
+  const tags = [...new Set([base, exact])].filter((tag) => tag !== 'en')
+  const org = lowerKeys(orgMessages)
+  const dev = lowerKeys(i18n?.messages)
+  let resolved = mergeMessages(defaultMessages, org.get('en'))
+  resolved = mergeMessages(resolved, dev.get('en'))
+  resolved = mergeMessages(resolved, localePack)
+  for (const tag of tags) resolved = mergeMessages(resolved, org.get(tag))
+  for (const tag of tags) resolved = mergeMessages(resolved, dev.get(tag))
+  return resolved
 }

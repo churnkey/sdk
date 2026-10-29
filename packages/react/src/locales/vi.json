@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "Tiếp tục",
+    "back": "Quay lại",
+    "close": "Đóng",
+    "done": "Xong",
+    "processing": "Đang xử lý...",
+    "tryAgain": "Thử lại",
+    "loading": "Đang tải các lựa chọn của bạn...",
+    "loadError": "Chúng tôi không thể tải các tùy chọn hủy gói. Vui lòng thử lại.",
+    "error": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "day": "ngày",
+    "days": "ngày",
+    "month": "tháng",
+    "months": "tháng"
+  },
+  "survey": {
+    "title": "Vì sao bạn muốn hủy?",
+    "followupPlaceholder": "Hãy cho chúng tôi biết thêm (không bắt buộc)",
+    "followupAriaLabel": "Chi tiết bổ sung"
+  },
+  "feedback": {
+    "title": "Bạn còn góp ý nào khác không?",
+    "placeholder": "Nhập suy nghĩ của bạn…",
+    "placeholderWithMin": "Ít nhất {minLength} ký tự…"
+  },
+  "confirm": {
+    "title": "Xác nhận hủy gói",
+    "lossesLabel": "Bạn sẽ mất quyền truy cập vào:",
+    "cta": "Hủy gói đăng ký",
+    "goBack": "Quay lại",
+    "periodEndNotice": {
+      "atPeriodEnd": "Bạn vẫn có quyền truy cập đến {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Chào mừng bạn trở lại!",
+      "description": "Ưu đãi của bạn đã được áp dụng.",
+      "discount": {
+        "title": "Giảm giá đã được áp dụng.",
+        "description": "Chúng tôi rất vui vì bạn vẫn ở lại."
+      },
+      "pause": {
+        "title": "Đăng ký đã được tạm dừng.",
+        "description": "Bạn sẽ không bị tính phí cho đến khi gói đăng ký tiếp tục.",
+        "resumeDescription": "Bạn sẽ không bị tính phí lại cho đến {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Thời gian dùng thử đã được gia hạn.",
+        "description": "Thời gian dùng thử của bạn đã được gia hạn thành công."
+      },
+      "plan_change": {
+        "title": "Kế hoạch đã thay đổi.",
+        "description": "Gói mới của bạn đã có hiệu lực."
+      },
+      "rebate": {
+        "title": "Đã hoàn tiền.",
+        "description": "Tiền của bạn đang trên đường quay về."
+      },
+      "stacked": {
+        "title": "Đã áp dụng ưu đãi.",
+        "description": "Chúng tôi rất vui vì bạn vẫn ở lại.",
+        "afterPauseDescription": "Ưu đãi thứ hai sẽ bắt đầu khi gói đăng ký của bạn tiếp tục.",
+        "afterTrialDescription": "Ưu đãi thứ hai sẽ bắt đầu khi thời gian dùng thử kết thúc.",
+        "failedDescription": {
+          "discount": "Chúng tôi không thể áp dụng giảm giá cho bạn. Chúng tôi sẽ xử lý và thông báo cho bạn.",
+          "pause": "Chúng tôi không thể tạm dừng gói đăng ký của bạn. Chúng tôi sẽ xử lý và thông báo cho bạn.",
+          "trial_extension": "Chúng tôi không thể gia hạn thời gian dùng thử của bạn. Chúng tôi sẽ xử lý và thông báo cho bạn.",
+          "plan_change": "Chúng tôi không thể đổi gói của bạn. Chúng tôi sẽ xử lý và thông báo cho bạn.",
+          "rebate": "Chúng tôi không thể hoàn tiền cho bạn. Chúng tôi sẽ xử lý và thông báo cho bạn."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Đã hủy gói đăng ký",
+      "description": "Chúng tôi rất tiếc khi bạn rời đi."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Ưu đãi có thời hạn",
+    "pauseEyebrow": "Hẹn gặp lại bạn vào {date}",
+    "newEndDateLabel": "Ngày kết thúc mới",
+    "currentPlanBadge": "Hiện tại",
+    "switchToCta": "Chuyển sang {planName}",
+    "rebate": {
+      "paidLabel": "Bạn đã thanh toán kỳ này",
+      "moneyBackLabel": "Tiền hoàn lại",
+      "inclTax": "(đã gồm thuế {amount})",
+      "netLabel": "Chi phí thực của bạn cho kỳ này"
+    },
+    "stacked": {
+      "acceptCta": "Nhận cả hai ưu đãi",
+      "pauseTitle": "Tạm dừng gói đăng ký",
+      "planChangeTitle": "Chuyển sang gói mới",
+      "trialTitle": "Thêm {days} {unit} dùng thử",
+      "rebateTitle": "Hoàn {amount} cho lần thanh toán gần nhất",
+      "afterPause": "Bắt đầu khi gói đăng ký của bạn tiếp tục.",
+      "afterTrial": "Bắt đầu từ kỳ thanh toán có phí đầu tiên của bạn.",
+      "withPlanChange": "Áp dụng cho gói mới của bạn."
+    },
+    "discount": {
+      "percentOff": "Giảm {percent}%",
+      "amountOff": "Giảm {amount}",
+      "unspecified": "Ưu đãi giảm giá",
+      "nextRenewal": "{discount} cho lần gia hạn tiếp theo",
+      "forLife": "{discount} trọn đời",
+      "forMonths": "{discount} trong {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Giảm {percent}% nhé?",
+        "body": "Chúng tôi muốn tặng bạn ưu đãi giảm {percent}% trong {months} {unit}.",
+        "headlineNoAmount": "Ưu đãi đặc biệt",
+        "bodyNoAmount": "Chúng tôi muốn tặng bạn một ưu đãi giảm giá.",
+        "cta": "Nhận ưu đãi"
+      },
+      "pause": {
+        "headline": "Tạm nghỉ thay vì hủy?",
+        "body": "Tạm dừng gói đăng ký của bạn tối đa {months} {unit}.",
+        "cta": "Tạm dừng đăng ký"
+      },
+      "plan_change": {
+        "headline": "Chuyển sang gói khác?",
+        "body": "Chúng tôi có những gói khác có thể phù hợp với bạn hơn.",
+        "cta": "Đổi gói"
+      },
+      "trial_extension": {
+        "headline": "Cần thêm thời gian?",
+        "body": "Chúng tôi sẽ gia hạn dùng thử của bạn thêm {days} {unit}.",
+        "cta": "Gia hạn dùng thử"
+      },
+      "contact": {
+        "headline": "Trao đổi với chúng tôi trước nhé?",
+        "body": "Đội ngũ của chúng tôi rất sẵn lòng giúp bạn giải quyết mọi vấn đề.",
+        "cta": "Liên hệ hỗ trợ"
+      },
+      "redirect": {
+        "headline": "Trước khi bạn đi...",
+        "body": "Hãy xem thử điều này — có thể bạn sẽ đổi ý."
+      },
+      "rebate": {
+        "headline": "Nhận lại tiền",
+        "body": "Hãy tiếp tục đăng ký và chúng tôi sẽ hoàn lại một phần khoản thanh toán gần nhất của bạn.",
+        "cta": "Nhận hoàn tiền"
+      },
+      "custom": {
+        "headline": "Trước khi bạn đi...",
+        "body": "Chúng tôi muốn dành tặng bạn một điều đặc biệt.",
+        "cta": "Đồng ý"
+      },
+      "declineCta": "Không, cảm ơn"
+    }
+  }
+}

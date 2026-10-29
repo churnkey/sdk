@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "続ける",
+    "back": "戻る",
+    "close": "閉じる",
+    "done": "完了",
+    "processing": "処理中…",
+    "tryAgain": "もう一度試す",
+    "loading": "オプションを読み込み中…",
+    "loadError": "解約オプションを読み込めませんでした。もう一度お試しください。",
+    "error": "問題が発生しました。もう一度お試しください。",
+    "day": "日",
+    "days": "日",
+    "month": "か月",
+    "months": "か月"
+  },
+  "survey": {
+    "title": "解約の理由を教えてください",
+    "followupPlaceholder": "詳しく教えてください(任意)",
+    "followupAriaLabel": "詳細の追加"
+  },
+  "feedback": {
+    "title": "ほかにご意見はありますか？",
+    "placeholder": "ご意見をご入力ください…",
+    "placeholderWithMin": "{minLength}文字以上で入力してください…"
+  },
+  "confirm": {
+    "title": "解約の確認",
+    "lossesLabel": "以下が利用できなくなります:",
+    "cta": "サブスクリプションを解約",
+    "goBack": "戻る",
+    "periodEndNotice": {
+      "atPeriodEnd": "{periodEnd}までは引き続きご利用いただけます。"
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "おかえりなさい！",
+      "description": "特典を適用しました。",
+      "discount": {
+        "title": "割引が適用されました。",
+        "description": "引き続きご利用いただけてうれしいです。"
+      },
+      "pause": {
+        "title": "サブスクリプションが一時停止されました。",
+        "description": "サブスクリプションが再開するまで請求はありません。",
+        "resumeDescription": "{resumeDate}まで請求はありません。"
+      },
+      "trial_extension": {
+        "title": "トライアルが延長されました。",
+        "description": "トライアル期間を延長しました。"
+      },
+      "plan_change": {
+        "title": "プランが変更されました。",
+        "description": "新しいプランが適用されました。"
+      },
+      "rebate": {
+        "title": "返金を行いました。",
+        "description": "返金のお手続きを進めています。"
+      },
+      "stacked": {
+        "title": "特典を適用しました。",
+        "description": "引き続きご利用いただけてうれしいです。",
+        "afterPauseDescription": "2つ目の特典は、サブスクリプションの再開時に始まります。",
+        "afterTrialDescription": "2つ目の特典は、トライアル終了時に始まります。",
+        "failedDescription": {
+          "discount": "割引を適用できませんでした。当社で対応し、あらためてご連絡します。",
+          "pause": "サブスクリプションを一時停止できませんでした。当社で対応し、あらためてご連絡します。",
+          "trial_extension": "トライアルを延長できませんでした。当社で対応し、あらためてご連絡します。",
+          "plan_change": "プランを変更できませんでした。当社で対応し、あらためてご連絡します。",
+          "rebate": "返金を行えませんでした。当社で対応し、あらためてご連絡します。"
+        }
+      }
+    },
+    "cancelled": {
+      "title": "サブスクリプションを解約しました",
+      "description": "ご利用いただきありがとうございました。またのご利用をお待ちしております。"
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "期間限定のオファー",
+    "pauseEyebrow": "{date}にお待ちしています",
+    "newEndDateLabel": "新しい終了日",
+    "currentPlanBadge": "現在のプラン",
+    "switchToCta": "{planName}に変更",
+    "rebate": {
+      "paidLabel": "今期のお支払い額",
+      "moneyBackLabel": "返金額",
+      "inclTax": "(税{amount}を含む)",
+      "netLabel": "今期の実質負担額"
+    },
+    "stacked": {
+      "acceptCta": "両方の特典を受け取る",
+      "pauseTitle": "サブスクリプションを一時停止",
+      "planChangeTitle": "新しいプランに変更",
+      "trialTitle": "トライアルをさらに{days}{unit}延長",
+      "rebateTitle": "前回のお支払いから{amount}を返金",
+      "afterPause": "サブスクリプションの再開時に始まります。",
+      "afterTrial": "最初の有料請求期間から始まります。",
+      "withPlanChange": "新しいプランに適用されます。"
+    },
+    "discount": {
+      "percentOff": "{percent}%オフ",
+      "amountOff": "{amount}オフ",
+      "unspecified": "割引",
+      "nextRenewal": "次回更新時に{discount}",
+      "forLife": "ずっと{discount}",
+      "forMonths": "{months}{unit}間{discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}%オフはいかがですか？",
+        "body": "{months}{unit}間、{percent}%オフでご利用いただけます。",
+        "headlineNoAmount": "特別なご案内",
+        "bodyNoAmount": "割引をご用意しました。",
+        "cta": "特典を受け取る"
+      },
+      "pause": {
+        "headline": "代わりに一時休止しませんか？",
+        "body": "最長{months}{unit}間、サブスクリプションを一時停止できます。",
+        "cta": "サブスクリプションを一時停止"
+      },
+      "plan_change": {
+        "headline": "別のプランに変更しませんか？",
+        "body": "より合うプランがあるかもしれません。",
+        "cta": "プランを変更"
+      },
+      "trial_extension": {
+        "headline": "もう少し時間が必要ですか？",
+        "body": "トライアルを{days}{unit}延長します。",
+        "cta": "トライアルを延長"
+      },
+      "contact": {
+        "headline": "まずご相談ください",
+        "body": "問題の解決を、私たちがお手伝いします。",
+        "cta": "サポートに連絡"
+      },
+      "redirect": {
+        "headline": "その前に…",
+        "body": "ぜひこちらをご覧ください。お考えが変わるかもしれません。"
+      },
+      "rebate": {
+        "headline": "返金を受け取る",
+        "body": "継続していただくと、直近のお支払いの一部を返金します。",
+        "cta": "返金を受け取る"
+      },
+      "custom": {
+        "headline": "その前に…",
+        "body": "ご用意したご案内があります。",
+        "cta": "受け取る"
+      },
+      "declineCta": "結構です"
+    }
+  }
+}

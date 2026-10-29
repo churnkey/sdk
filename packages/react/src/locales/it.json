@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "Continua",
+    "back": "Indietro",
+    "close": "Chiudi",
+    "done": "Fatto",
+    "processing": "Elaborazione in corso...",
+    "tryAgain": "Riprovi",
+    "loading": "Caricamento delle opzioni in corso...",
+    "loadError": "Non siamo riusciti a caricare le opzioni di cancellazione. Riprovi.",
+    "error": "Qualcosa è andato storto. Riprovi.",
+    "day": "giorno",
+    "days": "giorni",
+    "month": "mese",
+    "months": "mesi"
+  },
+  "survey": {
+    "title": "Perché desidera annullare?",
+    "followupPlaceholder": "Ci dica di più (facoltativo)",
+    "followupAriaLabel": "Dettagli aggiuntivi"
+  },
+  "feedback": {
+    "title": "Altri commenti?",
+    "placeholder": "Scriva qui i suoi pensieri…",
+    "placeholderWithMin": "Almeno {minLength} caratteri…"
+  },
+  "confirm": {
+    "title": "Conferma l'annullamento",
+    "lossesLabel": "Perderà l'accesso a:",
+    "cta": "Annulla abbonamento",
+    "goBack": "Indietro",
+    "periodEndNotice": {
+      "atPeriodEnd": "Il suo accesso continuerà fino al {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Bentornato!",
+      "description": "La sua offerta è stata applicata.",
+      "discount": {
+        "title": "Sconto applicato.",
+        "description": "Siamo davvero felici che sia ancora con noi."
+      },
+      "pause": {
+        "title": "Abbonamento in pausa.",
+        "description": "Non verrà addebitato nulla fino alla ripresa dell'abbonamento.",
+        "resumeDescription": "Non verrà effettuato alcun addebito fino al {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Prova estesa.",
+        "description": "La sua prova è stata prolungata con successo."
+      },
+      "plan_change": {
+        "title": "Piano cambiato.",
+        "description": "Il suo nuovo piano è ora attivo."
+      },
+      "rebate": {
+        "title": "Rimborso effettuato.",
+        "description": "Il suo denaro è in arrivo."
+      },
+      "stacked": {
+        "title": "Offerte applicate.",
+        "description": "Siamo davvero felici che sia ancora con noi.",
+        "afterPauseDescription": "La sua seconda offerta inizierà alla ripresa dell'abbonamento.",
+        "afterTrialDescription": "La sua seconda offerta inizierà al termine della prova.",
+        "failedDescription": {
+          "discount": "Non siamo riusciti ad applicare lo sconto. Ce ne occuperemo noi e la terremo informata.",
+          "pause": "Non siamo riusciti a sospendere l'abbonamento. Ce ne occuperemo noi e la terremo informata.",
+          "trial_extension": "Non siamo riusciti a prolungare la prova. Ce ne occuperemo noi e la terremo informata.",
+          "plan_change": "Non siamo riusciti a cambiare il piano. Ce ne occuperemo noi e la terremo informata.",
+          "rebate": "Non siamo riusciti a effettuare il rimborso. Ce ne occuperemo noi e la terremo informata."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Abbonamento annullato",
+      "description": "Ci dispiace che se ne vada."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Offerta a tempo limitato",
+    "pauseEyebrow": "Ci rivedremo il {date}",
+    "newEndDateLabel": "Nuova data di fine",
+    "currentPlanBadge": "Attuale",
+    "switchToCta": "Passa a {planName}",
+    "rebate": {
+      "paidLabel": "Ha pagato per questo periodo",
+      "moneyBackLabel": "Rimborso",
+      "inclTax": "(di cui {amount} di imposte)",
+      "netLabel": "Il suo netto per questo periodo"
+    },
+    "stacked": {
+      "acceptCta": "Accetta entrambe le offerte",
+      "pauseTitle": "Sospenda l'abbonamento",
+      "planChangeTitle": "Passi a un nuovo piano",
+      "trialTitle": "{days} {unit} di prova in più",
+      "rebateTitle": "{amount} rimborsati sull'ultimo pagamento",
+      "afterPause": "Inizia alla ripresa dell'abbonamento.",
+      "afterTrial": "Inizia con il primo periodo di fatturazione a pagamento.",
+      "withPlanChange": "Si applica al suo nuovo piano."
+    },
+    "discount": {
+      "percentOff": "{percent}% di sconto",
+      "amountOff": "{amount} di sconto",
+      "unspecified": "Uno sconto",
+      "nextRenewal": "{discount} sul prossimo rinnovo",
+      "forLife": "{discount} per sempre",
+      "forMonths": "{discount} per {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Che ne direbbe del {percent}% di sconto?",
+        "body": "Vorremmo offrirLe il {percent}% di sconto per {months} {unit}.",
+        "headlineNoAmount": "Offerta speciale",
+        "bodyNoAmount": "Vorremmo offrirLe uno sconto.",
+        "cta": "Accetta l'offerta"
+      },
+      "pause": {
+        "headline": "Preferisce fare una pausa?",
+        "body": "Sospenda l'abbonamento fino a {months} {unit}.",
+        "cta": "Sospendi abbonamento"
+      },
+      "plan_change": {
+        "headline": "Passare a un altro piano?",
+        "body": "Abbiamo altri piani che potrebbero fare più al caso Suo.",
+        "cta": "Cambia piano"
+      },
+      "trial_extension": {
+        "headline": "Ha bisogno di più tempo?",
+        "body": "Estenderemo la Sua prova di {days} {unit}.",
+        "cta": "Estendi la prova"
+      },
+      "contact": {
+        "headline": "Prima parli con noi?",
+        "body": "Il nostro team sarà felice di aiutarLa a risolvere qualsiasi problema.",
+        "cta": "Contatta l'assistenza"
+      },
+      "redirect": {
+        "headline": "Prima di andare...",
+        "body": "Dia un'occhiata: potrebbe farLe cambiare idea."
+      },
+      "rebate": {
+        "headline": "Riceva un rimborso",
+        "body": "Resti abbonato e Le rimborseremo una parte dell'ultimo pagamento.",
+        "cta": "Accetta il rimborso"
+      },
+      "custom": {
+        "headline": "Prima di andare...",
+        "body": "Vorremmo offrirLe qualcosa.",
+        "cta": "Accetta"
+      },
+      "declineCta": "No, grazie"
+    }
+  }
+}

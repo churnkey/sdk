@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "Doorgaan",
+    "back": "Terug",
+    "close": "Sluiten",
+    "done": "Klaar",
+    "processing": "Verwerken...",
+    "tryAgain": "Probeer het opnieuw",
+    "loading": "Je opties worden geladen...",
+    "loadError": "We konden je opzegopties niet laden. Probeer het opnieuw.",
+    "error": "Er ging iets mis. Probeer het opnieuw.",
+    "day": "dag",
+    "days": "dagen",
+    "month": "maand",
+    "months": "maanden"
+  },
+  "survey": {
+    "title": "Waarom zeg je op?",
+    "followupPlaceholder": "Vertel ons meer (optioneel)",
+    "followupAriaLabel": "Aanvullende toelichting"
+  },
+  "feedback": {
+    "title": "Nog andere feedback?",
+    "placeholder": "Typ hier je gedachten…",
+    "placeholderWithMin": "Minimaal {minLength} tekens…"
+  },
+  "confirm": {
+    "title": "Opzegging bevestigen",
+    "lossesLabel": "Je verliest toegang tot:",
+    "cta": "Abonnement opzeggen",
+    "goBack": "Terug",
+    "periodEndNotice": {
+      "atPeriodEnd": "Je hebt toegang tot {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Welkom terug!",
+      "description": "Je aanbieding is toegepast.",
+      "discount": {
+        "title": "Korting toegepast.",
+        "description": "Wat fijn dat je blijft."
+      },
+      "pause": {
+        "title": "Abonnement gepauzeerd.",
+        "description": "Je betaalt niets totdat je abonnement weer start.",
+        "resumeDescription": "Je betaalt pas weer vanaf {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Proefperiode verlengd.",
+        "description": "Je proefperiode is verlengd."
+      },
+      "plan_change": {
+        "title": "Plan gewijzigd.",
+        "description": "Je nieuwe abonnement is nu actief."
+      },
+      "rebate": {
+        "title": "Terugbetaling verstuurd.",
+        "description": "Je geld is onderweg terug naar je."
+      },
+      "stacked": {
+        "title": "Aanbiedingen toegepast.",
+        "description": "Wat fijn dat je blijft.",
+        "afterPauseDescription": "Je tweede aanbieding gaat in zodra je abonnement weer start.",
+        "afterTrialDescription": "Je tweede aanbieding gaat in zodra je proefperiode eindigt.",
+        "failedDescription": {
+          "discount": "We konden je korting niet toepassen. We regelen het en laten het je weten.",
+          "pause": "We konden je abonnement niet pauzeren. We regelen het en laten het je weten.",
+          "trial_extension": "We konden je proefperiode niet verlengen. We regelen het en laten het je weten.",
+          "plan_change": "We konden je abonnement niet wijzigen. We regelen het en laten het je weten.",
+          "rebate": "We konden je terugbetaling niet uitvoeren. We regelen het en laten het je weten."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Abonnement opgezegd",
+      "description": "Jammer dat je weggaat."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Tijdelijke aanbieding",
+    "pauseEyebrow": "Tot {date}",
+    "newEndDateLabel": "Nieuwe einddatum",
+    "currentPlanBadge": "Huidig",
+    "switchToCta": "Overstappen naar {planName}",
+    "rebate": {
+      "paidLabel": "Je betaalde deze periode",
+      "moneyBackLabel": "Terug te krijgen",
+      "inclTax": "(incl. {amount} btw)",
+      "netLabel": "Jouw netto kosten voor deze periode"
+    },
+    "stacked": {
+      "acceptCta": "Beide aanbiedingen accepteren",
+      "pauseTitle": "Pauzeer je abonnement",
+      "planChangeTitle": "Stap over op een nieuw abonnement",
+      "trialTitle": "Nog {days} {unit} proefperiode erbij",
+      "rebateTitle": "{amount} terug op je laatste betaling",
+      "afterPause": "Gaat in zodra je abonnement weer start.",
+      "afterTrial": "Gaat in met je eerste betaalde periode.",
+      "withPlanChange": "Geldt voor je nieuwe abonnement."
+    },
+    "discount": {
+      "percentOff": "{percent}% korting",
+      "amountOff": "{amount} korting",
+      "unspecified": "Korting",
+      "nextRenewal": "{discount} op je volgende verlenging",
+      "forLife": "{discount} voor altijd",
+      "forMonths": "{discount} gedurende {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Wat dacht je van {percent}% korting?",
+        "body": "We bieden je graag {percent}% korting gedurende {months} {unit}.",
+        "headlineNoAmount": "Speciale aanbieding",
+        "bodyNoAmount": "We bieden je graag een korting aan.",
+        "cta": "Aanbieding accepteren"
+      },
+      "pause": {
+        "headline": "Liever een pauze?",
+        "body": "Zet je abonnement tot {months} {unit} op pauze.",
+        "cta": "Abonnement pauzeren"
+      },
+      "plan_change": {
+        "headline": "Overstappen naar een ander abonnement?",
+        "body": "We hebben andere abonnementen die misschien beter bij je passen.",
+        "cta": "Abonnement wijzigen"
+      },
+      "trial_extension": {
+        "headline": "Meer tijd nodig?",
+        "body": "We verlengen je proefperiode met {days} {unit}.",
+        "cta": "Proefperiode verlengen"
+      },
+      "contact": {
+        "headline": "Eerst even praten?",
+        "body": "Ons team helpt je graag met het oplossen van problemen.",
+        "cta": "Contact opnemen"
+      },
+      "redirect": {
+        "headline": "Voordat je gaat...",
+        "body": "Kijk hier eens naar — misschien bedenk je je."
+      },
+      "rebate": {
+        "headline": "Krijg geld terug",
+        "body": "Blijf geabonneerd en we betalen een deel van je laatste betaling terug.",
+        "cta": "Terugbetaling accepteren"
+      },
+      "custom": {
+        "headline": "Voordat je gaat...",
+        "body": "We willen je graag iets aanbieden.",
+        "cta": "Accepteren"
+      },
+      "declineCta": "Nee, bedankt"
+    }
+  }
+}

@@ -46,6 +46,99 @@ describe('useCancelFlow', () => {
     console.error = originalError
   })
 
+  it('holds the token-mode flow until the built-in locale pack is applied', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => goodResponse } as Response)
+    const { result } = renderHook(() => useCancelFlow({ session: TOKEN, i18n: { locale: 'es-MX' } }))
+    expect(result.current.isLoading).toBe(true)
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.messages.confirm.cta).toBe('Cancelar suscripción')
+    expect(result.current.messages.common.back).toBe('Atrás')
+    expect(result.current.locale).toBe('es-MX')
+  })
+
+  // The server says which language it translated the flow into. Without an
+  // explicit locale the chrome follows that, so a visitor never gets Spanish
+  // buttons around copy the org only has in English.
+  it('without an explicit locale, follows the language the server translated the flow into', async () => {
+    vi.spyOn(navigator, 'language', 'get').mockReturnValue('es-ES')
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ ...goodResponse, language: 'es-ES' }) } as Response)
+    const { result } = renderHook(() => useCancelFlow({ session: TOKEN }))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ language: 'es-ES' })
+    expect(result.current.messages.confirm.cta).toBe('Cancelar suscripción')
+    expect(result.current.locale).toBe('es-ES')
+  })
+
+  it('without an explicit locale, stays English when the server kept the source copy', async () => {
+    vi.spyOn(navigator, 'language', 'get').mockReturnValue('es-ES')
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ ...goodResponse, translations: { es: { common: { back: 'Org atrás' } } } }),
+    } as Response)
+    const { result } = renderHook(() => useCancelFlow({ session: TOKEN }))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.messages.confirm.cta).toBe('Cancel subscription')
+    expect(result.current.messages.common.back).toBe('Back')
+    expect(result.current.locale).toBe('en')
+  })
+
+  it('an explicit locale is the chrome language even when the content is not translated', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => goodResponse } as Response)
+    const { result } = renderHook(() => useCancelFlow({ session: TOKEN, i18n: { locale: 'es' } }))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.messages.confirm.cta).toBe('Cancelar suscripción')
+  })
+
+  it('reads i18n once at mount: a new locale neither refetches nor restarts the flow', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => goodResponse } as Response)
+    const { result, rerender } = renderHook(({ locale }) => useCancelFlow({ session: TOKEN, i18n: { locale } }), {
+      initialProps: { locale: 'es' },
+    })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    rerender({ locale: 'tr' })
+    await act(async () => {})
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(result.current.messages.confirm.cta).toBe('Cancelar suscripción')
+  })
+
+  it('in local mode waits for the pack, then renders in that language', async () => {
+    const { result } = renderHook(() =>
+      useCancelFlow({ steps: [{ type: 'survey', reasons: [{ id: 'r1', label: 'Test' }] }], i18n: { locale: 'tr' } }),
+    )
+    expect(result.current.isLoading).toBe(true)
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.messages.confirm.cta).toBe('Aboneliği iptal et')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('in local mode ignores the browser language: the steps are in whatever language they were written', () => {
+    vi.spyOn(navigator, 'language', 'get').mockReturnValue('es-ES')
+    const { result } = renderHook(() =>
+      useCancelFlow({ steps: [{ type: 'survey', reasons: [{ id: 'r1', label: 'Test' }] }] }),
+    )
+    expect(result.current.isLoading).toBe(false)
+    expect(result.current.messages.confirm.cta).toBe('Cancel subscription')
+    expect(result.current.locale).toBe('en')
+  })
+
+  it('a remount starts in the loaded language, with no spinner', async () => {
+    const steps = [{ type: 'survey' as const, reasons: [{ id: 'r1', label: 'Test' }] }]
+    const first = renderHook(() => useCancelFlow({ steps, i18n: { locale: 'de-AT' } }))
+    await waitFor(() => expect(first.result.current.isLoading).toBe(false))
+    first.unmount()
+    const { result } = renderHook(() => useCancelFlow({ steps, i18n: { locale: 'de-AT' } }))
+    expect(result.current.isLoading).toBe(false)
+    expect(result.current.messages.confirm.cta).toBe('Abo kündigen')
+  })
+
+  it('in local mode an English locale has nothing to load', () => {
+    const { result } = renderHook(() =>
+      useCancelFlow({ steps: [{ type: 'survey', reasons: [{ id: 'r1', label: 'Test' }] }], i18n: { locale: 'en' } }),
+    )
+    expect(result.current.isLoading).toBe(false)
+    expect(result.current.messages.confirm.cta).toBe('Cancel subscription')
+  })
+
   it('exposes retry as a function on the returned object', () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => goodResponse } as Response)
     const { result } = renderHook(() => useCancelFlow({ session: TOKEN }))

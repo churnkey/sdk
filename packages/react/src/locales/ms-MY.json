@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "Teruskan",
+    "back": "Kembali",
+    "close": "Tutup",
+    "done": "Selesai",
+    "processing": "Memproses...",
+    "tryAgain": "Cuba lagi",
+    "loading": "Memuatkan pilihan anda...",
+    "loadError": "Kami tidak dapat memuatkan pilihan pembatalan anda. Sila cuba lagi.",
+    "error": "Sesuatu telah berlaku. Sila cuba lagi.",
+    "day": "hari",
+    "days": "hari",
+    "month": "bulan",
+    "months": "bulan"
+  },
+  "survey": {
+    "title": "Mengapa anda membatalkan langganan?",
+    "followupPlaceholder": "Ceritakan lebih lanjut (pilihan)",
+    "followupAriaLabel": "Butiran tambahan"
+  },
+  "feedback": {
+    "title": "Ada maklum balas lain?",
+    "placeholder": "Taip pendapat anda…",
+    "placeholderWithMin": "Sekurang-kurangnya {minLength} aksara…"
+  },
+  "confirm": {
+    "title": "Sahkan pembatalan",
+    "lossesLabel": "Anda akan kehilangan akses kepada:",
+    "cta": "Batalkan langganan",
+    "goBack": "Kembali",
+    "periodEndNotice": {
+      "atPeriodEnd": "Akses anda kekal sehingga {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Selamat kembali!",
+      "description": "Tawaran anda telah digunakan.",
+      "discount": {
+        "title": "Diskaun diterapkan.",
+        "description": "Kami sangat gembira anda masih bersama kami."
+      },
+      "pause": {
+        "title": "Langganan dijeda.",
+        "description": "Anda tidak akan dibilkan sehingga langganan anda disambung semula.",
+        "resumeDescription": "Anda tidak akan dibilkan lagi sehingga {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Percubaan dilanjutkan.",
+        "description": "Percubaan anda telah berjaya dilanjutkan."
+      },
+      "plan_change": {
+        "title": "Pelan ditukar.",
+        "description": "Pelan baharu anda kini berkuat kuasa."
+      },
+      "rebate": {
+        "title": "Bayaran balik telah dikeluarkan.",
+        "description": "Wang anda sedang dalam perjalanan kembali."
+      },
+      "stacked": {
+        "title": "Tawaran telah digunakan.",
+        "description": "Kami sangat gembira anda masih bersama kami.",
+        "afterPauseDescription": "Tawaran kedua anda bermula apabila langganan anda disambung semula.",
+        "afterTrialDescription": "Tawaran kedua anda bermula apabila percubaan anda tamat.",
+        "failedDescription": {
+          "discount": "Kami tidak dapat menggunakan diskaun anda. Kami akan menguruskannya dan memaklumkan anda.",
+          "pause": "Kami tidak dapat menjeda langganan anda. Kami akan menguruskannya dan memaklumkan anda.",
+          "trial_extension": "Kami tidak dapat melanjutkan percubaan anda. Kami akan menguruskannya dan memaklumkan anda.",
+          "plan_change": "Kami tidak dapat menukar pelan anda. Kami akan menguruskannya dan memaklumkan anda.",
+          "rebate": "Kami tidak dapat mengeluarkan bayaran balik anda. Kami akan menguruskannya dan memaklumkan anda."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Langganan dibatalkan",
+      "description": "Kami kesal melihat anda pergi."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Tawaran masa terhad",
+    "pauseEyebrow": "Kami jumpa anda semula pada {date}",
+    "newEndDateLabel": "Tarikh tamat baharu",
+    "currentPlanBadge": "Semasa",
+    "switchToCta": "Tukar ke {planName}",
+    "rebate": {
+      "paidLabel": "Anda membayar bagi tempoh ini",
+      "moneyBackLabel": "Wang dikembalikan",
+      "inclTax": "(termasuk cukai {amount})",
+      "netLabel": "Bayaran bersih anda bagi tempoh ini"
+    },
+    "stacked": {
+      "acceptCta": "Terima kedua-dua tawaran",
+      "pauseTitle": "Jeda langganan anda",
+      "planChangeTitle": "Tukar ke pelan baharu",
+      "trialTitle": "Percubaan dilanjutkan {days} {unit} lagi",
+      "rebateTitle": "{amount} dikembalikan daripada bayaran terakhir anda",
+      "afterPause": "Bermula apabila langganan anda disambung semula.",
+      "afterTrial": "Bermula dengan tempoh bil berbayar pertama anda.",
+      "withPlanChange": "Terpakai pada pelan baharu anda."
+    },
+    "discount": {
+      "percentOff": "Diskaun {percent}%",
+      "amountOff": "Diskaun {amount}",
+      "unspecified": "Diskaun",
+      "nextRenewal": "{discount} untuk pembaharuan seterusnya",
+      "forLife": "{discount} seumur hidup",
+      "forMonths": "{discount} selama {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Bagaimana dengan diskaun {percent}%?",
+        "body": "Kami ingin menawarkan diskaun {percent}% selama {months} {unit}.",
+        "headlineNoAmount": "Tawaran istimewa",
+        "bodyNoAmount": "Kami ingin menawarkan diskaun kepada anda.",
+        "cta": "Terima tawaran"
+      },
+      "pause": {
+        "headline": "Berehat sebentar?",
+        "body": "Jeda langganan anda sehingga {months} {unit}.",
+        "cta": "Jeda langganan"
+      },
+      "plan_change": {
+        "headline": "Tukar ke pelan lain?",
+        "body": "Kami ada pelan lain yang mungkin lebih sesuai.",
+        "cta": "Tukar pelan"
+      },
+      "trial_extension": {
+        "headline": "Perlukan lebih masa?",
+        "body": "Kami akan lanjutkan percubaan anda selama {days} {unit}.",
+        "cta": "Lanjutkan percubaan"
+      },
+      "contact": {
+        "headline": "Hubungi kami dahulu?",
+        "body": "Pasukan kami sedia membantu menyelesaikan sebarang masalah.",
+        "cta": "Hubungi sokongan"
+      },
+      "redirect": {
+        "headline": "Sebelum anda pergi...",
+        "body": "Lihat ini — mungkin anda akan berubah fikiran."
+      },
+      "rebate": {
+        "headline": "Dapatkan wang kembali",
+        "body": "Kekal melanggan dan kami akan mengembalikan sebahagian bayaran terbaharu anda.",
+        "cta": "Terima bayaran balik"
+      },
+      "custom": {
+        "headline": "Sebelum anda pergi...",
+        "body": "Kami ingin menawarkan sesuatu kepada anda.",
+        "cta": "Terima"
+      },
+      "declineCta": "Tidak, terima kasih"
+    }
+  }
+}

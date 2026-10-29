@@ -2,6 +2,23 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## Unreleased
+
+### Added
+
+- Built-in translations of the SDK's own strings (buttons, loading, confirm and success copy) in the same 50 languages the embed ships. Only the pack for the language in use is loaded, as its own chunk; English visitors download nothing extra. Dashboard SDK translations still override the pack, and `i18n.messages` still override both.
+- The discount phrase ("25% off for 3 months") and the copy local mode gives an offer declared without `copy` now come from the catalog, under `offer.discount` and `offer.defaultCopy`, so they are translated with the rest. Code that builds a full `CancelFlowMessages` object needs the new keys; a `messages` patch does not.
+- `locale` on `useCancelFlow`'s result, `CancelFlowMachine` and the step component props: the language the chrome renders in, as a BCP 47 tag.
+
+### Changed
+
+- The chrome follows the content. In connected mode the config response now says which language the flow copy came back in (`language`; the API echoes it when the org's Automatic Translations covered the request), and the SDK takes its own strings from that. Without an explicit `i18n.locale` the browser language is only a request: when the server keeps the source copy, the buttons stay English too, where before they followed the browser language on their own. This also applies to dashboard SDK translations and `i18n.messages` entries for the browser language: they apply once the server says the content is in that language, which needs churnkey-api#1182. An explicit `i18n.locale` is the chrome language either way, which is one place the SDK differs from the embed: the embed ignores an explicit language when Automatic Translations are on and do not cover it.
+- Local mode no longer reads the browser language. Without `i18n.locale` it is English; set the locale to the language your steps are in. `buildMessages` without a locale resolves English for the same reason, where it used to read the browser language.
+- Dates and amounts (period end, resume date, prices, the discount phrase) are formatted in the chrome's language rather than the browser's, so a German flow no longer reads "bis November 1, 2026". A malformed locale falls back to the runtime default instead of throwing.
+- `offer.pauseEyebrow` takes the resume date as `{date}`, so languages that put the verb last can put the date first. An override written without the token still gets the date after it.
+- An `en` entry in `i18n.messages` or the dashboard translations no longer shows through in another language where a translation exists. A regional English entry (`en-GB`) still applies on top of `en`.
+- In local mode `isLoading` is true while a non-English pack loads the first time; a remount in the same language starts in that language at once.
+
 ## 0.9.1 - 2026-10-28
 
 ### Fixed

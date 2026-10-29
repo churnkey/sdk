@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "ቀጥል",
+    "back": "አንደገና",
+    "close": "ዝጋ",
+    "done": "ተጠናቅቋል",
+    "processing": "በሂደት ላይ...",
+    "tryAgain": "እንደገና ሞክር",
+    "loading": "አማራጮችዎ በመጫን ላይ...",
+    "loadError": "የስረዛ አማራጮችዎን መጫን አልቻልንም። እባክዎ እንደገና ይሞክሩ።",
+    "error": "የሆነ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።",
+    "day": "ቀን",
+    "days": "ቀናት",
+    "month": "ወር",
+    "months": "ወራት"
+  },
+  "survey": {
+    "title": "ለምን እየሰረዙ ነው?",
+    "followupPlaceholder": "ተጨማሪ ይንገሩን (አማራጭ)",
+    "followupAriaLabel": "ተጨማሪ ዝርዝር"
+  },
+  "feedback": {
+    "title": "ሌላ አስተያየት አለዎት?",
+    "placeholder": "ሃሳብዎን ይጻፉ…",
+    "placeholderWithMin": "ቢያንስ {minLength} ቁምፊዎች…"
+  },
+  "confirm": {
+    "title": "ስረዛውን ያረጋግጡ",
+    "lossesLabel": "የሚያጡት መዳረሻ፦",
+    "cta": "የደንበኝነት ምዝገባን ሰርዝ",
+    "goBack": "ተመለስ",
+    "periodEndNotice": {
+      "atPeriodEnd": "መዳረሻዎ እስከ {periodEnd} ድረስ ይቀጥላል።"
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "እንኳን በደህና ተመለሱ!",
+      "description": "ቅናሽዎ ተፈጻሚ ሆኗል።",
+      "discount": {
+        "title": "ክፍያ ይቆርጡ.",
+        "description": "አብረውን በመቆየትዎ በጣም ደስ ብሎናል።"
+      },
+      "pause": {
+        "title": "ይቆርጡ እቅፍ ተወሳስታል.",
+        "description": "የደንበኝነት ምዝገባዎ እስኪቀጥል ድረስ ክፍያ አይጠየቁም።",
+        "resumeDescription": "እስከ {resumeDate} ድረስ ዳግም ክፍያ አይጠየቁም።"
+      },
+      "trial_extension": {
+        "title": "ርምጭመሬት",
+        "description": "የሙከራ ጊዜዎ በተሳካ ሁኔታ ተራዝሟል።"
+      },
+      "plan_change": {
+        "title": "ይሂ",
+        "description": "አዲሱ ዕቅድዎ አሁን ተግባራዊ ሆኗል።"
+      },
+      "rebate": {
+        "title": "ተመላሽ ገንዘብ ተልኳል።",
+        "description": "ገንዘብዎ ወደ እርስዎ በመመለስ ላይ ነው።"
+      },
+      "stacked": {
+        "title": "ቅናሾቹ ተፈጻሚ ሆነዋል።",
+        "description": "አብረውን በመቆየትዎ በጣም ደስ ብሎናል።",
+        "afterPauseDescription": "ሁለተኛው ቅናሽዎ የደንበኝነት ምዝገባዎ ሲቀጥል ይጀምራል።",
+        "afterTrialDescription": "ሁለተኛው ቅናሽዎ የሙከራ ጊዜዎ ሲያበቃ ይጀምራል።",
+        "failedDescription": {
+          "discount": "ቅናሽዎን ተፈጻሚ ማድረግ አልቻልንም። እኛ እንፈታዋለን፤ ውጤቱንም እናሳውቅዎታለን።",
+          "pause": "የደንበኝነት ምዝገባዎን ማቆም አልቻልንም። እኛ እንፈታዋለን፤ ውጤቱንም እናሳውቅዎታለን።",
+          "trial_extension": "የሙከራ ጊዜዎን ማራዘም አልቻልንም። እኛ እንፈታዋለን፤ ውጤቱንም እናሳውቅዎታለን።",
+          "plan_change": "ዕቅድዎን መቀየር አልቻልንም። እኛ እንፈታዋለን፤ ውጤቱንም እናሳውቅዎታለን።",
+          "rebate": "ተመላሽ ገንዘብዎን መላክ አልቻልንም። እኛ እንፈታዋለን፤ ውጤቱንም እናሳውቅዎታለን።"
+        }
+      }
+    },
+    "cancelled": {
+      "title": "የደንበኝነት ምዝገባ ተሰርዟል",
+      "description": "በመሄድዎ አዝነናል።"
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "ለአጭር ጊዜ ብቻ የሚቆይ ቅናሽ",
+    "pauseEyebrow": "በ{date} እንገናኛለን",
+    "newEndDateLabel": "አዲስ የማብቂያ ቀን",
+    "currentPlanBadge": "የአሁኑ",
+    "switchToCta": "ወደ {planName} ቀይር",
+    "rebate": {
+      "paidLabel": "በዚህ ጊዜ የከፈሉት",
+      "moneyBackLabel": "ተመላሽ ገንዘብ",
+      "inclTax": "(ግብር {amount} ጨምሮ)",
+      "netLabel": "ለዚህ ጊዜ የሚቀረው ወጪዎ"
+    },
+    "stacked": {
+      "acceptCta": "ሁለቱንም ቅናሾች ተቀበል",
+      "pauseTitle": "የደንበኝነት ምዝገባዎን ያቁሙ",
+      "planChangeTitle": "ወደ አዲስ ዕቅድ ይቀይሩ",
+      "trialTitle": "ተጨማሪ {days} {unit} የሙከራ ጊዜ",
+      "rebateTitle": "{amount} ከመጨረሻ ክፍያዎ ተመላሽ",
+      "afterPause": "የደንበኝነት ምዝገባዎ ሲቀጥል ይጀምራል።",
+      "afterTrial": "ከመጀመሪያው የክፍያ ጊዜዎ ጋር ይጀምራል።",
+      "withPlanChange": "በአዲሱ ዕቅድዎ ላይ ይተገበራል።"
+    },
+    "discount": {
+      "percentOff": "{percent}% ቅናሽ",
+      "amountOff": "{amount} ቅናሽ",
+      "unspecified": "ቅናሽ",
+      "nextRenewal": "{discount} በሚቀጥለው እድሳትዎ",
+      "forLife": "{discount} ለዕድሜ ልክ",
+      "forMonths": "{discount} ለ{months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}% ቅናሽ ቢደረግስ?",
+        "body": "ለ{months} {unit} የ{percent}% ቅናሽ ልናደርግልዎ እንፈልጋለን።",
+        "headlineNoAmount": "ልዩ ቅናሽ",
+        "bodyNoAmount": "ቅናሽ ልናደርግልዎ እንፈልጋለን።",
+        "cta": "ቅናሹን ተቀበል"
+      },
+      "pause": {
+        "headline": "በምትኩ እረፍት ይውሰዱ?",
+        "body": "ምዝገባዎን እስከ {months} {unit} ድረስ ያቁሙ።",
+        "cta": "ምዝገባን አቁም"
+      },
+      "plan_change": {
+        "headline": "ወደ ሌላ ዕቅድ ይቀይሩ?",
+        "body": "የበለጠ የሚስማሙ ሌሎች ዕቅዶች አሉን።",
+        "cta": "ዕቅድ ቀይር"
+      },
+      "trial_extension": {
+        "headline": "ተጨማሪ ጊዜ ይፈልጋሉ?",
+        "body": "የሙከራ ጊዜዎን በ{days} {unit} እናራዝመዋለን።",
+        "cta": "ሙከራውን አራዝም"
+      },
+      "contact": {
+        "headline": "መጀመሪያ እናውራ?",
+        "body": "ቡድናችን ማንኛውንም ችግር ለመፍታት ደስተኛ ነው።",
+        "cta": "ድጋፍን ያግኙ"
+      },
+      "redirect": {
+        "headline": "ከመሄድዎ በፊት...",
+        "body": "ይህን ይመልከቱ — ሃሳብዎን ሊለውጥ ይችላል።"
+      },
+      "rebate": {
+        "headline": "ገንዘብ ይመለስልዎ",
+        "body": "ደንበኝነትዎን ይቀጥሉ፤ ከቅርብ ጊዜ ክፍያዎ የተወሰነውን እንመልሳለን።",
+        "cta": "ተመላሹን ተቀበል"
+      },
+      "custom": {
+        "headline": "ከመሄድዎ በፊት...",
+        "body": "አንድ ነገር ልናቀርብልዎ እንፈልጋለን።",
+        "cta": "ተቀበል"
+      },
+      "declineCta": "አይ፣ አመሰግናለሁ"
+    }
+  }
+}

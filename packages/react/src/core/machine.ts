@@ -15,7 +15,7 @@ import type {
 import { AnalyticsClient, directDataToSessionCustomer, toApiMode } from './api'
 import type { SdkConfig } from './api-types'
 import { applyMergeFieldsToSteps } from './merge-fields'
-import { buildMessages, type CancelFlowMessages, type I18nConfig } from './messages'
+import { buildMessages, type CancelFlowMessages, type I18nConfig, type MessagesPatch } from './messages'
 import { buildStepGraph, type ResolvedStep, type StepGraph } from './step-graph'
 import type { SessionCredentials } from './token'
 import { defaultOfferCopy, transformSdkConfig } from './transform'
@@ -29,6 +29,8 @@ import type {
   FlowConfig,
   FlowState,
   Mode,
+  OfferConfig,
+  OfferCopy,
   OfferDecision,
   OfferStep,
   PauseOffer,
@@ -330,11 +332,19 @@ export class CancelFlowMachine {
   private config: SdkConfig | null = null
   private blueprintId: string | null = null
   private localSteps: Step[] | null = null
+  // Known from the start, unlike isTokenMode, which waits for the config.
+  private readonly tokenFlow: boolean
+  // Local mode shows pairs unless told not to; token mode tells the server instead.
+  private localPairs = false
   private stepsViewed: StepViewed[] = []
   private presentedOffers: PresentedOffer[] = []
   private customStepResults: Record<string, unknown> = {}
   private configMode: Mode = 'live'
   private i18nConfig: I18nConfig | undefined
+  // Starts as the explicit `i18n.locale` or English; the hook settles it once
+  // it knows what the content is in.
+  private currentLocale: string
+  private localePack: MessagesPatch | undefined
   private localCancelAtPeriodEnd: boolean | null = null
   private resolvedMessages: CancelFlowMessages
   private stepEnteredAt: number = Date.now()
@@ -348,8 +358,10 @@ export class CancelFlowMachine {
     // FlowConfig extends FlowCallbacks; storing the whole config covers
     // every callback by name without a separate copy.
     this.callbacks = config
+    this.tokenFlow = Boolean(config.session)
     this.i18nConfig = config.i18n
-    this.resolvedMessages = buildMessages(config.i18n)
+    this.currentLocale = config.i18n?.locale ?? 'en'
+    this.resolvedMessages = this.resolveMessages()
     // Local mode only — in token mode the server-resolved value is
     // authoritative, and when the server omits it the timing must stay
     // unknown rather than silently adopting the local claim. `null` copy
@@ -370,16 +382,12 @@ export class CancelFlowMachine {
     }
 
     // Token mode defers graph construction until initializeFromConfig runs
-    // with the server-supplied steps; stash any locally-declared steps for
-    // merging then.
-    if (config.session) {
-      if (config.steps) this.localSteps = config.steps
-    } else if (config.steps) {
-      const merged = applyMergeFieldsToSteps(config.steps, this.directCustomer, this.customerAttributes)
-      this.graph = buildStepGraph(
-        withoutLeftOutPairs(merged, config, false, config.stackedOffers !== false),
-        defaultOfferCopy,
-      )
+    // with the server-supplied steps and merges the local ones in then. Local
+    // mode builds now, and again when the language settles (see setLocale).
+    if (config.steps) this.localSteps = config.steps
+    if (!config.session && config.steps) {
+      this.localPairs = config.stackedOffers !== false
+      this.graph = this.buildLocalGraph()
     }
 
     // Seed state from local props for open-source and analytics modes. Token
@@ -429,6 +437,15 @@ export class CancelFlowMachine {
    */
   get messages(): CancelFlowMessages {
     return this.resolvedMessages
+  }
+
+  /**
+   * Language the chrome renders in, as a BCP 47 tag: `i18n.locale`, else the
+   * language the server translated the content into, else `en`. Dates and
+   * amounts are formatted with it.
+   */
+  get locale(): string {
+    return this.currentLocale
   }
 
   /** Whether `back()` would move anywhere — false on the first step and on success. */
@@ -586,22 +603,52 @@ export class CancelFlowMachine {
 
     // Re-resolve with the org's dashboard-configured overrides, which ride
     // along on the config payload. Developer i18n.messages still win.
-    if (config.translations) {
-      this.resolvedMessages = buildMessages(this.i18nConfig, config.translations)
-    }
+    if (config.translations) this.resolvedMessages = this.resolveMessages()
 
     const result = transformSdkConfig(config)
     this.blueprintId = result.blueprintId
 
     const merged = this.localSteps ? mergeLocalSteps(result.steps, this.localSteps) : result.steps
     const steps = applyMergeFieldsToSteps(merged, config.customer ?? null, this.customerAttributes)
-    this.graph = buildStepGraph(withoutLeftOutPairs(steps, this.callbacks, true), defaultOfferCopy)
+    this.graph = buildStepGraph(withoutLeftOutPairs(steps, this.callbacks, true), this.offerCopy)
 
     this.state = this.buildInitialState(config.customer ?? null, config.subscriptions ?? [])
     this.cachedSnapshot = { ...this.state }
     const first = this.firstStep()
     if (first) this.trackStepEnter(first)
     this.notify()
+  }
+
+  /**
+   * Switch the chrome to `locale`, with its built-in translation (a separate
+   * chunk, so it lands after construction). Called by the hook once the
+   * language is settled; the catalog is re-resolved with the pack under the
+   * org and developer layers.
+   * @internal
+   */
+  setLocale(locale: string, pack: MessagesPatch | undefined): void {
+    this.currentLocale = locale
+    this.localePack = pack
+    this.resolvedMessages = this.resolveMessages()
+    // Local-mode offers without copy took theirs from the catalog, so the
+    // graph is built again. Step ids are stable, so the current step stays.
+    if (!this.tokenFlow && this.localSteps) this.graph = this.buildLocalGraph()
+    // Messages live outside FlowState, so a fresh snapshot is what makes
+    // useSyncExternalStore subscribers re-render.
+    this.cachedSnapshot = { ...this.state }
+    this.notify()
+  }
+
+  private resolveMessages(): CancelFlowMessages {
+    return buildMessages({ ...this.i18nConfig, locale: this.currentLocale }, this.config?.translations, this.localePack)
+  }
+
+  // Read at build time, so the copy is in whatever language the catalog is in then.
+  private offerCopy = (offer: OfferConfig): OfferCopy => defaultOfferCopy(offer, this.resolvedMessages)
+
+  private buildLocalGraph(): StepGraph {
+    const merged = applyMergeFieldsToSteps(this.localSteps ?? [], this.directCustomer, this.customerAttributes)
+    return buildStepGraph(withoutLeftOutPairs(merged, this.callbacks, false, this.localPairs), this.offerCopy)
   }
 
   // --- Internal helpers ---

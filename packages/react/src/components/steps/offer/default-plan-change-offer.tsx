@@ -15,6 +15,7 @@ export function DefaultPlanChangeOffer({
   isProcessing,
   classNames,
   messages,
+  locale,
 }: OfferStepProps) {
   const msg = messages ?? defaultMessages
   const o = offer as OfferDecision & { plans?: PlanOption[] }
@@ -46,6 +47,7 @@ export function DefaultPlanChangeOffer({
           selectedPlanId={selectedPlanId}
           onSelect={setSelectedPlanId}
           msg={msg}
+          locale={locale}
         />
         <button
           type="button"

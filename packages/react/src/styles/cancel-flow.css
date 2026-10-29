@@ -592,6 +592,11 @@
   margin-bottom: 6px;
 }
 
+/* Words that follow the date, in languages that put the verb last. */
+.ck-cancel-flow .ck-pause-date + .ck-pause-eyebrow {
+  margin: 6px 0 0;
+}
+
 .ck-cancel-flow .ck-pause-date {
   font-family: var(--ck-font-display);
   font-size: 36px;

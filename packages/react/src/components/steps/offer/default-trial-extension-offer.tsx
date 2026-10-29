@@ -13,6 +13,7 @@ export function DefaultTrialExtensionOffer({
   isProcessing,
   classNames,
   messages,
+  locale,
 }: OfferStepProps) {
   const msg = messages ?? defaultMessages
   const o = offer as OfferDecision & { days: number }
@@ -20,7 +21,7 @@ export function DefaultTrialExtensionOffer({
   const body = description ?? offer.copy.body
   const end = new Date()
   end.setDate(end.getDate() + o.days)
-  const newEnd = formatMonthDay(end)
+  const newEnd = formatMonthDay(end, locale)
 
   return (
     <div className={cn('ck-step ck-step-offer', classNames?.root)}>

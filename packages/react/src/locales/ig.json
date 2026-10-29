@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "Gaa n'ihu",
+    "back": "Nzọụkwụ azụ",
+    "close": "Mechie",
+    "done": "Emechala",
+    "processing": "Na-arụ ya...",
+    "tryAgain": "Nwaa ọzọ",
+    "loading": "Na-ebudata nhọrọ gị...",
+    "loadError": "Enweghị ike ibudata nhọrọ ịkagbu gị. Biko nwaa ọzọ.",
+    "error": "Ihe adịghị mma mere. Biko nwaa ọzọ.",
+    "day": "ụbọchị",
+    "days": "ụbọchị",
+    "month": "ọnwa",
+    "months": "ọnwa"
+  },
+  "survey": {
+    "title": "Gịnị mere iji na-akagbu?",
+    "followupPlaceholder": "Gwa anyị ihe ndị ọzọ (nhọrọ)",
+    "followupAriaLabel": "Nkọwa ọzọ"
+  },
+  "feedback": {
+    "title": "Ọ nwere echiche ọzọ i nwere?",
+    "placeholder": "Dee ihe i chere…",
+    "placeholderWithMin": "Opekempe mkpụrụedemede {minLength}…"
+  },
+  "confirm": {
+    "title": "Kwado ịkagbu",
+    "lossesLabel": "I ga-efu ohere ịnweta:",
+    "cta": "Kagbuo ndebanye aha",
+    "goBack": "Laghachi azụ",
+    "periodEndNotice": {
+      "atPeriodEnd": "Ohere ịnweta gị ga-aga n'ihu ruo {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Nnọọ ọzọ!",
+      "description": "Etinyela onyinye gị.",
+      "discount": {
+        "title": "Nkwụnye etinyere.",
+        "description": "Obi dị anyị ụtọ nke ukwuu na ị ka nọnyere anyị."
+      },
+      "pause": {
+        "title": "Mmemme kwụsịrị.",
+        "description": "Agaghị akwụ gị ụgwọ ruo mgbe ndebanye aha gị ga-aga n'ihu.",
+        "resumeDescription": "Agaghị akwụ gị ụgwọ ọzọ ruo {resumeDate}."
+      },
+      "trial_extension": {
+        "title": "Nnwale ekwekọrọ.",
+        "description": "Agbatịala oge nnwale gị nke ọma."
+      },
+      "plan_change": {
+        "title": "Nkwụnye gbanwere.",
+        "description": "Atụmatụ gị ọhụrụ amalitela ọrụ."
+      },
+      "rebate": {
+        "title": "Enyela ụgwọ azụ.",
+        "description": "Ego gị na-alọghachi."
+      },
+      "stacked": {
+        "title": "Etinyela onyinye ndị a.",
+        "description": "Obi dị anyị ụtọ nke ukwuu na ị ka nọnyere anyị.",
+        "afterPauseDescription": "Onyinye gị nke abụọ ga-amalite mgbe ndebanye aha gị ga-aga n'ihu.",
+        "afterTrialDescription": "Onyinye gị nke abụọ ga-amalite mgbe oge nnwale gị ga-akwụsị.",
+        "failedDescription": {
+          "discount": "Enweghị ike itinye mbelata ọnụ ahịa gị. Anyị ga-edozi ya ma gwa gị.",
+          "pause": "Enweghị ike ịkwụsịtụ ndebanye aha gị. Anyị ga-edozi ya ma gwa gị.",
+          "trial_extension": "Enweghị ike ịgbatị oge nnwale gị. Anyị ga-edozi ya ma gwa gị.",
+          "plan_change": "Enweghị ike ịgbanwe atụmatụ gị. Anyị ga-edozi ya ma gwa gị.",
+          "rebate": "Enweghị ike iweghachi ego gị. Anyị ga-edozi ya ma gwa gị."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Akagbuola ndebanye aha",
+      "description": "Ọ dị anyị ọ bụghị mma na ị na-aga."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Onyinye oge mkpirikpi",
+    "pauseEyebrow": "Anyị ga-ahụ gị ọzọ na {date}",
+    "newEndDateLabel": "Ụbọchị ọgwụgwụ ọhụrụ",
+    "currentPlanBadge": "Nke ugbu a",
+    "switchToCta": "Gbanwee gaa na {planName}",
+    "rebate": {
+      "paidLabel": "Ị kwụrụ n'oge a",
+      "moneyBackLabel": "Ego alọghachiri",
+      "inclTax": "(gụnyere ụtụ isi {amount})",
+      "netLabel": "Ọnụ ahịa gị n'ikpeazụ n'oge a"
+    },
+    "stacked": {
+      "acceptCta": "Nabata onyinye abụọ ahụ",
+      "pauseTitle": "Kwụsịtụ ndebanye aha gị",
+      "planChangeTitle": "Gbanwee gaa na atụmatụ ọhụrụ",
+      "trialTitle": "{days} {unit} ọzọ nke oge nnwale gị",
+      "rebateTitle": "{amount} alọghachi site na nkwụghachi gị ikpeazụ",
+      "afterPause": "Ga-amalite mgbe ndebanye aha gị ga-aga n'ihu.",
+      "afterTrial": "Ga-amalite site n'oge nkwụ ụgwọ mbụ gị.",
+      "withPlanChange": "Ọ metụtara atụmatụ ọhụrụ gị."
+    },
+    "discount": {
+      "percentOff": "Nkwụsị {percent}%",
+      "amountOff": "Nkwụsị {amount}",
+      "unspecified": "Nkwụsị price",
+      "nextRenewal": "{discount} n'ọhụrụ gị nke na-abịa",
+      "forLife": "{discount} ruo mgbe ndụ gị",
+      "forMonths": "{discount} maka {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Kedu ka {percent}% nkwụsị si dị?",
+        "body": "Anyị chọrọ inye gị nkwụsị {percent}% maka {months} {unit}.",
+        "headlineNoAmount": "Onyinye pụrụ iche",
+        "bodyNoAmount": "Anyị chọrọ inye gị nkwụsị price.",
+        "cta": "Nabata onyinye"
+      },
+      "pause": {
+        "headline": "Zuru ike kama?",
+        "body": "Kwụsịtụ ndenye aha gị ruo {months} {unit}.",
+        "cta": "Kwụsịtụ ndenye aha"
+      },
+      "plan_change": {
+        "headline": "Gbanwee gaa na atụmatụ ọzọ?",
+        "body": "Anyị nwere atụmatụ ndị ọzọ nwere ike dabara gị nke ọma.",
+        "cta": "Gbanwee atụmatụ"
+      },
+      "trial_extension": {
+        "headline": "Ị chọrọ oge ọzọ?",
+        "body": "Anyị ga-agbatị ọnwụnwa gị site na {days} {unit}.",
+        "cta": "Gbatịa ọnwụnwa"
+      },
+      "contact": {
+        "headline": "Kpọtụrụ anyị tupu?",
+        "body": "Otu ndị anyị ga-enwe obi ụtọ inyere gị aka idozi nsogbu ọ bụla.",
+        "cta": "Kpọtụrụ nkwado"
+      },
+      "redirect": {
+        "headline": "Tupu ị pụọ...",
+        "body": "Lee nke a — ọ nwere ike ime ka i chegharịa."
+      },
+      "rebate": {
+        "headline": "Nweta ego gị laghachi",
+        "body": "Nọgidee n'ndenye aha, anyị ga-akwụghachi gị otu akụkụ nke ịkwụ ụgwọ gị ikpeazụ.",
+        "cta": "Nabata ịkwụghachi ego"
+      },
+      "custom": {
+        "headline": "Tupu ị pụọ...",
+        "body": "Anyị chọrọ inye gị ihe.",
+        "cta": "Nabata"
+      },
+      "declineCta": "Ee e, daalụ"
+    }
+  }
+}

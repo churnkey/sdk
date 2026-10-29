@@ -1,0 +1,155 @@
+{
+  "common": {
+    "continue": "Pokračovat",
+    "back": "Zpět",
+    "close": "Zavřít",
+    "done": "Hotovo",
+    "processing": "Zpracováváme...",
+    "tryAgain": "Zkusit znovu",
+    "loading": "Načítáme vaše možnosti...",
+    "loadError": "Možnosti zrušení se nepodařilo načíst. Zkuste to prosím znovu.",
+    "error": "Něco se pokazilo. Zkuste to prosím znovu.",
+    "day": "den",
+    "days": "dní",
+    "month": "měsíc",
+    "months": "měsíců"
+  },
+  "survey": {
+    "title": "Proč rušíte předplatné?",
+    "followupPlaceholder": "Řekněte nám víc (volitelné)",
+    "followupAriaLabel": "Další podrobnosti"
+  },
+  "feedback": {
+    "title": "Máte další zpětnou vazbu?",
+    "placeholder": "Napište nám své postřehy…",
+    "placeholderWithMin": "Alespoň {minLength} znaků…"
+  },
+  "confirm": {
+    "title": "Potvrdit zrušení",
+    "lossesLabel": "Přijdete o přístup k:",
+    "cta": "Zrušit předplatné",
+    "goBack": "Zpět",
+    "periodEndNotice": {
+      "atPeriodEnd": "Přístup vám zůstane do {periodEnd}."
+    }
+  },
+  "success": {
+    "saved": {
+      "title": "Vítejte zpět!",
+      "description": "Vaše nabídka byla uplatněna.",
+      "discount": {
+        "title": "Sleva byla uplatněna.",
+        "description": "Jsme moc rádi, že jste s námi zůstali."
+      },
+      "pause": {
+        "title": "Předplatné bylo pozastaveno.",
+        "description": "Dokud se předplatné neobnoví, nebudeme vám nic účtovat.",
+        "resumeDescription": "Do {resumeDate} vám nic účtovat nebudeme."
+      },
+      "trial_extension": {
+        "title": "Zkušební doba byla prodloužena.",
+        "description": "Vaše zkušební období bylo úspěšně prodlouženo."
+      },
+      "plan_change": {
+        "title": "Plán změněn.",
+        "description": "Váš nový tarif je nyní aktivní."
+      },
+      "rebate": {
+        "title": "Platba byla vrácena.",
+        "description": "Vaše peníze jsou na cestě zpět."
+      },
+      "stacked": {
+        "title": "Nabídky byly uplatněny.",
+        "description": "Jsme moc rádi, že jste s námi zůstali.",
+        "afterPauseDescription": "Druhá nabídka začne po obnovení vašeho předplatného.",
+        "afterTrialDescription": "Druhá nabídka začne po skončení zkušebního období.",
+        "failedDescription": {
+          "discount": "Slevu se nepodařilo uplatnit. Postaráme se o to a dáme vám vědět.",
+          "pause": "Předplatné se nepodařilo pozastavit. Postaráme se o to a dáme vám vědět.",
+          "trial_extension": "Zkušební období se nepodařilo prodloužit. Postaráme se o to a dáme vám vědět.",
+          "plan_change": "Tarif se nepodařilo změnit. Postaráme se o to a dáme vám vědět.",
+          "rebate": "Vrácení platby se nepodařilo provést. Postaráme se o to a dáme vám vědět."
+        }
+      }
+    },
+    "cancelled": {
+      "title": "Předplatné bylo zrušeno",
+      "description": "Je nám líto, že odcházíte."
+    }
+  },
+  "offer": {
+    "limitedTimeEyebrow": "Časově omezená nabídka",
+    "pauseEyebrow": "Uvidíme se znovu {date}",
+    "newEndDateLabel": "Nové datum ukončení",
+    "currentPlanBadge": "Aktuální",
+    "switchToCta": "Přejít na {planName}",
+    "rebate": {
+      "paidLabel": "Zaplatili jste za toto období",
+      "moneyBackLabel": "Vrácené peníze",
+      "inclTax": "(vč. daně {amount})",
+      "netLabel": "Vaše náklady za toto období"
+    },
+    "stacked": {
+      "acceptCta": "Přijmout obě nabídky",
+      "pauseTitle": "Pozastavit předplatné",
+      "planChangeTitle": "Přejít na nový tarif",
+      "trialTitle": "Zkušební období o {days} {unit} delší",
+      "rebateTitle": "{amount} zpět za poslední platbu",
+      "afterPause": "Začne po obnovení vašeho předplatného.",
+      "afterTrial": "Začne prvním placeným obdobím.",
+      "withPlanChange": "Platí pro váš nový tarif."
+    },
+    "discount": {
+      "percentOff": "Sleva {percent} %",
+      "amountOff": "Sleva {amount}",
+      "unspecified": "Sleva",
+      "nextRenewal": "{discount} na další obnovení",
+      "forLife": "{discount} navždy",
+      "forMonths": "{discount} na {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Co říkáte na slevu {percent} %?",
+        "body": "Rádi bychom vám nabídli slevu {percent} % na {months} {unit}.",
+        "headlineNoAmount": "Speciální nabídka",
+        "bodyNoAmount": "Rádi bychom vám nabídli slevu.",
+        "cta": "Přijmout nabídku"
+      },
+      "pause": {
+        "headline": "Dát si raději pauzu?",
+        "body": "Pozastavte předplatné až na {months} {unit}.",
+        "cta": "Pozastavit předplatné"
+      },
+      "plan_change": {
+        "headline": "Přejít na jiný tarif?",
+        "body": "Máme i jiné tarify, které vám mohou sedět lépe.",
+        "cta": "Změnit tarif"
+      },
+      "trial_extension": {
+        "headline": "Potřebujete více času?",
+        "body": "Prodloužíme vám zkušební období o {days} {unit}.",
+        "cta": "Prodloužit zkušební období"
+      },
+      "contact": {
+        "headline": "Nejdřív si promluvme?",
+        "body": "Náš tým vám rád pomůže vyřešit jakékoli potíže.",
+        "cta": "Kontaktovat podporu"
+      },
+      "redirect": {
+        "headline": "Než odejdete...",
+        "body": "Mrkněte na tohle – možná změníte názor."
+      },
+      "rebate": {
+        "headline": "Získejte peníze zpět",
+        "body": "Zůstaňte předplatiteli a my vám vrátíme část poslední platby.",
+        "cta": "Přijmout vrácení peněz"
+      },
+      "custom": {
+        "headline": "Než odejdete...",
+        "body": "Rádi bychom vám něco nabídli.",
+        "cta": "Přijmout"
+      },
+      "declineCta": "Ne, děkuji"
+    }
+  }
+}
