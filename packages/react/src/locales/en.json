@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Limited-time offer",
-    "pauseEyebrow": "We'll see you back on",
+    "pauseEyebrow": "We'll see you back on {date}",
     "newEndDateLabel": "New end date",
     "currentPlanBadge": "Current",
     "switchToCta": "Switch to {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Starts when your subscription resumes.",
       "afterTrial": "Starts with your first paid billing period.",
       "withPlanChange": "Applies to your new plan."
+    },
+    "discount": {
+      "percentOff": "{percent}% off",
+      "amountOff": "{amount} off",
+      "unspecified": "A discount",
+      "nextRenewal": "{discount} your next renewal",
+      "forLife": "{discount} for life",
+      "forMonths": "{discount} for {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "How about {percent}% off?",
+        "body": "We'd like to offer you {percent}% off for {months} {unit}.",
+        "headlineNoAmount": "Special offer",
+        "bodyNoAmount": "We'd like to offer you a discount.",
+        "cta": "Accept offer"
+      },
+      "pause": {
+        "headline": "Take a break instead?",
+        "body": "Pause your subscription for up to {months} {unit}.",
+        "cta": "Pause subscription"
+      },
+      "plan_change": {
+        "headline": "Switch to a different plan?",
+        "body": "We have other plans that might be a better fit.",
+        "cta": "Switch plan"
+      },
+      "trial_extension": {
+        "headline": "Need more time?",
+        "body": "We'll extend your trial by {days} {unit}.",
+        "cta": "Extend trial"
+      },
+      "contact": {
+        "headline": "Talk to us first?",
+        "body": "Our team would love to help resolve any issues.",
+        "cta": "Contact support"
+      },
+      "redirect": {
+        "headline": "Before you go...",
+        "body": "Check this out — it might change your mind."
+      },
+      "rebate": {
+        "headline": "Get money back",
+        "body": "Stay subscribed and we'll refund part of your most recent payment.",
+        "cta": "Accept refund"
+      },
+      "custom": {
+        "headline": "Before you go...",
+        "body": "We'd like to offer you something.",
+        "cta": "Accept"
+      },
+      "declineCta": "No thanks"
     }
   }
 }

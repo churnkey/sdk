@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "મર્યાદિત સમયની ઑફર",
-    "pauseEyebrow": "ફરી મળીશું",
+    "pauseEyebrow": "અમે તમને {date} એ પાછા મળીશું",
     "newEndDateLabel": "નવી સમાપ્તિ તારીખ",
     "currentPlanBadge": "વર્તમાન",
     "switchToCta": "{planName} પર સ્વિચ કરો",
@@ -98,6 +98,58 @@
       "afterPause": "સબ્સ્ક્રિપ્શન ફરી શરૂ થાય ત્યારે શરૂ થાય છે.",
       "afterTrial": "તમારા પ્રથમ ચૂકવણીવાળા બિલિંગ સમયગાળાથી શરૂ થાય છે.",
       "withPlanChange": "તમારા નવા પ્લાન પર લાગુ પડે છે."
+    },
+    "discount": {
+      "percentOff": "{percent}% છૂટ",
+      "amountOff": "{amount} છૂટ",
+      "unspecified": "છૂટ",
+      "nextRenewal": "તમારા આગામી રિન્યુઅલ પર {discount}",
+      "forLife": "આજીવન {discount}",
+      "forMonths": "{months} {unit} માટે {discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}% છૂટ કેવી રહેશે?",
+        "body": "અમે તમને {months} {unit} માટે {percent}% છૂટ આપવા માગીએ છીએ.",
+        "headlineNoAmount": "ખાસ ઓફર",
+        "bodyNoAmount": "અમે તમને છૂટ આપવા માગીએ છીએ.",
+        "cta": "ઓફર સ્વીકારો"
+      },
+      "pause": {
+        "headline": "તેના બદલે વિરામ લેશો?",
+        "body": "તમારું સબ્સ્ક્રિપ્શન {months} {unit} સુધી થોભાવો.",
+        "cta": "સબ્સ્ક્રિપ્શન થોભાવો"
+      },
+      "plan_change": {
+        "headline": "બીજા પ્લાનમાં બદલવો છે?",
+        "body": "અમારી પાસે એવા અન્ય પ્લાન છે જે કદાચ વધુ યોગ્ય હોય.",
+        "cta": "પ્લાન બદલો"
+      },
+      "trial_extension": {
+        "headline": "વધુ સમય જોઈએ છે?",
+        "body": "અમે તમારો ટ્રાયલ {days} {unit} લંબાવીશું.",
+        "cta": "ટ્રાયલ લંબાવો"
+      },
+      "contact": {
+        "headline": "પહેલાં અમારી સાથે વાત કરશો?",
+        "body": "કોઈપણ સમસ્યા ઉકેલવામાં અમારી ટીમ ખુશીથી મદદ કરશે.",
+        "cta": "સપોર્ટનો સંપર્ક કરો"
+      },
+      "redirect": {
+        "headline": "જતાં પહેલાં...",
+        "body": "આ જુઓ — કદાચ તમારો વિચાર બદલાઈ જાય."
+      },
+      "rebate": {
+        "headline": "પૈસા પાછા મેળવો",
+        "body": "સબ્સ્ક્રાઇબ રહો અને અમે તમારી તાજેતરની ચુકવણીનો થોડો ભાગ પરત કરીશું.",
+        "cta": "રિફંડ સ્વીકારો"
+      },
+      "custom": {
+        "headline": "જતાં પહેલાં...",
+        "body": "અમે તમને કંઈક ઓફર કરવા માગીએ છીએ.",
+        "cta": "સ્વીકારો"
+      },
+      "declineCta": "ના, આભાર"
     }
   }
 }

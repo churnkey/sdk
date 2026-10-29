@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Ofertă limitată în timp",
-    "pauseEyebrow": "Ne revedem pe",
+    "pauseEyebrow": "Ne vedem din nou pe {date}",
     "newEndDateLabel": "Noua dată de încheiere",
     "currentPlanBadge": "Actual",
     "switchToCta": "Treci la {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Începe când abonamentul se reia.",
       "afterTrial": "Începe cu prima perioadă de facturare plătită.",
       "withPlanChange": "Se aplică noului tău plan."
+    },
+    "discount": {
+      "percentOff": "Reducere de {percent}%",
+      "amountOff": "Reducere de {amount}",
+      "unspecified": "O reducere",
+      "nextRenewal": "{discount} la următoarea reînnoire",
+      "forLife": "{discount} pe viață",
+      "forMonths": "{discount} timp de {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Ce zici de {percent}% reducere?",
+        "body": "Vrem să-ți oferim {percent}% reducere timp de {months} {unit}.",
+        "headlineNoAmount": "Ofertă specială",
+        "bodyNoAmount": "Vrem să-ți oferim o reducere.",
+        "cta": "Acceptă oferta"
+      },
+      "pause": {
+        "headline": "Preferi o pauză?",
+        "body": "Pune abonamentul în pauză până la {months} {unit}.",
+        "cta": "Pauză abonament"
+      },
+      "plan_change": {
+        "headline": "Treci la alt plan?",
+        "body": "Avem și alte planuri care ți s-ar potrivi mai bine.",
+        "cta": "Schimbă planul"
+      },
+      "trial_extension": {
+        "headline": "Ai nevoie de mai mult timp?",
+        "body": "Îți prelungim perioada de probă cu {days} {unit}.",
+        "cta": "Prelungește proba"
+      },
+      "contact": {
+        "headline": "Vorbește mai întâi cu noi?",
+        "body": "Echipa noastră te ajută cu plăcere să rezolvi orice problemă.",
+        "cta": "Contactează suportul"
+      },
+      "redirect": {
+        "headline": "Înainte să pleci...",
+        "body": "Aruncă o privire — s-ar putea să te răzgândești."
+      },
+      "rebate": {
+        "headline": "Primești bani înapoi",
+        "body": "Rămâi abonat și îți rambursăm o parte din ultima plată.",
+        "cta": "Acceptă rambursarea"
+      },
+      "custom": {
+        "headline": "Înainte să pleci...",
+        "body": "Am vrea să-ți oferim ceva.",
+        "cta": "Acceptă"
+      },
+      "declineCta": "Nu, mulțumesc"
     }
   }
 }

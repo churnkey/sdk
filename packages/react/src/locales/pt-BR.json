@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Oferta por tempo limitado",
-    "pauseEyebrow": "Esperamos você de volta em",
+    "pauseEyebrow": "Esperamos você de volta em {date}",
     "newEndDateLabel": "Nova data de término",
     "currentPlanBadge": "Atual",
     "switchToCta": "Mudar para {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Começa quando a assinatura for retomada.",
       "afterTrial": "Começa no primeiro período de cobrança pago.",
       "withPlanChange": "Aplica-se ao seu novo plano."
+    },
+    "discount": {
+      "percentOff": "{percent}% de desconto",
+      "amountOff": "{amount} de desconto",
+      "unspecified": "Um desconto",
+      "nextRenewal": "{discount} na sua próxima renovação",
+      "forLife": "{discount} para sempre",
+      "forMonths": "{discount} por {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Que tal {percent}% de desconto?",
+        "body": "Queremos oferecer {percent}% de desconto por {months} {unit}.",
+        "headlineNoAmount": "Oferta especial",
+        "bodyNoAmount": "Queremos oferecer um desconto para você.",
+        "cta": "Aceitar oferta"
+      },
+      "pause": {
+        "headline": "Que tal uma pausa?",
+        "body": "Pause sua assinatura por até {months} {unit}.",
+        "cta": "Pausar assinatura"
+      },
+      "plan_change": {
+        "headline": "Mudar para outro plano?",
+        "body": "Temos outros planos que podem ser mais adequados para você.",
+        "cta": "Mudar de plano"
+      },
+      "trial_extension": {
+        "headline": "Precisa de mais tempo?",
+        "body": "Vamos estender seu período de teste por {days} {unit}.",
+        "cta": "Estender teste"
+      },
+      "contact": {
+        "headline": "Que tal falar conosco antes?",
+        "body": "Nossa equipe adoraria ajudar a resolver qualquer problema.",
+        "cta": "Falar com o suporte"
+      },
+      "redirect": {
+        "headline": "Antes de ir...",
+        "body": "Dê uma olhada — isso pode fazer você mudar de ideia."
+      },
+      "rebate": {
+        "headline": "Receba dinheiro de volta",
+        "body": "Continue assinando e reembolsaremos parte do seu último pagamento.",
+        "cta": "Aceitar reembolso"
+      },
+      "custom": {
+        "headline": "Antes de ir...",
+        "body": "Temos uma oferta para você.",
+        "cta": "Aceitar"
+      },
+      "declineCta": "Não, obrigado"
     }
   }
 }

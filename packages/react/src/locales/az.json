@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Məhdud müddətli təklif",
-    "pauseEyebrow": "Sizi yenidən gözləyirik:",
+    "pauseEyebrow": "Sizi {date} tarixində yenidən gözləyəcəyik",
     "newEndDateLabel": "Yeni bitmə tarixi",
     "currentPlanBadge": "Cari",
     "switchToCta": "{planName} planına keç",
@@ -98,6 +98,58 @@
       "afterPause": "Abunəliyiniz bərpa olunanda başlayır.",
       "afterTrial": "İlk ödənişli dövrünüzlə başlayır.",
       "withPlanChange": "Yeni planınıza tətbiq olunur."
+    },
+    "discount": {
+      "percentOff": "{percent}% endirim",
+      "amountOff": "{amount} endirim",
+      "unspecified": "Endirim",
+      "nextRenewal": "Növbəti yenilənmədə {discount}",
+      "forLife": "Ömürlük {discount}",
+      "forMonths": "{months} {unit} üçün {discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}% endirimə nə deyirsiniz?",
+        "body": "Sizə {months} {unit} üçün {percent}% endirim təklif etmək istəyirik.",
+        "headlineNoAmount": "Xüsusi təklif",
+        "bodyNoAmount": "Sizə endirim təklif etmək istəyirik.",
+        "cta": "Təklifi qəbul et"
+      },
+      "pause": {
+        "headline": "Əvəzinə fasilə verək?",
+        "body": "Abunəliyinizi {months} {unit}dək dayandırın.",
+        "cta": "Abunəliyi dayandır"
+      },
+      "plan_change": {
+        "headline": "Başqa plana keçək?",
+        "body": "Sizə daha uyğun ola biləcək digər planlarımız var.",
+        "cta": "Planı dəyiş"
+      },
+      "trial_extension": {
+        "headline": "Daha çox vaxt lazımdır?",
+        "body": "Sınaq müddətinizi {days} {unit} uzadacağıq.",
+        "cta": "Sınağı uzat"
+      },
+      "contact": {
+        "headline": "Əvvəlcə bizimlə danışaq?",
+        "body": "Komandamız hər hansı problemi həll etməyə şad olar.",
+        "cta": "Dəstəklə əlaqə"
+      },
+      "redirect": {
+        "headline": "Getməzdən əvvəl...",
+        "body": "Buna baxın — fikrinizi dəyişə bilər."
+      },
+      "rebate": {
+        "headline": "Pulunuzu geri alın",
+        "body": "Abunəliyi davam etdirin, son ödənişinizin bir hissəsini geri qaytaraq.",
+        "cta": "Geri ödənişi qəbul et"
+      },
+      "custom": {
+        "headline": "Getməzdən əvvəl...",
+        "body": "Sizə bir təklifimiz var.",
+        "cta": "Qəbul et"
+      },
+      "declineCta": "Xeyr, təşəkkür"
     }
   }
 }

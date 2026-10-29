@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Dhiyeessii yeroo murtaa'eef",
-    "pauseEyebrow": "Deebitanii isin argina guyyaa",
+    "pauseEyebrow": "Guyyaa {date} deebitee si arga",
     "newEndDateLabel": "Guyyaa xumuraa haaraa",
     "currentPlanBadge": "Ammaa",
     "switchToCta": "Gara {planName} jijjiiri",
@@ -98,6 +98,58 @@
       "afterPause": "Yeroo kaffaltiin keessan deebi'ee jalqabamu jalqaba.",
       "afterTrial": "Yeroo kaffaltii jalqabaa irraa jalqaba.",
       "withPlanChange": "Karoora keessan haaraa irratti hojiirra oola."
+    },
+    "discount": {
+      "percentOff": "%{percent} hir'ate",
+      "amountOff": "{amount} hir'ate",
+      "unspecified": "Hir'ina gatii",
+      "nextRenewal": "{discount} haaromsa itti aanu irratti",
+      "forLife": "{discount} yeroo hundaaf",
+      "forMonths": "{discount} {months} {unit} tiif"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "%{percent} hir'ata taanaan how ta'a?",
+        "body": "{months} {unit} tiif %{percent} sif hir'isuu feena.",
+        "headlineNoAmount": "Dhiyeessii addaa",
+        "bodyNoAmount": "Hir'ina gatii sif kennuu feena.",
+        "cta": "Dhiyeessii fudhadhu"
+      },
+      "pause": {
+        "headline": "Kanaa mannaa boqodhaa?",
+        "body": "Maallaqa keessan hanga {months} {unit} tti dhaabsisuu dandeessa.",
+        "cta": "Hajajjii dhaabi"
+      },
+      "plan_change": {
+        "headline": "Karoora biraatti jijjiiramtaa?",
+        "body": "Karoorawwan si fayyadan caalaa kan ta'an qabna.",
+        "cta": "Karoora jijjiiri"
+      },
+      "trial_extension": {
+        "headline": "Yeroo dabalataa barbaaddaa?",
+        "body": "Yeroo yaalii kee {days} {unit} dheeressina.",
+        "cta": "Yaalii dheeressi"
+      },
+      "contact": {
+        "headline": "Duraan nu waliin haasa'aa?",
+        "body": "Gareen keenya rakkoo kamiyyuu furuu gargaaruuf gammachuu qaba.",
+        "cta": "Deeggarsa qunnami"
+      },
+      "redirect": {
+        "headline": "Osoo hin deemin dura...",
+        "body": "Kana ilaali — yaada kee jijjiiruu dandaʼa."
+      },
+      "rebate": {
+        "headline": "Maallaqa deebisii argadhu",
+        "body": "Kan galmaa'te itti fufi, kaffaltii dhiyaataa kee keessaa gartokkee sif deebisna.",
+        "cta": "Deebii maallaqaa fudhadhu"
+      },
+      "custom": {
+        "headline": "Osoo hin deemin dura...",
+        "body": "Wanta tokko sif kennuu feena.",
+        "cta": "Fudhadhu"
+      },
+      "declineCta": "Lakki, galatoomaa"
     }
   }
 }

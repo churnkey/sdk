@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Offer for small time only",
-    "pauseEyebrow": "We go see you again on",
+    "pauseEyebrow": "We go see you again on {date}",
     "newEndDateLabel": "New end date",
     "currentPlanBadge": "Current",
     "switchToCta": "Switch to {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "E go start when your subscription resume.",
       "afterTrial": "E go start with your first paid billing period.",
       "withPlanChange": "E go work for your new plan."
+    },
+    "discount": {
+      "percentOff": "{percent}% off",
+      "amountOff": "{amount} off",
+      "unspecified": "Discount",
+      "nextRenewal": "{discount} for your next renewal",
+      "forLife": "{discount} for life",
+      "forMonths": "{discount} for {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Wetin you go talk if we give you {percent}% off?",
+        "body": "We wan give you {percent}% off for {months} {unit}.",
+        "headlineNoAmount": "Special offer",
+        "bodyNoAmount": "We wan give you discount.",
+        "cta": "Accept offer"
+      },
+      "pause": {
+        "headline": "Make you rest small instead?",
+        "body": "Pause your subscription for up to {months} {unit}.",
+        "cta": "Pause subscription"
+      },
+      "plan_change": {
+        "headline": "Change to another plan?",
+        "body": "We get other plans wey fit suit you pass.",
+        "cta": "Change plan"
+      },
+      "trial_extension": {
+        "headline": "You need more time?",
+        "body": "We go add {days} {unit} to your trial.",
+        "cta": "Extend trial"
+      },
+      "contact": {
+        "headline": "Make we talk first?",
+        "body": "Our team wan help you solve any wahala wey you get.",
+        "cta": "Contact support"
+      },
+      "redirect": {
+        "headline": "Before you go...",
+        "body": "Check this one — e fit change your mind."
+      },
+      "rebate": {
+        "headline": "Collect money back",
+        "body": "Stay for your subscription and we go refund part of your last payment.",
+        "cta": "Accept refund"
+      },
+      "custom": {
+        "headline": "Before you go...",
+        "body": "We wan give you something.",
+        "cta": "Accept"
+      },
+      "declineCta": "No, thanks"
     }
   }
 }

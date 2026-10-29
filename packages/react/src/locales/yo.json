@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Ìfilọ́lẹ̀ fún àkókò kúkúrú",
-    "pauseEyebrow": "A óò tún rí ọ ní",
+    "pauseEyebrow": "A óò rí yín padà ní {date}",
     "newEndDateLabel": "Ọjọ́ ìparí tuntun",
     "currentPlanBadge": "Ti báyìí",
     "switchToCta": "Yípadà sí {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Yóò bẹ̀rẹ̀ nígbà tí ìforúkọsílẹ̀ rẹ bá tún bẹ̀rẹ̀.",
       "afterTrial": "Yóò bẹ̀rẹ̀ pẹ̀lú àkókò ìsanwó àkọ́kọ́ rẹ.",
       "withPlanChange": "Ó kan ìpèsè tuntun rẹ."
+    },
+    "discount": {
+      "percentOff": "Ìdínwó {percent}%",
+      "amountOff": "Ìdínwó {amount}",
+      "unspecified": "Ẹ̀dínwó kan",
+      "nextRenewal": "{discount} lórí àtúnṣe tó kàn",
+      "forLife": "{discount} títí ayé",
+      "forMonths": "{discount} fún {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Ǹjẹ́ ìdínwó {percent}% ńkọ́?",
+        "body": "A fẹ́ fún yín ní ìdínwó {percent}% fún {months} {unit}.",
+        "headlineNoAmount": "Ìfilọ́lẹ̀ pàtàkì",
+        "bodyNoAmount": "A fẹ́ fún yín ní ẹ̀dínwó kan.",
+        "cta": "Gba ìfilọ́lẹ̀"
+      },
+      "pause": {
+        "headline": "Ẹ sinmi na dípò rẹ̀?",
+        "body": "Dá ìforúkọsílẹ̀ yín dúró fún tó {months} {unit}.",
+        "cta": "Dá ìforúkọsílẹ̀ dúró"
+      },
+      "plan_change": {
+        "headline": "Ẹ yí padà sí ètò mìíràn?",
+        "body": "A ní àwọn ètò mìíràn tó lè bá yín mu jù.",
+        "cta": "Yí ètò padà"
+      },
+      "trial_extension": {
+        "headline": "Ẹ nílò àkókò sí i?",
+        "body": "A óò fa àkókò ìdánwò yín gùn ní {days} {unit}.",
+        "cta": "Fa ìdánwò gùn"
+      },
+      "contact": {
+        "headline": "Ẹ kọ́kọ́ bá wa sọ̀rọ̀?",
+        "body": "Ẹgbẹ́ wa fẹ́ ràn yín lọ́wọ́ láti yanjú ìṣòro yòówù tó wà.",
+        "cta": "Kàn sí ìrànlọ́wọ́"
+      },
+      "redirect": {
+        "headline": "Kí ẹ tó lọ...",
+        "body": "Ẹ wo èyí — ó lè yí ọkàn yín padà."
+      },
+      "rebate": {
+        "headline": "Ẹ gba owó yín padà",
+        "body": "Ẹ dúró nínú ìforúkọsílẹ̀, a óò sì dá apá kan owó ìsanwó yín tó kẹ́yìn padà.",
+        "cta": "Gba owó padà"
+      },
+      "custom": {
+        "headline": "Kí ẹ tó lọ...",
+        "body": "A fẹ́ fún yín ní nǹkan kan.",
+        "cta": "Gbà"
+      },
+      "declineCta": "Rárá, ẹ ṣé"
     }
   }
 }

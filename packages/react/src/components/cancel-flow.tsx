@@ -195,6 +195,7 @@ function StepRenderer({
 }) {
   const stepConfig = machine.currentStep
   const messages = machine.messages
+  const locale = machine.locale
 
   switch (state.step) {
     case 'survey': {
@@ -215,6 +216,7 @@ function StepRenderer({
           classNames={config?.classNames}
           components={components}
           messages={messages}
+          locale={locale}
         />
       )
     }
@@ -258,6 +260,7 @@ function StepRenderer({
           classNames={config?.classNames}
           components={components}
           messages={messages}
+          locale={locale}
         />
       )
     }
@@ -279,6 +282,7 @@ function StepRenderer({
           onSubmit={machine.next}
           classNames={config?.classNames}
           messages={messages}
+          locale={locale}
         />
       )
     }
@@ -296,12 +300,13 @@ function StepRenderer({
           lossesLabel={config?.lossesLabel}
           confirmLabel={config?.confirmLabel ?? selectTiming(messages.confirm.cta, state.cancelAtPeriodEnd)}
           goBackLabel={config?.goBackLabel ?? messages.confirm.goBack}
-          periodEndNotice={resolvePeriodEndNotice(state, messages)}
+          periodEndNotice={resolvePeriodEndNotice(state, messages, locale)}
           onConfirm={machine.cancel}
           onGoBack={machine.back}
           isProcessing={state.isProcessing}
           classNames={config?.classNames}
           messages={messages}
+          locale={locale}
         />
       )
     }
@@ -324,8 +329,8 @@ function StepRenderer({
           description={
             isSaved
               ? (config?.savedDescription ??
-                stackedDescription(messages, state.acceptedOffer) ??
-                pauseResumeDescription(messages, state.acceptedOffer) ??
+                stackedDescription(messages, state.acceptedOffer, locale) ??
+                pauseResumeDescription(messages, state.acceptedOffer, locale) ??
                 perOffer?.description ??
                 messages.success.saved.description)
               : (config?.cancelledDescription ??
@@ -336,6 +341,7 @@ function StepRenderer({
           onClose={machine.close}
           classNames={config?.classNames}
           messages={messages}
+          locale={locale}
         />
       )
     }
@@ -385,7 +391,11 @@ function savedOfferCopy(messages: CancelFlowMessages, offer: AcceptedOffer | nul
   return messages.success.saved[offer.type as (typeof SAVED_OFFER_COPY_TYPES)[number]]
 }
 
-function stackedDescription(messages: CancelFlowMessages, offer: AcceptedOffer | null): string | undefined {
+function stackedDescription(
+  messages: CancelFlowMessages,
+  offer: AcceptedOffer | null,
+  locale: string,
+): string | undefined {
   const status = offer?.stackedOffer?.stackStatus
   if (!status) return undefined
   const copy = messages.success.saved.stacked
@@ -398,13 +408,17 @@ function stackedDescription(messages: CancelFlowMessages, offer: AcceptedOffer |
   if (status === 'scheduled') {
     return offer.type === 'trial_extension' ? copy.afterTrialDescription : copy.afterPauseDescription
   }
-  return pauseResumeDescription(messages, offer.stackedOffer ?? null) ?? copy.description
+  return pauseResumeDescription(messages, offer.stackedOffer ?? null, locale) ?? copy.description
 }
 
 // The built-in pause UI always passes the selected duration on accept;
 // without it there's no resume date to promise, so the plain description
 // renders instead.
-function pauseResumeDescription(messages: CancelFlowMessages, offer: AcceptedOffer | null): string | undefined {
+function pauseResumeDescription(
+  messages: CancelFlowMessages,
+  offer: AcceptedOffer | null,
+  locale: string,
+): string | undefined {
   if (offer?.type !== 'pause') return undefined
   const months = offer.result?.months
   if (typeof months !== 'number' || months < 1) return undefined
@@ -414,7 +428,9 @@ function pauseResumeDescription(messages: CancelFlowMessages, offer: AcceptedOff
   } else {
     resume.setMonth(resume.getMonth() + months)
   }
-  return formatMessage(messages.success.saved.pause.resumeDescription, { resumeDate: formatShortDate(resume) })
+  return formatMessage(messages.success.saved.pause.resumeDescription, {
+    resumeDate: formatShortDate(resume, locale),
+  })
 }
 
 // The notice makes a factual claim about billing behavior, so it requires the
@@ -424,11 +440,11 @@ function pauseResumeDescription(messages: CancelFlowMessages, offer: AcceptedOff
 // notice was removed precisely because it could contradict the merchant's
 // actual setting. Also empty when the period end can't be determined or the
 // resolved message is blank.
-function resolvePeriodEndNotice(state: FlowState, messages: CancelFlowMessages): string | undefined {
+function resolvePeriodEndNotice(state: FlowState, messages: CancelFlowMessages, locale: string): string | undefined {
   if (state.cancelAtPeriodEnd !== true) return undefined
   const template = selectTiming(messages.confirm.periodEndNotice, state.cancelAtPeriodEnd)
   if (!template) return undefined
-  const periodEnd = formatPeriodEnd(state.subscriptions)
+  const periodEnd = formatPeriodEnd(state.subscriptions, locale)
   if (!periodEnd) return undefined
   return formatMessage(template, { periodEnd })
 }

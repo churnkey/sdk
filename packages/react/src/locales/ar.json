@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "عرض لفترة محدودة",
-    "pauseEyebrow": "نراك مجددًا في",
+    "pauseEyebrow": "سنراك مجددًا في {date}",
     "newEndDateLabel": "تاريخ الانتهاء الجديد",
     "currentPlanBadge": "الحالية",
     "switchToCta": "التبديل إلى {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "يبدأ عند استئناف اشتراكك.",
       "afterTrial": "يبدأ مع أول فترة فوترة مدفوعة.",
       "withPlanChange": "ينطبق على باقتك الجديدة."
+    },
+    "discount": {
+      "percentOff": "خصم {percent}%",
+      "amountOff": "خصم {amount}",
+      "unspecified": "خصم",
+      "nextRenewal": "{discount} على تجديدك القادم",
+      "forLife": "{discount} مدى الحياة",
+      "forMonths": "{discount} لمدة {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "ما رأيك بخصم {percent}%؟",
+        "body": "يسعدنا أن نقدّم لك خصم {percent}% لمدة {months} {unit}.",
+        "headlineNoAmount": "عرض خاص",
+        "bodyNoAmount": "يسعدنا أن نقدّم لك خصمًا.",
+        "cta": "اقبل العرض"
+      },
+      "pause": {
+        "headline": "ما رأيك بأخذ استراحة بدلًا من ذلك؟",
+        "body": "أوقف اشتراكك مؤقتًا لمدة تصل إلى {months} {unit}.",
+        "cta": "إيقاف الاشتراك مؤقتًا"
+      },
+      "plan_change": {
+        "headline": "ما رأيك بالتحويل إلى باقة أخرى؟",
+        "body": "لدينا باقات أخرى قد تناسبك أكثر.",
+        "cta": "تغيير الباقة"
+      },
+      "trial_extension": {
+        "headline": "هل تحتاج إلى مزيد من الوقت؟",
+        "body": "سنمدّد فترتك التجريبية {days} {unit}.",
+        "cta": "تمديد الفترة التجريبية"
+      },
+      "contact": {
+        "headline": "ما رأيك بالتحدث إلينا أولًا؟",
+        "body": "يسعد فريقنا مساعدتك في حل أي مشكلة.",
+        "cta": "تواصل مع الدعم"
+      },
+      "redirect": {
+        "headline": "قبل أن تغادر...",
+        "body": "اطّلع على هذا — فقد يغيّر رأيك."
+      },
+      "rebate": {
+        "headline": "استرد جزءًا من مالك",
+        "body": "ابقَ مشتركًا وسنردّ لك جزءًا من آخر دفعة دفعتها.",
+        "cta": "اقبل الاسترداد"
+      },
+      "custom": {
+        "headline": "قبل أن تغادر...",
+        "body": "يسعدنا أن نقدّم لك شيئًا.",
+        "cta": "قبول"
+      },
+      "declineCta": "لا، شكرًا"
     }
   }
 }

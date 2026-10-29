@@ -1,6 +1,51 @@
 import { describe, expect, it } from 'vitest'
 import type { SdkConfig } from '../../src/core/api-types'
-import { transformSdkConfig } from '../../src/core/transform'
+import { defaultMessages, mergeMessages } from '../../src/core/messages'
+import { defaultOfferCopy, transformSdkConfig } from '../../src/core/transform'
+import type { OfferConfig } from '../../src/core/types'
+
+describe('defaultOfferCopy', () => {
+  it("fills in the catalog's copy with the offer's numbers", () => {
+    expect(
+      defaultOfferCopy({ type: 'discount', couponId: 'c', percentOff: 20, durationInMonths: 3 }, defaultMessages),
+    ).toEqual({
+      headline: 'How about 20% off?',
+      body: "We'd like to offer you 20% off for 3 months.",
+      cta: 'Accept offer',
+      declineCta: 'No thanks',
+    })
+    expect(defaultOfferCopy({ type: 'discount', couponId: 'c' }, defaultMessages).headline).toBe('Special offer')
+    expect(defaultOfferCopy({ type: 'pause', months: 1 }, defaultMessages).body).toBe(
+      'Pause your subscription for up to 1 month.',
+    )
+    expect(defaultOfferCopy({ type: 'trial_extension', days: 14 }, defaultMessages).body).toBe(
+      "We'll extend your trial by 14 days.",
+    )
+    expect(defaultOfferCopy({ type: 'contact', label: 'Chat with us' }, defaultMessages).cta).toBe('Chat with us')
+    expect(defaultOfferCopy({ type: 'redirect', url: 'https://x.test', label: 'See plans' }, defaultMessages).cta).toBe(
+      'See plans',
+    )
+    expect(defaultOfferCopy({ type: 'seats' } as OfferConfig, defaultMessages).headline).toBe('Before you go...')
+  })
+
+  it("is in the catalog's language", () => {
+    const es = mergeMessages(defaultMessages, {
+      common: { month: 'mes', months: 'meses' },
+      offer: {
+        defaultCopy: {
+          pause: { headline: '¿Mejor una pausa?', body: 'Pausa tu suscripción hasta {months} {unit}.' },
+          declineCta: 'No, gracias',
+        },
+      },
+    })
+    expect(defaultOfferCopy({ type: 'pause', months: 2 }, es)).toEqual({
+      headline: '¿Mejor una pausa?',
+      body: 'Pausa tu suscripción hasta 2 meses.',
+      cta: 'Pause subscription',
+      declineCta: 'No, gracias',
+    })
+  })
+})
 
 describe('transformSdkConfig', () => {
   it('passes through blueprintId and autoOptimizationKey', () => {

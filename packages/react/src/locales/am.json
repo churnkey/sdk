@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "ለአጭር ጊዜ ብቻ የሚቆይ ቅናሽ",
-    "pauseEyebrow": "እንደገና የምንገናኘው በ",
+    "pauseEyebrow": "በ{date} እንገናኛለን",
     "newEndDateLabel": "አዲስ የማብቂያ ቀን",
     "currentPlanBadge": "የአሁኑ",
     "switchToCta": "ወደ {planName} ቀይር",
@@ -98,6 +98,58 @@
       "afterPause": "የደንበኝነት ምዝገባዎ ሲቀጥል ይጀምራል።",
       "afterTrial": "ከመጀመሪያው የክፍያ ጊዜዎ ጋር ይጀምራል።",
       "withPlanChange": "በአዲሱ ዕቅድዎ ላይ ይተገበራል።"
+    },
+    "discount": {
+      "percentOff": "{percent}% ቅናሽ",
+      "amountOff": "{amount} ቅናሽ",
+      "unspecified": "ቅናሽ",
+      "nextRenewal": "{discount} በሚቀጥለው እድሳትዎ",
+      "forLife": "{discount} ለዕድሜ ልክ",
+      "forMonths": "{discount} ለ{months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}% ቅናሽ ቢደረግስ?",
+        "body": "ለ{months} {unit} የ{percent}% ቅናሽ ልናደርግልዎ እንፈልጋለን።",
+        "headlineNoAmount": "ልዩ ቅናሽ",
+        "bodyNoAmount": "ቅናሽ ልናደርግልዎ እንፈልጋለን።",
+        "cta": "ቅናሹን ተቀበል"
+      },
+      "pause": {
+        "headline": "በምትኩ እረፍት ይውሰዱ?",
+        "body": "ምዝገባዎን እስከ {months} {unit} ድረስ ያቁሙ።",
+        "cta": "ምዝገባን አቁም"
+      },
+      "plan_change": {
+        "headline": "ወደ ሌላ ዕቅድ ይቀይሩ?",
+        "body": "የበለጠ የሚስማሙ ሌሎች ዕቅዶች አሉን።",
+        "cta": "ዕቅድ ቀይር"
+      },
+      "trial_extension": {
+        "headline": "ተጨማሪ ጊዜ ይፈልጋሉ?",
+        "body": "የሙከራ ጊዜዎን በ{days} {unit} እናራዝመዋለን።",
+        "cta": "ሙከራውን አራዝም"
+      },
+      "contact": {
+        "headline": "መጀመሪያ እናውራ?",
+        "body": "ቡድናችን ማንኛውንም ችግር ለመፍታት ደስተኛ ነው።",
+        "cta": "ድጋፍን ያግኙ"
+      },
+      "redirect": {
+        "headline": "ከመሄድዎ በፊት...",
+        "body": "ይህን ይመልከቱ — ሃሳብዎን ሊለውጥ ይችላል።"
+      },
+      "rebate": {
+        "headline": "ገንዘብ ይመለስልዎ",
+        "body": "ደንበኝነትዎን ይቀጥሉ፤ ከቅርብ ጊዜ ክፍያዎ የተወሰነውን እንመልሳለን።",
+        "cta": "ተመላሹን ተቀበል"
+      },
+      "custom": {
+        "headline": "ከመሄድዎ በፊት...",
+        "body": "አንድ ነገር ልናቀርብልዎ እንፈልጋለን።",
+        "cta": "ተቀበል"
+      },
+      "declineCta": "አይ፣ አመሰግናለሁ"
     }
   }
 }

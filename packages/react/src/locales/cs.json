@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Časově omezená nabídka",
-    "pauseEyebrow": "Budeme se na vás těšit",
+    "pauseEyebrow": "Uvidíme se znovu {date}",
     "newEndDateLabel": "Nové datum ukončení",
     "currentPlanBadge": "Aktuální",
     "switchToCta": "Přejít na {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Začne po obnovení vašeho předplatného.",
       "afterTrial": "Začne prvním placeným obdobím.",
       "withPlanChange": "Platí pro váš nový tarif."
+    },
+    "discount": {
+      "percentOff": "Sleva {percent} %",
+      "amountOff": "Sleva {amount}",
+      "unspecified": "Sleva",
+      "nextRenewal": "{discount} na další obnovení",
+      "forLife": "{discount} navždy",
+      "forMonths": "{discount} na {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Co říkáte na slevu {percent} %?",
+        "body": "Rádi bychom vám nabídli slevu {percent} % na {months} {unit}.",
+        "headlineNoAmount": "Speciální nabídka",
+        "bodyNoAmount": "Rádi bychom vám nabídli slevu.",
+        "cta": "Přijmout nabídku"
+      },
+      "pause": {
+        "headline": "Dát si raději pauzu?",
+        "body": "Pozastavte předplatné až na {months} {unit}.",
+        "cta": "Pozastavit předplatné"
+      },
+      "plan_change": {
+        "headline": "Přejít na jiný tarif?",
+        "body": "Máme i jiné tarify, které vám mohou sedět lépe.",
+        "cta": "Změnit tarif"
+      },
+      "trial_extension": {
+        "headline": "Potřebujete více času?",
+        "body": "Prodloužíme vám zkušební období o {days} {unit}.",
+        "cta": "Prodloužit zkušební období"
+      },
+      "contact": {
+        "headline": "Nejdřív si promluvme?",
+        "body": "Náš tým vám rád pomůže vyřešit jakékoli potíže.",
+        "cta": "Kontaktovat podporu"
+      },
+      "redirect": {
+        "headline": "Než odejdete...",
+        "body": "Mrkněte na tohle – možná změníte názor."
+      },
+      "rebate": {
+        "headline": "Získejte peníze zpět",
+        "body": "Zůstaňte předplatiteli a my vám vrátíme část poslední platby.",
+        "cta": "Přijmout vrácení peněz"
+      },
+      "custom": {
+        "headline": "Než odejdete...",
+        "body": "Rádi bychom vám něco nabídli.",
+        "cta": "Přijmout"
+      },
+      "declineCta": "Ne, děkuji"
     }
   }
 }

@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "محدود وقت کا آفر",
-    "pauseEyebrow": "آپ سے دوبارہ ملاقات ہوگی",
+    "pauseEyebrow": "ہم آپ کو {date} کو واپس خوش آمدید کہیں گے",
     "newEndDateLabel": "اختتام کی نئی تاریخ",
     "currentPlanBadge": "موجودہ",
     "switchToCta": "{planName} پر جائیں",
@@ -98,6 +98,58 @@
       "afterPause": "سبسکرپشن دوبارہ شروع ہونے پر شروع ہوگا۔",
       "afterTrial": "آپ کی پہلی ادا شدہ بلنگ مدت سے شروع ہوگا۔",
       "withPlanChange": "آپ کے نئے پلان پر لاگو ہوگا۔"
+    },
+    "discount": {
+      "percentOff": "{percent}% رعایت",
+      "amountOff": "{amount} رعایت",
+      "unspecified": "رعایت",
+      "nextRenewal": "اگلی تجدید پر {discount}",
+      "forLife": "{discount}، ہمیشہ کے لیے",
+      "forMonths": "{discount}، {months} {unit} کے لیے"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}% رعایت کیسی رہے گی؟",
+        "body": "ہم آپ کو {months} {unit} کے لیے {percent}% رعایت دینا چاہتے ہیں۔",
+        "headlineNoAmount": "خصوصی پیشکش",
+        "bodyNoAmount": "ہم آپ کو رعایت دینا چاہتے ہیں۔",
+        "cta": "پیشکش قبول کریں"
+      },
+      "pause": {
+        "headline": "اس کے بجائے وقفہ لیں؟",
+        "body": "اپنی سبسکرپشن کو {months} {unit} تک موقوف کریں۔",
+        "cta": "سبسکرپشن موقوف کریں"
+      },
+      "plan_change": {
+        "headline": "کوئی دوسرا پلان اپنائیں؟",
+        "body": "ہمارے پاس دوسرے پلان ہیں جو شاید آپ کے لیے زیادہ موزوں ہوں۔",
+        "cta": "پلان تبدیل کریں"
+      },
+      "trial_extension": {
+        "headline": "مزید وقت چاہیے؟",
+        "body": "ہم آپ کا ٹرائل {days} {unit} بڑھا دیں گے۔",
+        "cta": "ٹرائل بڑھائیں"
+      },
+      "contact": {
+        "headline": "پہلے ہم سے بات کریں؟",
+        "body": "ہماری ٹیم کسی بھی مسئلے کو حل کرنے میں خوشی سے مدد کرے گی۔",
+        "cta": "سپورٹ سے رابطہ کریں"
+      },
+      "redirect": {
+        "headline": "جانے سے پہلے...",
+        "body": "ذرا یہ دیکھیں — شاید آپ کا ارادہ بدل جائے۔"
+      },
+      "rebate": {
+        "headline": "رقم واپس حاصل کریں",
+        "body": "سبسکرائب رہیں اور ہم آپ کی حالیہ ادائیگی کا کچھ حصہ واپس کر دیں گے۔",
+        "cta": "رقم واپسی قبول کریں"
+      },
+      "custom": {
+        "headline": "جانے سے پہلے...",
+        "body": "ہم آپ کو کچھ پیش کرنا چاہتے ہیں۔",
+        "cta": "قبول کریں"
+      },
+      "declineCta": "نہیں، شکریہ"
     }
   }
 }

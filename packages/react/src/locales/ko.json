@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "기간 한정 혜택",
-    "pauseEyebrow": "다시 만나요",
+    "pauseEyebrow": "{date}에 다시 만나요",
     "newEndDateLabel": "새 종료일",
     "currentPlanBadge": "현재",
     "switchToCta": "{planName}(으)로 변경",
@@ -98,6 +98,58 @@
       "afterPause": "구독이 재개될 때 시작돼요.",
       "afterTrial": "첫 유료 결제 기간부터 시작돼요.",
       "withPlanChange": "새 요금제에 적용돼요."
+    },
+    "discount": {
+      "percentOff": "{percent}% 할인",
+      "amountOff": "{amount} 할인",
+      "unspecified": "할인 혜택",
+      "nextRenewal": "다음 갱신 시 {discount}",
+      "forLife": "평생 {discount}",
+      "forMonths": "{months}{unit} 동안 {discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}% 할인은 어때요?",
+        "body": "{months}{unit} 동안 {percent}% 할인해 드릴게요.",
+        "headlineNoAmount": "특별 혜택",
+        "bodyNoAmount": "할인 혜택을 드리고 싶어요.",
+        "cta": "혜택 받기"
+      },
+      "pause": {
+        "headline": "대신 잠시 쉬어갈까요?",
+        "body": "구독을 최대 {months}{unit} 동안 일시중지할 수 있어요.",
+        "cta": "구독 일시중지"
+      },
+      "plan_change": {
+        "headline": "다른 요금제로 바꿔볼까요?",
+        "body": "더 잘 맞는 다른 요금제가 있어요.",
+        "cta": "요금제 변경"
+      },
+      "trial_extension": {
+        "headline": "시간이 더 필요하세요?",
+        "body": "체험 기간을 {days}{unit} 연장해 드릴게요.",
+        "cta": "체험 연장"
+      },
+      "contact": {
+        "headline": "먼저 문의해 보실래요?",
+        "body": "저희 팀이 문제를 해결해 드릴게요.",
+        "cta": "고객 지원 문의"
+      },
+      "redirect": {
+        "headline": "떠나시기 전에...",
+        "body": "한번 확인해 보세요. 마음이 바뀔지도 몰라요."
+      },
+      "rebate": {
+        "headline": "환급 받기",
+        "body": "구독을 유지하시면 최근 결제 금액의 일부를 환불해 드려요.",
+        "cta": "환불 받기"
+      },
+      "custom": {
+        "headline": "떠나시기 전에...",
+        "body": "드리고 싶은 혜택이 있어요.",
+        "cta": "수락"
+      },
+      "declineCta": "괜찮아요"
     }
   }
 }

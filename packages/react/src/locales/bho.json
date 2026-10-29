@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "सीमित समय के ऑफर",
-    "pauseEyebrow": "फेर मिलब हमनी, तारीख",
+    "pauseEyebrow": "{date} के हम रउआ के फेर से देखब",
     "newEndDateLabel": "नया खतम होखे के तारीख",
     "currentPlanBadge": "मौजूदा",
     "switchToCta": "{planName} पर जाईं",
@@ -98,6 +98,58 @@
       "afterPause": "सब्सक्रिप्शन फेर से शुरू होखे पर चालू होई।",
       "afterTrial": "पहिला भुगतान वाली बिलिंग अवधि से चालू होई।",
       "withPlanChange": "रउआ नया प्लान पर लागू होई।"
+    },
+    "discount": {
+      "percentOff": "{percent}% छूट",
+      "amountOff": "{amount} छूट",
+      "unspecified": "एगो छूट",
+      "nextRenewal": "रउआ अगिला नवीकरण पर {discount}",
+      "forLife": "जिनगी भर खातिर {discount}",
+      "forMonths": "{months} {unit} खातिर {discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}% छूट कइसन रही?",
+        "body": "हम रउआ के {months} {unit} खातिर {percent}% छूट देबे चाहत बानी।",
+        "headlineNoAmount": "खास ऑफर",
+        "bodyNoAmount": "हम रउआ के छूट देबे चाहत बानी।",
+        "cta": "ऑफर मानीं"
+      },
+      "pause": {
+        "headline": "एकरा बदले थोड़ा आराम लेब?",
+        "body": "आपन सब्सक्रिप्शन {months} {unit} तक रोक दीं।",
+        "cta": "सब्सक्रिप्शन रोकीं"
+      },
+      "plan_change": {
+        "headline": "दोसर प्लान में बदलब?",
+        "body": "हमनी लगे दोसर प्लान बा जे रउआ खातिर बेहतर हो सकेला।",
+        "cta": "प्लान बदलीं"
+      },
+      "trial_extension": {
+        "headline": "अउरी समय चाहीं?",
+        "body": "हम रउआ के ट्रायल {days} {unit} बढ़ा देब।",
+        "cta": "ट्रायल बढ़ाईं"
+      },
+      "contact": {
+        "headline": "पहिले हमनी से बात करब?",
+        "body": "हमनी के टीम कवनो दिक्कत सुलझावे में खुशी से मदद करी।",
+        "cta": "सपोर्ट से बात करीं"
+      },
+      "redirect": {
+        "headline": "जाए से पहिले...",
+        "body": "जरा ई देखीं — हो सकेला रउआ मन बदल जाव।"
+      },
+      "rebate": {
+        "headline": "पइसा वापस पाईं",
+        "body": "सब्सक्राइब रहीं, त हम रउआ के पिछला भुगतान के कुछ हिस्सा लौटा देब।",
+        "cta": "रिफंड लीं"
+      },
+      "custom": {
+        "headline": "जाए से पहिले...",
+        "body": "हम रउआ के कुछ देबे चाहत बानी।",
+        "cta": "मानीं"
+      },
+      "declineCta": "ना, धन्यवाद"
     }
   }
 }

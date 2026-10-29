@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Tawaran masa terhad",
-    "pauseEyebrow": "Jumpa anda semula pada",
+    "pauseEyebrow": "Kami jumpa anda semula pada {date}",
     "newEndDateLabel": "Tarikh tamat baharu",
     "currentPlanBadge": "Semasa",
     "switchToCta": "Tukar ke {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Bermula apabila langganan anda disambung semula.",
       "afterTrial": "Bermula dengan tempoh bil berbayar pertama anda.",
       "withPlanChange": "Terpakai pada pelan baharu anda."
+    },
+    "discount": {
+      "percentOff": "Diskaun {percent}%",
+      "amountOff": "Diskaun {amount}",
+      "unspecified": "Diskaun",
+      "nextRenewal": "{discount} untuk pembaharuan seterusnya",
+      "forLife": "{discount} seumur hidup",
+      "forMonths": "{discount} selama {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Bagaimana dengan diskaun {percent}%?",
+        "body": "Kami ingin menawarkan diskaun {percent}% selama {months} {unit}.",
+        "headlineNoAmount": "Tawaran istimewa",
+        "bodyNoAmount": "Kami ingin menawarkan diskaun kepada anda.",
+        "cta": "Terima tawaran"
+      },
+      "pause": {
+        "headline": "Berehat sebentar?",
+        "body": "Jeda langganan anda sehingga {months} {unit}.",
+        "cta": "Jeda langganan"
+      },
+      "plan_change": {
+        "headline": "Tukar ke pelan lain?",
+        "body": "Kami ada pelan lain yang mungkin lebih sesuai.",
+        "cta": "Tukar pelan"
+      },
+      "trial_extension": {
+        "headline": "Perlukan lebih masa?",
+        "body": "Kami akan lanjutkan percubaan anda selama {days} {unit}.",
+        "cta": "Lanjutkan percubaan"
+      },
+      "contact": {
+        "headline": "Hubungi kami dahulu?",
+        "body": "Pasukan kami sedia membantu menyelesaikan sebarang masalah.",
+        "cta": "Hubungi sokongan"
+      },
+      "redirect": {
+        "headline": "Sebelum anda pergi...",
+        "body": "Lihat ini — mungkin anda akan berubah fikiran."
+      },
+      "rebate": {
+        "headline": "Dapatkan wang kembali",
+        "body": "Kekal melanggan dan kami akan mengembalikan sebahagian bayaran terbaharu anda.",
+        "cta": "Terima bayaran balik"
+      },
+      "custom": {
+        "headline": "Sebelum anda pergi...",
+        "body": "Kami ingin menawarkan sesuatu kepada anda.",
+        "cta": "Terima"
+      },
+      "declineCta": "Tidak, terima kasih"
     }
   }
 }

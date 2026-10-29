@@ -126,14 +126,16 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
         if (!cancelled) machine.setLocale(explicitLocale, messages)
       })
     }
-    Promise.all([
-      // Read through the ref, not the closure: an inline `customerAttributes`
-      // object literal would otherwise join the dep list and re-fetch (and
-      // reset the flow) on every render.
-      api.fetchConfig(callbacksRef.current.customerAttributes, language),
-      pack,
-    ])
-      .then(([sdkConfig, messages]) => {
+    // Read through the ref, not the closure: an inline `customerAttributes`
+    // object literal would otherwise join the dep list and re-fetch (and
+    // reset the flow) on every render.
+    api
+      .fetchConfig(callbacksRef.current.customerAttributes, language)
+      .then(async (sdkConfig) => {
+        // The first step waits for the pack only when it will be used, so
+        // source copy is not held up by a chunk it does not need.
+        const translated = Boolean(explicitLocale || sdkConfig.language)
+        const messages = translated ? await pack : undefined
         if (cancelled) return
         if (!explicitLocale && sdkConfig.language) machine.setLocale(sdkConfig.language, messages)
         machine.initializeFromConfig(sdkConfig, api, creds)

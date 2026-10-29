@@ -546,6 +546,34 @@ describe('CancelFlow i18n', () => {
     // midnight boundary can land on either side of July 1.
     expect(screen.getByText(/Your access continues until (June 30|July 1), 2026\./)).toBeInTheDocument()
   })
+
+  it('formats dates in the language the chrome is in, not the browser language', async () => {
+    stubConfigFetch({ cancelAtPeriodEnd: true })
+    render(
+      <CancelFlow
+        session={sessionToken()}
+        i18n={{ locale: 'de', messages: { de: { confirm: { periodEndNotice: { atPeriodEnd: 'Bis {periodEnd}.' } } } } }}
+      />,
+    )
+    expect(await screen.findByText(/Bis (30\. Juni|1\. Juli) 2026\./)).toBeInTheDocument()
+  })
+
+  it('puts the resume date where the pause eyebrow says, and after an eyebrow written without the token', () => {
+    const pause: Step[] = [{ type: 'offer', offer: { type: 'pause', months: 2 } }]
+    const resume = new Date()
+    resume.setMonth(resume.getMonth() + 1)
+    const date = resume.toLocaleDateString('en', { month: 'long', day: 'numeric' })
+    const first = renderFlow({
+      steps: pause,
+      i18n: { locale: 'en', messages: { en: { offer: { pauseEyebrow: '{date} is when we see you back' } } } },
+    })
+    expect(screen.getByText(date)).toBeInTheDocument()
+    expect(screen.getByText('is when we see you back')).toBeInTheDocument()
+    first.unmount()
+    renderFlow({ steps: pause, i18n: { locale: 'en', messages: { en: { offer: { pauseEyebrow: 'See you on' } } } } })
+    expect(screen.getByText('See you on')).toBeInTheDocument()
+    expect(screen.getByText(date)).toBeInTheDocument()
+  })
 })
 
 describe('local-mode timing declaration', () => {
@@ -652,7 +680,7 @@ describe('per-offer success copy', () => {
     expect(await screen.findByText('Subscription paused.')).toBeInTheDocument()
     const resume = new Date()
     resume.setMonth(resume.getMonth() + 3)
-    const formatted = resume.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    const formatted = resume.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
     expect(screen.getByText(`You won't be billed again until ${formatted}.`)).toBeInTheDocument()
   })
 

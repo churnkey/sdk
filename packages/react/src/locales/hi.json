@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "सीमित समय का ऑफ़र",
-    "pauseEyebrow": "इस तारीख़ को फिर मिलेंगे:",
+    "pauseEyebrow": "{date} को आपसे फिर मुलाकात होगी",
     "newEndDateLabel": "नई समाप्ति तिथि",
     "currentPlanBadge": "मौजूदा",
     "switchToCta": "{planName} पर जाएं",
@@ -98,6 +98,58 @@
       "afterPause": "सदस्यता फिर शुरू होने पर लागू होगा।",
       "afterTrial": "पहली भुगतान अवधि से लागू होगा।",
       "withPlanChange": "आपके नए प्लान पर लागू होगा।"
+    },
+    "discount": {
+      "percentOff": "{percent}% की छूट",
+      "amountOff": "{amount} की छूट",
+      "unspecified": "एक छूट",
+      "nextRenewal": "अगले नवीनीकरण पर {discount}",
+      "forLife": "हमेशा के लिए {discount}",
+      "forMonths": "{months} {unit} के लिए {discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}% छूट कैसी रहेगी?",
+        "body": "हम आपको {months} {unit} के लिए {percent}% की छूट देना चाहते हैं।",
+        "headlineNoAmount": "विशेष ऑफ़र",
+        "bodyNoAmount": "हम आपको छूट देना चाहते हैं।",
+        "cta": "ऑफ़र स्वीकारें"
+      },
+      "pause": {
+        "headline": "इसके बजाय ब्रेक लें?",
+        "body": "अपनी सदस्यता को {months} {unit} तक के लिए रोकें।",
+        "cta": "सदस्यता रोकें"
+      },
+      "plan_change": {
+        "headline": "किसी दूसरे प्लान पर जाएँ?",
+        "body": "हमारे पास दूसरे प्लान हैं जो आपके लिए बेहतर हो सकते हैं।",
+        "cta": "प्लान बदलें"
+      },
+      "trial_extension": {
+        "headline": "और समय चाहिए?",
+        "body": "हम आपका ट्रायल {days} {unit} बढ़ा देंगे।",
+        "cta": "ट्रायल बढ़ाएँ"
+      },
+      "contact": {
+        "headline": "पहले हमसे बात करें?",
+        "body": "हमारी टीम किसी भी समस्या को सुलझाने में खुशी से मदद करेगी।",
+        "cta": "सपोर्ट से संपर्क करें"
+      },
+      "redirect": {
+        "headline": "जाने से पहले...",
+        "body": "इसे देखें — शायद आपका मन बदल जाए।"
+      },
+      "rebate": {
+        "headline": "पैसे वापस पाएँ",
+        "body": "सदस्यता जारी रखें और हम आपके हालिया भुगतान का कुछ हिस्सा वापस कर देंगे।",
+        "cta": "रिफ़ंड स्वीकारें"
+      },
+      "custom": {
+        "headline": "जाने से पहले...",
+        "body": "हम आपको कुछ खास देना चाहते हैं।",
+        "cta": "स्वीकारें"
+      },
+      "declineCta": "नहीं, धन्यवाद"
     }
   }
 }

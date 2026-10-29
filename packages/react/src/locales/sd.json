@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "محدود وقت جي آڇ",
-    "pauseEyebrow": "توهان کي ٻيهر ملنداسين",
+    "pauseEyebrow": "اسان توهان کي {date} تي واپس ڏسنداسين",
     "newEndDateLabel": "ختم ٿيڻ جي نئين تاريخ",
     "currentPlanBadge": "موجوده",
     "switchToCta": "{planName} تي مٽايو",
@@ -98,6 +98,58 @@
       "afterPause": "سبسڪرپشن ٻيهر شروع ٿيڻ تي شروع ٿيندي.",
       "afterTrial": "توهان جي پهرين ادائگي واري بلنگ عرصي سان شروع ٿيندي.",
       "withPlanChange": "توهان جي نئين پلان تي لاڳو ٿيندي."
+    },
+    "discount": {
+      "percentOff": "{percent}% رعايت",
+      "amountOff": "{amount} رعايت",
+      "unspecified": "رعايت",
+      "nextRenewal": "توهان جي ايندڙ تجديد تي {discount}",
+      "forLife": "عمر ڀر لاءِ {discount}",
+      "forMonths": "{months} {unit} لاءِ {discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}% رعايت ڪيئن رهندي؟",
+        "body": "اسين توهان کي {months} {unit} لاءِ {percent}% رعايت ڏيڻ چاهيون ٿا.",
+        "headlineNoAmount": "خاص آڇ",
+        "bodyNoAmount": "اسين توهان کي رعايت ڏيڻ چاهيون ٿا.",
+        "cta": "آڇ قبول ڪريو"
+      },
+      "pause": {
+        "headline": "بدران ٿورو وقفو وٺو؟",
+        "body": "پنهنجي رڪنيت {months} {unit} تائين روڪي ڇڏيو.",
+        "cta": "رڪنيت روڪيو"
+      },
+      "plan_change": {
+        "headline": "ڪو ٻيو پلان چونڊيو؟",
+        "body": "اسان وٽ ٻيا پلان آهن جيڪي شايد وڌيڪ مناسب هجن.",
+        "cta": "پلان بدلايو"
+      },
+      "trial_extension": {
+        "headline": "وڌيڪ وقت گهرجي؟",
+        "body": "اسين توهان جو آزمائشي مدو {days} {unit} وڌائينداسين.",
+        "cta": "آزمائشي مدو وڌايو"
+      },
+      "contact": {
+        "headline": "پهرين اسان سان ڳالهايو؟",
+        "body": "اسان جي ٽيم ڪنهن به مسئلي جي حل ۾ مدد ڪرڻ لاءِ تيار آهي.",
+        "cta": "سپورٽ سان رابطو ڪريو"
+      },
+      "redirect": {
+        "headline": "وڃڻ کان اڳ...",
+        "body": "هي ڏسو — ٿي سگهي ٿو توهان جو ارادو بدلجي وڃي."
+      },
+      "rebate": {
+        "headline": "پئسا واپس وٺو",
+        "body": "رڪنيت جاري رکو ۽ اسين توهان جي تازي ادائيگي جو ڪجهه حصو واپس ڪنداسين.",
+        "cta": "واپسي قبول ڪريو"
+      },
+      "custom": {
+        "headline": "وڃڻ کان اڳ...",
+        "body": "اسين توهان کي ڪجهه ڏيڻ چاهيون ٿا.",
+        "cta": "قبول ڪريو"
+      },
+      "declineCta": "نه، شڪريو"
     }
   }
 }

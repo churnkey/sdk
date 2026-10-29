@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Oferta por tiempo limitado",
-    "pauseEyebrow": "Te esperamos de vuelta el",
+    "pauseEyebrow": "Te esperamos de vuelta el {date}",
     "newEndDateLabel": "Nueva fecha de finalización",
     "currentPlanBadge": "Actual",
     "switchToCta": "Cambiar a {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Comienza cuando se reanude tu suscripción.",
       "afterTrial": "Comienza con tu primer periodo de facturación de pago.",
       "withPlanChange": "Se aplica a tu nuevo plan."
+    },
+    "discount": {
+      "percentOff": "{percent}% de descuento",
+      "amountOff": "{amount} de descuento",
+      "unspecified": "Un descuento",
+      "nextRenewal": "{discount} en tu próxima renovación",
+      "forLife": "{discount} de por vida",
+      "forMonths": "{discount} durante {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "¿Qué te parece un {percent}% de descuento?",
+        "body": "Queremos ofrecerte un {percent}% de descuento durante {months} {unit}.",
+        "headlineNoAmount": "Oferta especial",
+        "bodyNoAmount": "Queremos ofrecerte un descuento.",
+        "cta": "Aceptar oferta"
+      },
+      "pause": {
+        "headline": "¿Prefieres tomarte un descanso?",
+        "body": "Pausa tu suscripción hasta {months} {unit}.",
+        "cta": "Pausar suscripción"
+      },
+      "plan_change": {
+        "headline": "¿Cambiar a otro plan?",
+        "body": "Tenemos otros planes que podrían irte mejor.",
+        "cta": "Cambiar de plan"
+      },
+      "trial_extension": {
+        "headline": "¿Necesitas más tiempo?",
+        "body": "Ampliaremos tu prueba {days} {unit}.",
+        "cta": "Ampliar prueba"
+      },
+      "contact": {
+        "headline": "¿Hablamos antes?",
+        "body": "A nuestro equipo le encantaría ayudarte a resolver cualquier problema.",
+        "cta": "Contactar con soporte"
+      },
+      "redirect": {
+        "headline": "Antes de irte...",
+        "body": "Échale un vistazo: puede que cambies de opinión."
+      },
+      "rebate": {
+        "headline": "Recupera dinero",
+        "body": "Sigue suscrito y te reembolsaremos parte de tu último pago.",
+        "cta": "Aceptar reembolso"
+      },
+      "custom": {
+        "headline": "Antes de irte...",
+        "body": "Queremos ofrecerte algo.",
+        "cta": "Aceptar"
+      },
+      "declineCta": "No, gracias"
     }
   }
 }

@@ -2278,6 +2278,20 @@ describe('i18n / messages', () => {
     expect(machine.messages.common.back).toBe('Back')
   })
 
+  it('local-mode offers without copy take it from the catalog, in the language that settles', () => {
+    const machine = new CancelFlowMachine({
+      ...baseConfig,
+      steps: [{ type: 'offer', offer: { type: 'pause', months: 2 } }, { type: 'confirm' }],
+    })
+    expect(machine.currentOffer?.copy.declineCta).toBe('No thanks')
+    machine.setLocale('es', {
+      offer: { defaultCopy: { pause: { headline: '¿Una pausa?' }, declineCta: 'No, gracias' } },
+    })
+    expect(machine.locale).toBe('es')
+    expect(machine.currentOffer?.copy).toMatchObject({ headline: '¿Una pausa?', declineCta: 'No, gracias' })
+    expect(machine.getSnapshot().currentStepId).toBe('step-0-offer')
+  })
+
   it('leaves cancelAtPeriodEnd null in local mode', () => {
     const machine = new CancelFlowMachine(baseConfig)
     expect(machine.getSnapshot().cancelAtPeriodEnd).toBeNull()
