@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Sınırlı süreli teklif",
-    "pauseEyebrow": "Şu tarihte tekrar görüşürüz:",
+    "pauseEyebrow": "{date} tarihinde sizi tekrar aramızda göreceğiz",
     "newEndDateLabel": "Yeni bitiş tarihi",
     "currentPlanBadge": "Mevcut",
     "switchToCta": "{planName} planına geç",
@@ -98,6 +98,58 @@
       "afterPause": "Aboneliğiniz yeniden başladığında başlar.",
       "afterTrial": "İlk ücretli faturalandırma döneminizle başlar.",
       "withPlanChange": "Yeni planınız için geçerlidir."
+    },
+    "discount": {
+      "percentOff": "%{percent} indirim",
+      "amountOff": "{amount} indirim",
+      "unspecified": "Bir indirim",
+      "nextRenewal": "Bir sonraki yenilemenizde {discount}",
+      "forLife": "Ömür boyu {discount}",
+      "forMonths": "{months} {unit} boyunca {discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "%{percent} indirime ne dersiniz?",
+        "body": "Size {months} {unit} boyunca %{percent} indirim sunmak isteriz.",
+        "headlineNoAmount": "Özel teklif",
+        "bodyNoAmount": "Size bir indirim sunmak isteriz.",
+        "cta": "Teklifi kabul et"
+      },
+      "pause": {
+        "headline": "Bunun yerine ara vermeye ne dersiniz?",
+        "body": "Aboneliğinizi en fazla {months} {unit} duraklatın.",
+        "cta": "Aboneliği duraklat"
+      },
+      "plan_change": {
+        "headline": "Farklı bir plana geçmek ister misiniz?",
+        "body": "Size daha uygun olabilecek başka planlarımız var.",
+        "cta": "Plan değiştir"
+      },
+      "trial_extension": {
+        "headline": "Daha fazla zamana mı ihtiyacınız var?",
+        "body": "Deneme sürenizi {days} {unit} uzatacağız.",
+        "cta": "Denemeyi uzat"
+      },
+      "contact": {
+        "headline": "Önce bizimle konuşur musunuz?",
+        "body": "Ekibimiz sorunlarınızı çözmenize memnuniyetle yardımcı olur.",
+        "cta": "Destekle iletişime geç"
+      },
+      "redirect": {
+        "headline": "Ayrılmadan önce...",
+        "body": "Şuna bir göz atın; fikrinizi değiştirebilir."
+      },
+      "rebate": {
+        "headline": "Paranızın bir kısmını geri alın",
+        "body": "Abone kalın, en son ödemenizin bir kısmını iade edelim.",
+        "cta": "İadeyi kabul et"
+      },
+      "custom": {
+        "headline": "Ayrılmadan önce...",
+        "body": "Size bir teklifimiz var.",
+        "cta": "Kabul et"
+      },
+      "declineCta": "Hayır, teşekkürler"
     }
   }
 }

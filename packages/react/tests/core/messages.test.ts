@@ -121,6 +121,15 @@ describe('resolveLocale / buildMessages', () => {
     expect(resolved.common.close).toBe('Close')
   })
 
+  it('applies a regional English entry on top of the English baseline', () => {
+    const resolved = buildMessages({
+      locale: 'en-GB',
+      messages: { en: { common: { back: 'Go back' } }, 'en-GB': { confirm: { cta: 'Cancel, mate' } } },
+    })
+    expect(resolved.confirm.cta).toBe('Cancel, mate')
+    expect(resolved.common.back).toBe('Go back')
+  })
+
   it('does not read the browser language: unset means English', () => {
     vi.stubGlobal('navigator', { language: 'fr-CA' })
     const resolved = buildMessages({ messages: { fr: { common: { continue: 'Continuer' } } } })

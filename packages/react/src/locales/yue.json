@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "限時優惠",
-    "pauseEyebrow": "我哋期待你喺以下日期返嚟",
+    "pauseEyebrow": "我哋{date}再見",
     "newEndDateLabel": "新結束日期",
     "currentPlanBadge": "目前",
     "switchToCta": "轉用 {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "訂閱恢復時開始。",
       "afterTrial": "由你首個付費結算期開始。",
       "withPlanChange": "適用於你嘅新方案。"
+    },
+    "discount": {
+      "percentOff": "{percent}% 折扣",
+      "amountOff": "減 {amount}",
+      "unspecified": "一個優惠",
+      "nextRenewal": "下次續訂{discount}",
+      "forLife": "終身{discount}",
+      "forMonths": "{months}{unit}享{discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "減 {percent}% 好唔好?",
+        "body": "我哋想送你 {months}{unit}的 {percent}% 折扣。",
+        "headlineNoAmount": "限定優惠",
+        "bodyNoAmount": "我哋想送你一個折扣。",
+        "cta": "接受優惠"
+      },
+      "pause": {
+        "headline": "不如休息一下?",
+        "body": "最多可暫停訂閱 {months}{unit}。",
+        "cta": "暫停訂閱"
+      },
+      "plan_change": {
+        "headline": "轉另一個方案?",
+        "body": "我哋有其他方案,可能更啱你。",
+        "cta": "轉換方案"
+      },
+      "trial_extension": {
+        "headline": "需要多啲時間?",
+        "body": "我哋會將你嘅試用期延長 {days}{unit}。",
+        "cta": "延長試用"
+      },
+      "contact": {
+        "headline": "不如先同我哋傾下?",
+        "body": "我哋團隊好樂意幫你解決任何問題。",
+        "cta": "聯絡客服"
+      },
+      "redirect": {
+        "headline": "走之前...",
+        "body": "睇下呢個——可能會改變你嘅決定。"
+      },
+      "rebate": {
+        "headline": "取回部分款項",
+        "body": "繼續訂閱,我哋會退還你最近一次付款嘅一部分。",
+        "cta": "接受退款"
+      },
+      "custom": {
+        "headline": "走之前...",
+        "body": "我哋想送你啲嘢。",
+        "cta": "接受"
+      },
+      "declineCta": "唔使喇,多謝"
     }
   }
 }

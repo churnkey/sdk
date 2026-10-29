@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Zeitlich begrenztes Angebot",
-    "pauseEyebrow": "Wir sehen uns wieder am",
+    "pauseEyebrow": "Wir sehen uns am {date} wieder",
     "newEndDateLabel": "Neues Enddatum",
     "currentPlanBadge": "Aktuell",
     "switchToCta": "Zu {planName} wechseln",
@@ -98,6 +98,58 @@
       "afterPause": "Beginnt, sobald Ihr Abo fortgesetzt wird.",
       "afterTrial": "Beginnt mit Ihrem ersten kostenpflichtigen Abrechnungszeitraum.",
       "withPlanChange": "Gilt für Ihren neuen Tarif."
+    },
+    "discount": {
+      "percentOff": "{percent} % Rabatt",
+      "amountOff": "{amount} Rabatt",
+      "unspecified": "Ein Rabatt",
+      "nextRenewal": "{discount} auf Ihre nächste Verlängerung",
+      "forLife": "{discount} auf Lebenszeit",
+      "forMonths": "{discount} für {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Wie wäre es mit {percent} % Rabatt?",
+        "body": "Wir möchten Ihnen {percent} % Rabatt für {months} {unit} anbieten.",
+        "headlineNoAmount": "Sonderangebot",
+        "bodyNoAmount": "Wir möchten Ihnen einen Rabatt anbieten.",
+        "cta": "Angebot annehmen"
+      },
+      "pause": {
+        "headline": "Lieber eine Pause einlegen?",
+        "body": "Pausieren Sie Ihr Abo für bis zu {months} {unit}.",
+        "cta": "Abo pausieren"
+      },
+      "plan_change": {
+        "headline": "Zu einem anderen Tarif wechseln?",
+        "body": "Wir haben andere Tarife, die besser zu Ihnen passen könnten.",
+        "cta": "Tarif wechseln"
+      },
+      "trial_extension": {
+        "headline": "Brauchen Sie mehr Zeit?",
+        "body": "Wir verlängern Ihre Testphase um {days} {unit}.",
+        "cta": "Testphase verlängern"
+      },
+      "contact": {
+        "headline": "Erst mit uns sprechen?",
+        "body": "Unser Team hilft Ihnen gern, Probleme zu lösen.",
+        "cta": "Support kontaktieren"
+      },
+      "redirect": {
+        "headline": "Bevor Sie gehen ...",
+        "body": "Schauen Sie sich das an – vielleicht überlegen Sie es sich anders."
+      },
+      "rebate": {
+        "headline": "Geld zurückerhalten",
+        "body": "Bleiben Sie Abonnent, und wir erstatten Ihnen einen Teil Ihrer letzten Zahlung.",
+        "cta": "Erstattung annehmen"
+      },
+      "custom": {
+        "headline": "Bevor Sie gehen ...",
+        "body": "Wir möchten Ihnen etwas anbieten.",
+        "cta": "Annehmen"
+      },
+      "declineCta": "Nein, danke"
     }
   }
 }

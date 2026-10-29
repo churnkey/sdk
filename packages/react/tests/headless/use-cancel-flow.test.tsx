@@ -53,6 +53,7 @@ describe('useCancelFlow', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.messages.confirm.cta).toBe('Cancelar suscripción')
     expect(result.current.messages.common.back).toBe('Atrás')
+    expect(result.current.locale).toBe('es-MX')
   })
 
   // The server says which language it translated the flow into. Without an
@@ -65,6 +66,7 @@ describe('useCancelFlow', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ language: 'es-ES' })
     expect(result.current.messages.confirm.cta).toBe('Cancelar suscripción')
+    expect(result.current.locale).toBe('es-ES')
   })
 
   it('without an explicit locale, stays English when the server kept the source copy', async () => {
@@ -77,6 +79,7 @@ describe('useCancelFlow', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.messages.confirm.cta).toBe('Cancel subscription')
     expect(result.current.messages.common.back).toBe('Back')
+    expect(result.current.locale).toBe('en')
   })
 
   it('an explicit locale is the chrome language even when the content is not translated', async () => {
@@ -115,6 +118,7 @@ describe('useCancelFlow', () => {
     )
     expect(result.current.isLoading).toBe(false)
     expect(result.current.messages.confirm.cta).toBe('Cancel subscription')
+    expect(result.current.locale).toBe('en')
   })
 
   it('a remount starts in the loaded language, with no spinner', async () => {

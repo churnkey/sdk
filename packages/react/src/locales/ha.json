@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Tayin ɗan lokaci kaɗan",
-    "pauseEyebrow": "Sai mun sake ganin ka a",
+    "pauseEyebrow": "Za mu sake ganin ka a {date}",
     "newEndDateLabel": "Sabon ranar ƙarewa",
     "currentPlanBadge": "Na yanzu",
     "switchToCta": "Koma zuwa {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Yana farawa idan biyan kuɗinka ya ci gaba.",
       "afterTrial": "Yana farawa da lokacin biyan kuɗi na farko.",
       "withPlanChange": "Yana shafar sabon tsarinka."
+    },
+    "discount": {
+      "percentOff": "Rage {percent}%",
+      "amountOff": "Rage {amount}",
+      "unspecified": "Rangwame",
+      "nextRenewal": "{discount} a sabuntawarka ta gaba",
+      "forLife": "{discount} har abada",
+      "forMonths": "{discount} na tsawon {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Me ka cewa a rage {percent}%?",
+        "body": "Muna so mu ba ka rangwamen {percent}% na tsawon {months} {unit}.",
+        "headlineNoAmount": "Tayi na musamman",
+        "bodyNoAmount": "Muna so mu ba ka rangwame.",
+        "cta": "Karɓi tayin"
+      },
+      "pause": {
+        "headline": "Ka huta maimakon haka?",
+        "body": "Dakatar da biyan kuɗinka har na tsawon {months} {unit}.",
+        "cta": "Dakatar da biyan kuɗi"
+      },
+      "plan_change": {
+        "headline": "Ka koma wani tsari daban?",
+        "body": "Muna da wasu tsare-tsare da za su fi dacewa da kai.",
+        "cta": "Canja tsari"
+      },
+      "trial_extension": {
+        "headline": "Kana buƙatar ƙarin lokaci?",
+        "body": "Za mu ƙara wa gwajinka {days} {unit}.",
+        "cta": "Ƙara lokacin gwaji"
+      },
+      "contact": {
+        "headline": "Ka fara magana da mu?",
+        "body": "Ƙungiyarmu za ta so taimakawa wajen warware duk wata matsala.",
+        "cta": "Tuntuɓi tallafi"
+      },
+      "redirect": {
+        "headline": "Kafin ka tafi...",
+        "body": "Duba wannan — zai iya sa ka canza ra'ayi."
+      },
+      "rebate": {
+        "headline": "Karɓi kuɗinka",
+        "body": "Ci gaba da biyan kuɗi, za mu mayar maka da wani ɓangare na biyanka na ƙarshe.",
+        "cta": "Karɓi kuɗin da aka mayar"
+      },
+      "custom": {
+        "headline": "Kafin ka tafi...",
+        "body": "Muna so mu ba ka wani abu.",
+        "cta": "Karɓa"
+      },
+      "declineCta": "A'a, na gode"
     }
   }
 }

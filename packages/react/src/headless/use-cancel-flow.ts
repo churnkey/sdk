@@ -10,6 +10,7 @@ export function useCancelFlow(config: FlowConfig) {
     loadError,
     retry,
     messages: machine.messages,
+    locale: machine.locale,
     reasons: machine.reasons,
     currentStep: machine.currentStep,
     currentOffer: machine.currentOffer,

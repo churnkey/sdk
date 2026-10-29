@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "پیشنهاد محدود",
-    "pauseEyebrow": "منتظر بازگشتتان هستیم در",
+    "pauseEyebrow": "در تاریخ {date} دوباره می‌بینیمتان",
     "newEndDateLabel": "تاریخ پایان جدید",
     "currentPlanBadge": "فعلی",
     "switchToCta": "تغییر به {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "با از سرگیری اشتراک آغاز می‌شود.",
       "afterTrial": "از اولین دوره صورتی‌حساب پولی آغاز می‌شود.",
       "withPlanChange": "برای طرح جدید شما اعمال می‌شود."
+    },
+    "discount": {
+      "percentOff": "{percent}٪ تخفیف",
+      "amountOff": "{amount} تخفیف",
+      "unspecified": "یک تخفیف",
+      "nextRenewal": "{discount} برای تمدید بعدی شما",
+      "forLife": "{discount} برای همیشه",
+      "forMonths": "{discount} برای {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "{percent}٪ تخفیف چطور است؟",
+        "body": "می‌خواهیم برای {months} {unit} به شما {percent}٪ تخفیف بدهیم.",
+        "headlineNoAmount": "پیشنهاد ویژه",
+        "bodyNoAmount": "می‌خواهیم به شما تخفیف بدهیم.",
+        "cta": "پذیرش پیشنهاد"
+      },
+      "pause": {
+        "headline": "به‌جایش کمی استراحت کنید؟",
+        "body": "اشتراک خود را تا {months} {unit} متوقف کنید.",
+        "cta": "توقف اشتراک"
+      },
+      "plan_change": {
+        "headline": "به طرح دیگری بروید؟",
+        "body": "طرح‌های دیگری داریم که شاید برای شما مناسب‌تر باشند.",
+        "cta": "تغییر طرح"
+      },
+      "trial_extension": {
+        "headline": "به زمان بیشتری نیاز دارید؟",
+        "body": "دوره آزمایشی شما را {days} {unit} تمدید می‌کنیم.",
+        "cta": "تمدید دوره آزمایشی"
+      },
+      "contact": {
+        "headline": "اول با ما صحبت کنید؟",
+        "body": "تیم ما خوشحال می‌شود در حل هر مشکلی کمکتان کند.",
+        "cta": "تماس با پشتیبانی"
+      },
+      "redirect": {
+        "headline": "قبل از رفتن...",
+        "body": "این را ببینید؛ شاید نظرتان عوض شود."
+      },
+      "rebate": {
+        "headline": "بخشی از پولتان را پس بگیرید",
+        "body": "اشتراکتان را حفظ کنید تا بخشی از آخرین پرداختتان را بازگردانیم.",
+        "cta": "پذیرش بازپرداخت"
+      },
+      "custom": {
+        "headline": "قبل از رفتن...",
+        "body": "می‌خواهیم چیزی به شما پیشنهاد بدهیم.",
+        "cta": "می‌پذیرم"
+      },
+      "declineCta": "نه، ممنون"
     }
   }
 }

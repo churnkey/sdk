@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Tijdelijke aanbieding",
-    "pauseEyebrow": "Tot ziens op",
+    "pauseEyebrow": "Tot {date}",
     "newEndDateLabel": "Nieuwe einddatum",
     "currentPlanBadge": "Huidig",
     "switchToCta": "Overstappen naar {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Gaat in zodra je abonnement weer start.",
       "afterTrial": "Gaat in met je eerste betaalde periode.",
       "withPlanChange": "Geldt voor je nieuwe abonnement."
+    },
+    "discount": {
+      "percentOff": "{percent}% korting",
+      "amountOff": "{amount} korting",
+      "unspecified": "Korting",
+      "nextRenewal": "{discount} op je volgende verlenging",
+      "forLife": "{discount} voor altijd",
+      "forMonths": "{discount} gedurende {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Wat dacht je van {percent}% korting?",
+        "body": "We bieden je graag {percent}% korting gedurende {months} {unit}.",
+        "headlineNoAmount": "Speciale aanbieding",
+        "bodyNoAmount": "We bieden je graag een korting aan.",
+        "cta": "Aanbieding accepteren"
+      },
+      "pause": {
+        "headline": "Liever een pauze?",
+        "body": "Zet je abonnement tot {months} {unit} op pauze.",
+        "cta": "Abonnement pauzeren"
+      },
+      "plan_change": {
+        "headline": "Overstappen naar een ander abonnement?",
+        "body": "We hebben andere abonnementen die misschien beter bij je passen.",
+        "cta": "Abonnement wijzigen"
+      },
+      "trial_extension": {
+        "headline": "Meer tijd nodig?",
+        "body": "We verlengen je proefperiode met {days} {unit}.",
+        "cta": "Proefperiode verlengen"
+      },
+      "contact": {
+        "headline": "Eerst even praten?",
+        "body": "Ons team helpt je graag met het oplossen van problemen.",
+        "cta": "Contact opnemen"
+      },
+      "redirect": {
+        "headline": "Voordat je gaat...",
+        "body": "Kijk hier eens naar — misschien bedenk je je."
+      },
+      "rebate": {
+        "headline": "Krijg geld terug",
+        "body": "Blijf geabonneerd en we betalen een deel van je laatste betaling terug.",
+        "cta": "Terugbetaling accepteren"
+      },
+      "custom": {
+        "headline": "Voordat je gaat...",
+        "body": "We willen je graag iets aanbieden.",
+        "cta": "Accepteren"
+      },
+      "declineCta": "Nee, bedankt"
     }
   }
 }

@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Penawaran wektu winates",
-    "pauseEyebrow": "Ketemu maneh tanggal",
+    "pauseEyebrow": "Kita ketemu maneh tanggal {date}",
     "newEndDateLabel": "Tanggal rampung anyar",
     "currentPlanBadge": "Saiki",
     "switchToCta": "Ganti menyang {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Diwiwiti nalika langgananmu diterusake.",
       "afterTrial": "Diwiwiti ing periode tagihan mbayar sing sepisanan.",
       "withPlanChange": "Berlaku kanggo paket anyarmu."
+    },
+    "discount": {
+      "percentOff": "Diskon {percent}%",
+      "amountOff": "Diskon {amount}",
+      "unspecified": "Diskon",
+      "nextRenewal": "{discount} kanggo perpanjangan sabanjure",
+      "forLife": "{discount} selawase",
+      "forMonths": "{discount} suwene {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Diskon {percent}%, piye?",
+        "body": "Kami arep menehi diskon {percent}% suwene {months} {unit}.",
+        "headlineNoAmount": "Penawaran khusus",
+        "bodyNoAmount": "Kami arep menehi diskon kanggo sampeyan.",
+        "cta": "Trima penawaran"
+      },
+      "pause": {
+        "headline": "Rehat sedhela wae?",
+        "body": "Setop langganan sampeyan nganti {months} {unit}.",
+        "cta": "Setop langganan"
+      },
+      "plan_change": {
+        "headline": "Ganti paket liyane?",
+        "body": "Kami duwe paket liyane sing mungkin luwih cocog.",
+        "cta": "Ganti paket"
+      },
+      "trial_extension": {
+        "headline": "Butuh wektu luwih akeh?",
+        "body": "Kami bakal nambah uji coba sampeyan {days} {unit}.",
+        "cta": "Tambah uji coba"
+      },
+      "contact": {
+        "headline": "Rembugan karo kami disik?",
+        "body": "Tim kami seneng mbantu ngrampungake kendala sampeyan.",
+        "cta": "Hubungi dhukungan"
+      },
+      "redirect": {
+        "headline": "Sadurunge lunga...",
+        "body": "Deloken iki — bisa uga ngowahi pikiran sampeyan."
+      },
+      "rebate": {
+        "headline": "Entuk dhuwit bali",
+        "body": "Tetep langganan lan kami bakal mbalekake sebagian pembayaran pungkasan sampeyan.",
+        "cta": "Trima pengembalian dana"
+      },
+      "custom": {
+        "headline": "Sadurunge lunga...",
+        "body": "Kami arep menehi sampeyan samubarang.",
+        "cta": "Trima"
+      },
+      "declineCta": "Mboten, matur nuwun"
     }
   }
 }

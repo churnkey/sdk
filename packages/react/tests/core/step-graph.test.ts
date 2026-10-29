@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import { defaultMessages } from '../../src/core/messages'
 import { buildStepGraph } from '../../src/core/step-graph'
-import { defaultOfferCopy } from '../../src/core/transform'
+import { defaultOfferCopy as copyFor } from '../../src/core/transform'
 import type { Step } from '../../src/core/types'
+
+const defaultOfferCopy = (offer: Parameters<typeof copyFor>[0]) => copyFor(offer, defaultMessages)
 
 describe('buildStepGraph', () => {
   it('returns empty graph for empty steps', () => {

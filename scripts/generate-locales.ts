@@ -17,9 +17,10 @@
  * exists for when the OpenAI account can't be used; same prompt, same
  * validation. Only what changed is translated: strings a pack is missing,
  * and strings whose English differs from en.json, the catalog as of the last
- * run (a test fails when it drifts). --force redoes everything. CHURNKEY_EMBED_DIR
- * points at a churnkey-embed checkout (default: ../churnkey-embed next to
- * this repo); without one nothing is seeded.
+ * run (a test fails when it drifts); strings the catalog dropped are dropped
+ * from every pack. --force redoes everything. CHURNKEY_EMBED_DIR points at a
+ * churnkey-embed checkout (default: a churnkey-embed next to this repo, or
+ * next to the repo this is a worktree of); without one nothing is seeded.
  */
 
 import { execFileSync } from 'node:child_process'
@@ -32,7 +33,10 @@ import { defaultMessages } from '../packages/react/src/core/messages'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT_DIR = resolve(ROOT, 'packages/react/src/locales')
 const SOURCE_FILE = resolve(OUT_DIR, 'en.json')
-const EMBED_DIR = process.env.CHURNKEY_EMBED_DIR ?? resolve(ROOT, '../churnkey-embed')
+const EMBED_DIR =
+  process.env.CHURNKEY_EMBED_DIR ??
+  [resolve(ROOT, '../churnkey-embed'), resolve(ROOT, '../../churnkey-embed')].find((dir) => existsSync(dir)) ??
+  resolve(ROOT, '../churnkey-embed')
 
 // Same model as churnkey-api's blueprint translation service (XDEV-2426).
 const OPENAI_MODEL = 'gpt-4.1-mini'
@@ -386,9 +390,12 @@ function stale(source: Flat, previous: Flat, existing: Flat | undefined, force: 
 
 async function generate(provider: Provider, lang: string, source: Flat, previous: Flat, seeds: Flat, force: boolean) {
   const file = resolve(OUT_DIR, `${lang}.json`)
-  const existing = existsSync(file) ? flatten(JSON.parse(readFileSync(file, 'utf8'))) : undefined
+  const onDisk = existsSync(file) ? flatten(JSON.parse(readFileSync(file, 'utf8'))) : undefined
+  // A string the catalog no longer has goes, and that alone is a reason to write the file.
+  const existing = onDisk && Object.fromEntries(Object.entries(onDisk).filter(([path]) => path in source))
+  const dropped = onDisk ? Object.keys(onDisk).length - Object.keys(existing ?? {}).length : 0
   const paths = stale(source, previous, existing, force)
-  if (paths.length === 0) return { lang, status: 'kept' as const }
+  if (paths.length === 0 && dropped === 0) return { lang, status: 'kept' as const }
   const pending: Flat = {}
   const seeded: Flat = {}
   for (const path of paths) {

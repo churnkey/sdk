@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "限时优惠",
-    "pauseEyebrow": "期待您在以下日期回来",
+    "pauseEyebrow": "期待 {date} 与您再见",
     "newEndDateLabel": "新的结束日期",
     "currentPlanBadge": "当前",
     "switchToCta": "切换到 {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "订阅恢复时开始。",
       "afterTrial": "从您首个付费账期开始。",
       "withPlanChange": "适用于您的新套餐。"
+    },
+    "discount": {
+      "percentOff": "{percent}% 折扣",
+      "amountOff": "立减 {amount}",
+      "unspecified": "一份优惠",
+      "nextRenewal": "下次续订{discount}",
+      "forLife": "终身{discount}",
+      "forMonths": "{months} {unit}内{discount}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "给您 {percent}% 折扣，如何？",
+        "body": "我们愿为您提供 {months} {unit}的 {percent}% 折扣。",
+        "headlineNoAmount": "专属优惠",
+        "bodyNoAmount": "我们愿为您提供一份优惠。",
+        "cta": "接受优惠"
+      },
+      "pause": {
+        "headline": "先休息一下？",
+        "body": "最长可暂停订阅 {months} {unit}。",
+        "cta": "暂停订阅"
+      },
+      "plan_change": {
+        "headline": "换个套餐试试？",
+        "body": "我们还有其他更适合您的套餐。",
+        "cta": "更换套餐"
+      },
+      "trial_extension": {
+        "headline": "需要更多时间？",
+        "body": "我们将为您延长试用 {days} {unit}。",
+        "cta": "延长试用"
+      },
+      "contact": {
+        "headline": "先和我们聊聊？",
+        "body": "我们的团队很乐意帮您解决任何问题。",
+        "cta": "联系客服"
+      },
+      "redirect": {
+        "headline": "离开之前……",
+        "body": "看看这个——或许会改变您的想法。"
+      },
+      "rebate": {
+        "headline": "获得返款",
+        "body": "继续订阅，我们将退还您最近一次付款的一部分。",
+        "cta": "接受退款"
+      },
+      "custom": {
+        "headline": "离开之前……",
+        "body": "我们想送您一份心意。",
+        "cta": "接受"
+      },
+      "declineCta": "不了，谢谢"
     }
   }
 }

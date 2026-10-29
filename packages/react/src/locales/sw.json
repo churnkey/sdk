@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Ofa ya muda mfupi",
-    "pauseEyebrow": "Tutakuona tena tarehe",
+    "pauseEyebrow": "Tutakuona tena tarehe {date}",
     "newEndDateLabel": "Tarehe mpya ya kuisha",
     "currentPlanBadge": "Sasa",
     "switchToCta": "Badili hadi {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Inaanza usajili wako utakapoendelea.",
       "afterTrial": "Inaanza na kipindi chako cha kwanza cha malipo.",
       "withPlanChange": "Inatumika kwenye mpango wako mpya."
+    },
+    "discount": {
+      "percentOff": "Punguzo la {percent}%",
+      "amountOff": "Punguzo la {amount}",
+      "unspecified": "Punguzo",
+      "nextRenewal": "{discount} katika kusasisha kwako kujacho",
+      "forLife": "{discount} maishani",
+      "forMonths": "{discount} kwa {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Je, punguzo la {percent}%?",
+        "body": "Tungependa kukupa punguzo la {percent}% kwa {months} {unit}.",
+        "headlineNoAmount": "Ofa maalum",
+        "bodyNoAmount": "Tungependa kukupa punguzo.",
+        "cta": "Kubali ofa"
+      },
+      "pause": {
+        "headline": "Pumzika badala yake?",
+        "body": "Sitisha usajili wako hadi kwa {months} {unit}.",
+        "cta": "Sitisha usajili"
+      },
+      "plan_change": {
+        "headline": "Badili uende mpango mwingine?",
+        "body": "Tuna mipango mingine inayoweza kukufaa zaidi.",
+        "cta": "Badili mpango"
+      },
+      "trial_extension": {
+        "headline": "Unahitaji muda zaidi?",
+        "body": "Tutaongeza muda wa jaribio lako kwa {days} {unit}.",
+        "cta": "Ongeza muda wa jaribio"
+      },
+      "contact": {
+        "headline": "Zungumza nasi kwanza?",
+        "body": "Timu yetu itafurahi kukusaidia kutatua tatizo lolote.",
+        "cta": "Wasiliana na msaada"
+      },
+      "redirect": {
+        "headline": "Kabla hujaondoka...",
+        "body": "Angalia hili — huenda likabadilisha mawazo yako."
+      },
+      "rebate": {
+        "headline": "Rudishiwa pesa",
+        "body": "Endelea na usajili wako nasi tutakurudishia sehemu ya malipo yako ya hivi karibuni.",
+        "cta": "Kubali kurudishiwa"
+      },
+      "custom": {
+        "headline": "Kabla hujaondoka...",
+        "body": "Tungependa kukupa kitu.",
+        "cta": "Kubali"
+      },
+      "declineCta": "Hapana, asante"
     }
   }
 }

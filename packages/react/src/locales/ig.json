@@ -79,7 +79,7 @@
   },
   "offer": {
     "limitedTimeEyebrow": "Onyinye oge mkpirikpi",
-    "pauseEyebrow": "Anyị ga-ahụ gị ọzọ na",
+    "pauseEyebrow": "Anyị ga-ahụ gị ọzọ na {date}",
     "newEndDateLabel": "Ụbọchị ọgwụgwụ ọhụrụ",
     "currentPlanBadge": "Nke ugbu a",
     "switchToCta": "Gbanwee gaa na {planName}",
@@ -98,6 +98,58 @@
       "afterPause": "Ga-amalite mgbe ndebanye aha gị ga-aga n'ihu.",
       "afterTrial": "Ga-amalite site n'oge nkwụ ụgwọ mbụ gị.",
       "withPlanChange": "Ọ metụtara atụmatụ ọhụrụ gị."
+    },
+    "discount": {
+      "percentOff": "Nkwụsị {percent}%",
+      "amountOff": "Nkwụsị {amount}",
+      "unspecified": "Nkwụsị price",
+      "nextRenewal": "{discount} n'ọhụrụ gị nke na-abịa",
+      "forLife": "{discount} ruo mgbe ndụ gị",
+      "forMonths": "{discount} maka {months} {unit}"
+    },
+    "defaultCopy": {
+      "discount": {
+        "headline": "Kedu ka {percent}% nkwụsị si dị?",
+        "body": "Anyị chọrọ inye gị nkwụsị {percent}% maka {months} {unit}.",
+        "headlineNoAmount": "Onyinye pụrụ iche",
+        "bodyNoAmount": "Anyị chọrọ inye gị nkwụsị price.",
+        "cta": "Nabata onyinye"
+      },
+      "pause": {
+        "headline": "Zuru ike kama?",
+        "body": "Kwụsịtụ ndenye aha gị ruo {months} {unit}.",
+        "cta": "Kwụsịtụ ndenye aha"
+      },
+      "plan_change": {
+        "headline": "Gbanwee gaa na atụmatụ ọzọ?",
+        "body": "Anyị nwere atụmatụ ndị ọzọ nwere ike dabara gị nke ọma.",
+        "cta": "Gbanwee atụmatụ"
+      },
+      "trial_extension": {
+        "headline": "Ị chọrọ oge ọzọ?",
+        "body": "Anyị ga-agbatị ọnwụnwa gị site na {days} {unit}.",
+        "cta": "Gbatịa ọnwụnwa"
+      },
+      "contact": {
+        "headline": "Kpọtụrụ anyị tupu?",
+        "body": "Otu ndị anyị ga-enwe obi ụtọ inyere gị aka idozi nsogbu ọ bụla.",
+        "cta": "Kpọtụrụ nkwado"
+      },
+      "redirect": {
+        "headline": "Tupu ị pụọ...",
+        "body": "Lee nke a — ọ nwere ike ime ka i chegharịa."
+      },
+      "rebate": {
+        "headline": "Nweta ego gị laghachi",
+        "body": "Nọgidee n'ndenye aha, anyị ga-akwụghachi gị otu akụkụ nke ịkwụ ụgwọ gị ikpeazụ.",
+        "cta": "Nabata ịkwụghachi ego"
+      },
+      "custom": {
+        "headline": "Tupu ị pụọ...",
+        "body": "Anyị chọrọ inye gị ihe.",
+        "cta": "Nabata"
+      },
+      "declineCta": "Ee e, daalụ"
     }
   }
 }

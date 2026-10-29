@@ -577,6 +577,8 @@ export interface SurveyStepProps {
   components?: Partial<ComponentOverrides>
   /** Resolved message catalog. Default components fall back to `defaultMessages` when absent. */
   messages?: CancelFlowMessages
+  /** Language the chrome renders in (BCP 47). Default components format dates and amounts with it. */
+  locale?: string
 }
 
 export interface OfferStepProps {
@@ -602,6 +604,8 @@ export interface OfferStepProps {
   components?: Partial<ComponentOverrides>
   /** Resolved message catalog. Default components fall back to `defaultMessages` when absent. */
   messages?: CancelFlowMessages
+  /** Language the chrome renders in (BCP 47). Default components format dates and amounts with it. */
+  locale?: string
 }
 
 export interface FeedbackStepProps {
@@ -618,6 +622,8 @@ export interface FeedbackStepProps {
   classNames?: FeedbackClassNames
   /** Resolved message catalog. Default components fall back to `defaultMessages` when absent. */
   messages?: CancelFlowMessages
+  /** Language the chrome renders in (BCP 47). Default components format dates and amounts with it. */
+  locale?: string
 }
 
 export interface ConfirmStepProps {
@@ -641,6 +647,8 @@ export interface ConfirmStepProps {
   classNames?: ConfirmClassNames
   /** Resolved message catalog. Default components fall back to `defaultMessages` when absent. */
   messages?: CancelFlowMessages
+  /** Language the chrome renders in (BCP 47). Default components format dates and amounts with it. */
+  locale?: string
 }
 
 export interface SuccessStepProps {
@@ -657,6 +665,8 @@ export interface SuccessStepProps {
   classNames?: SuccessClassNames
   /** Resolved message catalog. Default components fall back to `defaultMessages` when absent. */
   messages?: CancelFlowMessages
+  /** Language the chrome renders in (BCP 47). Default components format dates and amounts with it. */
+  locale?: string
 }
 
 // ─── Sub-component props ─────────────────────────────────────────────────────
