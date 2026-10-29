@@ -351,6 +351,8 @@ You can pass both `session` and `steps` to override specific server config:
 
 Local steps override by type. Steps not in the server config are appended.
 
+Local steps change what the customer sees, not what Churnkey will apply for you. In live mode Churnkey applies only offers its own flow served to this customer, so an offer that exists only in a local step, such as a discount with its own `couponId`, is refused with a `403` unless the server's flow offered the same coupon. Test mode, and sandbox mode with Stripe, apply local offers so you can try them out. To use a local-only offer in live mode, add it to the flow in the dashboard, or apply it yourself in a handler such as `handleDiscount`.
+
 ## Imports
 
 ```tsx
