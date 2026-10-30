@@ -814,29 +814,6 @@ describe('a pair of offers in token mode', () => {
     )
   })
 
-  it('says a plan change is scheduled when it waits for the end of the term', async () => {
-    const user = userEvent.setup()
-    stubPairFetch(
-      {
-        type: 'plan_change',
-        decisionId: 'p1',
-        plans: [
-          { id: 'current', name: 'Pro', amount: { value: 3900, currency: 'USD' } },
-          { id: 'basic', name: 'Basic', amount: { value: 1900, currency: 'USD' } },
-        ],
-        copy,
-      },
-      [],
-      { planChangeAtTermEnd: true },
-    )
-    render(<CancelFlow session={sessionToken()} />)
-
-    await user.click(await screen.findByText('Switch to Basic'))
-
-    expect(await screen.findByText('Plan change scheduled.')).toBeInTheDocument()
-    expect(screen.getByText('Your new plan starts at the end of your current billing period.')).toBeInTheDocument()
-  })
-
   it('sends the plan picked in the pair and tells the customer when only part applied', async () => {
     const user = userEvent.setup()
     const requests = stubPairFetch(
@@ -868,6 +845,34 @@ describe('a pair of offers in token mode', () => {
     expect(await screen.findByText('Plan changed.')).toBeInTheDocument()
     expect(screen.getByText("We couldn't apply your discount. We'll handle it and let you know.")).toBeInTheDocument()
     expect(requests.body('cancel-flow/actions/stacked')).toMatchObject({ planId: 'basic', coupon: 'PAIR20' })
+  })
+
+  it('says the plan change is scheduled when only it applied and it waits for the end of the term', async () => {
+    const user = userEvent.setup()
+    stubPairFetch(
+      {
+        type: 'plan_change',
+        decisionId: 'p1',
+        plans: [
+          { id: 'current', name: 'Pro', amount: { value: 3900, currency: 'USD' } },
+          { id: 'basic', name: 'Basic', amount: { value: 1900, currency: 'USD' } },
+        ],
+        copy,
+        stackedOffer: { type: 'discount', decisionId: 'd1', couponId: 'PAIR20', percentOff: 20, copy },
+      },
+      [
+        { offerType: 'PLAN_CHANGE', status: 'APPLIED' },
+        { offerType: 'DISCOUNT', status: 'FAILED', failureReason: 'No such coupon' },
+      ],
+      { planChangeAtTermEnd: true },
+    )
+    render(<CancelFlow session={sessionToken()} />)
+
+    await user.click(await screen.findByText('Basic'))
+    await user.click(screen.getByText('Accept both offers'))
+
+    expect(await screen.findByText('Plan change scheduled.')).toBeInTheDocument()
+    expect(screen.getByText("We couldn't apply your discount. We'll handle it and let you know.")).toBeInTheDocument()
   })
 
   const discount = { type: 'discount', decisionId: 'd1', couponId: 'PAIR20', percentOff: 20, copy }
@@ -950,7 +955,7 @@ describe('token-mode actions from the component', () => {
     vi.unstubAllGlobals()
   })
 
-  const stubFlow = (steps: Record<string, unknown>[]) => {
+  const stubFlow = (steps: Record<string, unknown>[], settings: Record<string, unknown> = {}) => {
     const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => ({
       ok: true,
       status: 200,
@@ -961,7 +966,12 @@ describe('token-mode actions from the component', () => {
               steps,
               customer: { id: 'cus_1' },
               subscriptions: [],
-              settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false, cancelAtPeriodEnd: true },
+              settings: {
+                clickToCancelEnabled: false,
+                strictFTCComplianceEnabled: false,
+                cancelAtPeriodEnd: true,
+                ...settings,
+              },
             }
           : {},
     }))
@@ -981,6 +991,31 @@ describe('token-mode actions from the component', () => {
 
     await screen.findByText('Discount applied.')
     expect(urls()).toContain('orgs/app_1/cancel-flow/actions/discount')
+  })
+
+  it('says a plan change is scheduled when it waits for the end of the term', async () => {
+    stubFlow(
+      [
+        {
+          guid: 's',
+          type: 'offer',
+          offer: {
+            type: 'plan_change',
+            decisionId: 'p',
+            plans: [{ id: 'basic', name: 'Basic', amount: { value: 1900, currency: 'USD' } }],
+            copy,
+          },
+        },
+        { guid: 'c', type: 'confirm' },
+      ],
+      { planChangeAtTermEnd: true },
+    )
+    render(<CancelFlow session={sessionToken()} />)
+
+    await userEvent.setup().click(await screen.findByText('Switch to Basic'))
+
+    expect(await screen.findByText('Plan change scheduled.')).toBeInTheDocument()
+    expect(screen.getByText('Your new plan starts at the end of your current billing period.')).toBeInTheDocument()
   })
 
   it('cancels on the server without a handler, and leaves it to the handler when there is one', async () => {
