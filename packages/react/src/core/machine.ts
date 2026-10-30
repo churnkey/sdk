@@ -632,6 +632,7 @@ export class CancelFlowMachine {
       customer,
       subscriptions,
       cancelAtPeriodEnd: this.config?.settings.cancelAtPeriodEnd ?? this.localCancelAtPeriodEnd,
+      planChangeAtTermEnd: this.config?.settings.planChangeAtTermEnd ?? false,
       acceptedOffer: null,
     }
   }

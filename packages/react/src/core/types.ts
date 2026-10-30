@@ -692,6 +692,8 @@ export interface FlowState {
    * action uses.
    */
   cancelAtPeriodEnd: boolean | null
+  /** A plan change waits for the end of the billing term (token mode, from the server); `false` in local mode. */
+  planChangeAtTermEnd: boolean
 }
 
 // ─── Flow config ─────────────────────────────────────────────────────────────
