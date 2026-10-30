@@ -7,7 +7,9 @@ const stripeSettingsUpdates = z
     planChangeProrate: z
       .boolean()
       .optional()
-      .describe('Apply proration on plan changes. No effect on Stripe while planChangeImmediate is false.'),
+      .describe(
+        'Apply proration on plan changes. On Stripe while planChangeImmediate is false, cancel flow plan changes land at the period boundary without proration, so this applies only to annual upsell, which switches plans immediately.',
+      ),
     planChangeImmediate: z
       .boolean()
       .optional()
