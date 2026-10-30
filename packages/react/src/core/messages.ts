@@ -78,7 +78,10 @@ export interface CancelFlowMessages {
         resumeDescription: string
       }
       trial_extension: SavedOfferCopy
-      plan_change: SavedOfferCopy
+      plan_change: SavedOfferCopy & {
+        /** Used instead when the switch waits for the end of the billing term. */
+        scheduled: SavedOfferCopy
+      }
       rebate: SavedOfferCopy
       /** A pair of offers. The description is replaced when the second offer
        *  waits for a pause or trial to end. When one of them failed, the title
@@ -217,7 +220,14 @@ export const defaultMessages: CancelFlowMessages = {
         resumeDescription: "You won't be billed again until {resumeDate}.",
       },
       trial_extension: { title: 'Trial extended.', description: 'Your trial has been extended successfully.' },
-      plan_change: { title: 'Plan changed.', description: 'Your new plan is now in effect.' },
+      plan_change: {
+        title: 'Plan changed.',
+        description: 'Your new plan is now in effect.',
+        scheduled: {
+          title: 'Plan change scheduled.',
+          description: 'Your new plan starts at the end of your current billing period.',
+        },
+      },
       rebate: { title: 'Refund issued.', description: "Your money's on its way back." },
       stacked: {
         title: 'Offers applied.',
