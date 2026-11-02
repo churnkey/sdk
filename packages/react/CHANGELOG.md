@@ -2,6 +2,16 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## Unreleased
+
+### Added
+
+- Token mode: when the org's plan changes wait for the end of the billing term (Plan Change Timing set to End of Term on Stripe or Chargebee), the success screen after a plan change says "Plan change scheduled." instead of "Plan changed." The config carries `settings.planChangeAtTermEnd`, flow state carries `planChangeAtTermEnd`, and the copy is `success.saved.plan_change.scheduled`. Local mode keeps the current text.
+
+### Changed
+
+- `CancelFlowMessages` has a new required key, `success.saved.plan_change.scheduled`. Code that builds a full `CancelFlowMessages` object needs it; a `messages` patch does not.
+
 ## 0.9.1 - 2026-10-28
 
 ### Fixed

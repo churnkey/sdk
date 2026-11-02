@@ -310,7 +310,7 @@ function StepRenderer({
       const Success = components?.Success ?? DefaultSuccess
       const config = stepConfig as SuccessStep | undefined
       const isSaved = state.outcome === 'saved'
-      const perOffer = isSaved ? savedOfferCopy(messages, state.acceptedOffer) : undefined
+      const perOffer = isSaved ? savedOfferCopy(messages, state.acceptedOffer, state.planChangeAtTermEnd) : undefined
       return (
         <Success
           outcome={state.outcome ?? 'cancelled'}
@@ -371,7 +371,11 @@ function StepRenderer({
 // custom types) fall back to the generic saved copy.
 const SAVED_OFFER_COPY_TYPES = ['discount', 'pause', 'trial_extension', 'plan_change', 'rebate'] as const
 
-function savedOfferCopy(messages: CancelFlowMessages, offer: AcceptedOffer | null): SavedOfferCopy | undefined {
+function savedOfferCopy(
+  messages: CancelFlowMessages,
+  offer: AcceptedOffer | null,
+  planChangeAtTermEnd: boolean,
+): SavedOfferCopy | undefined {
   if (!offer) return undefined
   const failedType = offer.stackedOffer?.failedOfferType
   // A pair that applied in part reads as the offer that applied.
@@ -379,8 +383,10 @@ function savedOfferCopy(messages: CancelFlowMessages, offer: AcceptedOffer | nul
     return savedOfferCopy(
       messages,
       failedType === offer.type ? offer.stackedOffer! : { ...offer, stackedOffer: undefined },
+      planChangeAtTermEnd,
     )
   if (offer.stackedOffer) return messages.success.saved.stacked
+  if (offer.type === 'plan_change' && planChangeAtTermEnd) return messages.success.saved.plan_change.scheduled
   if (!(SAVED_OFFER_COPY_TYPES as readonly string[]).includes(offer.type)) return undefined
   return messages.success.saved[offer.type as (typeof SAVED_OFFER_COPY_TYPES)[number]]
 }
