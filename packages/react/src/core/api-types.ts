@@ -27,6 +27,8 @@ export interface SdkSettings {
   clickToCancelEnabled: boolean
   strictFTCComplianceEnabled: boolean
   cancelAtPeriodEnd?: boolean
+  /** A plan change waits for the end of the billing term instead of applying now. */
+  planChangeAtTermEnd?: boolean
   discountCooldown?: number
   pauseCooldown?: number
 }
