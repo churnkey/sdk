@@ -80,9 +80,15 @@ describe('payment recovery parity tools (XDEV-2332 follow-up)', () => {
       'update_recovery_audience',
     ]) {
       expect(byName[name].annotations.readOnlyHint).toBe(false)
-      expect(byName[name].annotations.destructiveHint).toBe(false)
     }
-    for (const name of ['remove_recovery_email', 'set_recovery_blueprint_enabled']) {
+    expect(byName.add_recovery_email.annotations.destructiveHint).toBe(false)
+    for (const name of [
+      'update_recovery_email_offers',
+      'update_recovery_sms',
+      'update_recovery_audience',
+      'remove_recovery_email',
+      'set_recovery_blueprint_enabled',
+    ]) {
       expect(byName[name].annotations.destructiveHint).toBe(true)
     }
     // confirm literals required

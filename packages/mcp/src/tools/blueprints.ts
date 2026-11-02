@@ -304,7 +304,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         'Use `editableBlueprintId` for draft updates and `publishedBlueprintId` to reference the live version. Blueprint configuration is shared across live and test mode, so this is not affected by the API key prefix.',
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async () => client.get('/data/blueprints'),
     },
     {
@@ -320,7 +320,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         'Resolution is best-effort: an id the provider no longer has (a deleted coupon or price) is absent from `coupon` / `plans` while the raw `couponId` / `options` stay. `coupon` and `plans` are READ-ONLY: they are not valid `update_blueprint_offer` config fields, so do not echo them back when you edit an offer (the API answers 422). Treat a missing resolution as "not present at the provider", not as an empty discount. The blueprint itself is shared across live and test mode, but the coupons/plans are read from the provider in this session\'s mode, so a live coupon id can come back unresolved in a test-mode session. An adaptive DISCOUNT offer (`autoOptimize: true`, no `couponId`) carries no `coupon` for a different reason: Churnkey picks the discount per customer at flow time from an org-level pool, so there is nothing in the blueprint to resolve.',
       ].join('\n'),
       inputSchema: blueprintIdInput,
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async (args) => client.get(`/data/blueprints/${args.blueprintId}`),
     },
     {
@@ -334,7 +334,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         WRITE_NOTE,
       ].join('\n'),
       inputSchema: createBlueprintInput,
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       handler: async (args) => client.post('/data/blueprints', { body: args }),
     },
     {
@@ -348,7 +348,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         WRITE_NOTE,
       ].join('\n'),
       inputSchema: updateDraftInput,
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       handler: async (args) =>
         client.post(`/data/blueprints/${args.blueprintId}/draft`, { body: { updates: args.updates } }),
     },
@@ -365,7 +365,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         WRITE_NOTE,
       ].join('\n'),
       inputSchema: updateStepInput,
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       handler: async (args) => {
         requireOneStepSelector(args)
         const { blueprintId, stepGuid, stepIndex, updates } = args
@@ -385,7 +385,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         WRITE_NOTE,
       ].join('\n'),
       inputSchema: updateOfferInput,
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       handler: async (args) => {
         if (args.optionGuid && !args.choiceGuid) {
           throw new Error('optionGuid requires choiceGuid.')
@@ -407,7 +407,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         WRITE_NOTE,
       ].join('\n'),
       inputSchema: editSurveyInput,
-      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       handler: async (args) => {
         const { blueprintId, ...body } = args
         return client.post(`/data/blueprints/${blueprintId}/survey`, { body })
@@ -424,7 +424,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         WRITE_NOTE,
       ].join('\n'),
       inputSchema: addStepInput,
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       handler: async (args) =>
         client.post(`/data/blueprints/${args.blueprintId}/step/add`, { body: { place: args.place } }),
     },
@@ -437,7 +437,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         WRITE_NOTE,
       ].join('\n'),
       inputSchema: removeStepInput,
-      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       handler: async (args) =>
         client.post(`/data/blueprints/${args.blueprintId}/step/remove`, { body: { stepGuid: args.stepGuid } }),
     },
@@ -450,7 +450,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         WRITE_NOTE,
       ].join('\n'),
       inputSchema: publishInput,
-      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
       handler: async (args) =>
         client.post(`/data/blueprints/${args.blueprintId}/publish`, { body: { confirm: args.confirm } }),
     },
