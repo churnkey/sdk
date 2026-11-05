@@ -218,7 +218,9 @@ const stackedOfferConfig = z
     couponId: z
       .string()
       .optional()
-      .describe('DISCOUNT: provider coupon ID. A DISCOUNT second offer needs one before the flow can be published.'),
+      .describe(
+        'DISCOUNT: provider coupon ID. A DISCOUNT second offer needs one (customAmount on Paddle Classic) before the flow can be published.',
+      ),
     customAmount: z
       .number()
       .int()
@@ -436,7 +438,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         '',
         "Pairs: an offer can carry a second offer in `stackedOffer`, and the customer accepts both as one offer. Allowed pairs (first, then second): PLAN_CHANGE then DISCOUNT; REBATE then DISCOUNT, PAUSE or PLAN_CHANGE; PAUSE then DISCOUNT or PLAN_CHANGE; TRIAL_EXTENSION then DISCOUNT. Each offer also needs its own provider support, and on Chargebee a PAUSE cannot be followed by a PLAN_CHANGE, while on Paddle and Maxio a PAUSE takes no second offer; the API answers 422 with the types allowed for this org. After a PAUSE or TRIAL_EXTENSION the second offer starts when the pause or extended trial ends; PLAN_CHANGE and REBATE pairs apply both at once. The offer's header/description cover both offers.",
         '',
-        "To add a second offer, pass `stackedOffer.offerType` with its config in the same call (a DISCOUNT needs `config.couponId`, a PLAN_CHANGE at least one plan in `config.options`; publish_blueprint refuses a pair without them). Pass `stackedOffer.config` alone to edit it and `stackedOffer: null` to remove it. Changing this offer's own offerType keeps the second offer only while the new pair is allowed. The response carries `stackedOffer` ({ offerGuid, offerType } or null).",
+        "To add a second offer, pass `stackedOffer.offerType` with its config in the same call (a DISCOUNT needs `config.couponId`, or `config.customAmount` on Paddle Classic, and a PLAN_CHANGE at least one plan in `config.options`; publish_blueprint refuses a pair without them). Pass `stackedOffer.config` alone to edit it and `stackedOffer: null` to remove it. Changing this offer's own offerType keeps the second offer only while the new pair is allowed. The response carries `stackedOffer` ({ offerGuid, offerType } or null).",
         '',
         'Some clients skip a pair: the step is not shown, and a survey choice or follow-up option goes on without an offer. These are @churnkey/react versions before 0.9.0, React SDK setups whose own offer components or handlers cannot show or apply both offers (see the SDK README), and the hosted cancel flow for REBATE pairs.',
         '',
