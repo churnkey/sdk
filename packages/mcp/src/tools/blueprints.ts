@@ -213,6 +213,40 @@ const offerConfig = z
   .strict()
   .describe("Offer-type-specific config. The server validates which fields are allowed against the offer's offerType.")
 
+const stackedOfferConfig = z
+  .object({
+    couponId: z
+      .string()
+      .optional()
+      .describe('DISCOUNT: provider coupon ID. A DISCOUNT second offer needs one before the flow can be published.'),
+    customAmount: z
+      .number()
+      .int()
+      .min(0)
+      .optional()
+      .describe('DISCOUNT (Paddle Classic): custom discount amount in CENTS.'),
+    customDuration: z
+      .enum(['ONCE', 'FOREVER'])
+      .optional()
+      .describe('DISCOUNT (Paddle Classic): how long the custom discount applies.'),
+    maxPauseLength: z.number().int().min(1).optional().describe('PAUSE: maximum pause length.'),
+    pauseInterval: z.enum(['MONTH', 'WEEK']).optional().describe('PAUSE: unit for maxPauseLength.'),
+    datePicker: z
+      .boolean()
+      .optional()
+      .describe('PAUSE: let the customer pick a resume date (supported providers only).'),
+    options: z
+      .array(z.string())
+      .optional()
+      .describe(
+        'PLAN_CHANGE: plan/price IDs the customer can switch to. Needs at least one before the flow can be published.',
+      ),
+  })
+  .strict()
+  .describe(
+    "Second offer config, validated against the second offer's type. A DISCOUNT takes a fixed coupon, never autoOptimize.",
+  )
+
 const updateOfferInput = blueprintIdInput.extend({
   stepGuid: z.string().min(1).describe('Guid of the step that owns or contains the offer.'),
   choiceGuid: z
@@ -232,6 +266,22 @@ const updateOfferInput = blueprintIdInput.extend({
   header: z.string().optional().describe('Offer headline. Clears stale offer translations.'),
   description: z.string().optional().describe('Offer description. Clears stale offer translations.'),
   config: offerConfig.optional(),
+  stackedOffer: z
+    .object({
+      offerType: z
+        .enum(['DISCOUNT', 'PAUSE', 'PLAN_CHANGE'])
+        .optional()
+        .describe(
+          'Second offer type. Required when the offer has no second offer yet; a different type replaces the second offer with that type and its default config.',
+        ),
+      config: stackedOfferConfig.optional(),
+    })
+    .strict()
+    .nullable()
+    .optional()
+    .describe(
+      "The pair's second offer: add it, change its type or config, or pass null to remove it. It has no header or description of its own.",
+    ),
 })
 
 // edit_survey_structure (G5). One object with an `op` discriminator; per-op fields are validated
@@ -317,6 +367,8 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         '',
         "Offers come with their payment-provider objects resolved, so you can describe an offer without a second lookup. A DISCOUNT offer's `discountConfig.coupon` carries `name`, `percentOff` OR `amountOff` (smallest currency unit, e.g. cents) with its `currency`, plus `duration` (`once`/`forever`/`repeating`) and `durationInMonths`. A PLAN_CHANGE offer's `planChangeConfig.plans` describes one entry per RESOLVABLE id in `options` as `{ id, name, amount, currency, interval, intervalCount, active }`, where `name` is the customer-facing plan name (the workspace's plan nickname, else the provider product name, else the price nickname); match entries by their `id`, not by position.",
         '',
+        'An offer may carry `stackedOffer`, a second offer the customer accepts together with it as one pair (see update_blueprint_offer). Its coupon or plans are resolved the same way.',
+        '',
         'Resolution is best-effort: an id the provider no longer has (a deleted coupon or price) is absent from `coupon` / `plans` while the raw `couponId` / `options` stay. `coupon` and `plans` are READ-ONLY: they are not valid `update_blueprint_offer` config fields, so do not echo them back when you edit an offer (the API answers 422). Treat a missing resolution as "not present at the provider", not as an empty discount. The blueprint itself is shared across live and test mode, but the coupons/plans are read from the provider in this session\'s mode, so a live coupon id can come back unresolved in a test-mode session. An adaptive DISCOUNT offer (`autoOptimize: true`, no `couponId`) carries no `coupon` for a different reason: Churnkey picks the discount per customer at flow time from an org-level pool, so there is nothing in the blueprint to resolve.',
       ].join('\n'),
       inputSchema: blueprintIdInput,
@@ -381,6 +433,12 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
         "Change offerType and/or its config: DISCOUNT (couponId, or customAmount in cents + customDuration, or autoOptimize), PAUSE (maxPauseLength + pauseInterval, datePicker), TRIAL_EXTENSION (trialExtensionDays), REDIRECT (redirectUrl, redirectLabel), PLAN_CHANGE (options), REBATE (fixedAmounts or percentAmount, mbgWindowDays, invoiceScope), CONTACT (no config). You may also set header/description. Config is validated against the offer's offerType; switching type seeds default config, and the resolved `coupon` / `plans` objects get_blueprint returns are read-only, so send `couponId` / `options` rather than echoing them back.",
         '',
         'Config changes do not affect translations; header/description changes clear stale offer translations (refreshed on publish).',
+        '',
+        "Pairs: an offer can carry a second offer in `stackedOffer`, and the customer accepts both as one offer. Allowed pairs (first, then second): PLAN_CHANGE then DISCOUNT; REBATE then DISCOUNT, PAUSE or PLAN_CHANGE; PAUSE then DISCOUNT or PLAN_CHANGE; TRIAL_EXTENSION then DISCOUNT. Each offer also needs its own provider support, and on Chargebee a PAUSE cannot be followed by a PLAN_CHANGE, while on Paddle and Maxio a PAUSE takes no second offer; the API answers 422 with the types allowed for this org. After a PAUSE or TRIAL_EXTENSION the second offer starts when the pause or extended trial ends; PLAN_CHANGE and REBATE pairs apply both at once. The offer's header/description cover both offers.",
+        '',
+        "To add a second offer, pass `stackedOffer.offerType` with its config in the same call (a DISCOUNT needs `config.couponId`, a PLAN_CHANGE at least one plan in `config.options`; publish_blueprint refuses a pair without them). Pass `stackedOffer.config` alone to edit it and `stackedOffer: null` to remove it. Changing this offer's own offerType keeps the second offer only while the new pair is allowed. The response carries `stackedOffer` ({ offerGuid, offerType } or null).",
+        '',
+        'Some clients skip a pair: the step is not shown, and a survey choice or follow-up option goes on without an offer. These are @churnkey/react versions before 0.9.0, React SDK setups whose own offer components or handlers cannot show or apply both offers (see the SDK README), and the hosted cancel flow for REBATE pairs.',
         '',
         WRITE_NOTE,
       ].join('\n'),
