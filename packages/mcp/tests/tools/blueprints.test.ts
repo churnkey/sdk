@@ -297,6 +297,39 @@ describe('blueprintTools', () => {
     ).toThrow()
   })
 
+  it('routes the second offer of a pair and validates its shape', async () => {
+    const { tool, post } = findTool('update_blueprint_offer')
+    const add = {
+      blueprintId: 'bp_123',
+      stepGuid: 'step_1',
+      stackedOffer: { offerType: 'DISCOUNT' as const, config: { couponId: 'SAVE20' } },
+    }
+
+    await tool.handler(tool.inputSchema.parse(add))
+    expect(post).toHaveBeenCalledWith('/data/blueprints/bp_123/offer', {
+      body: { stepGuid: 'step_1', stackedOffer: { offerType: 'DISCOUNT', config: { couponId: 'SAVE20' } } },
+    })
+
+    await tool.handler(tool.inputSchema.parse({ blueprintId: 'bp_123', stepGuid: 'step_1', stackedOffer: null }))
+    expect(post).toHaveBeenLastCalledWith('/data/blueprints/bp_123/offer', {
+      body: { stepGuid: 'step_1', stackedOffer: null },
+    })
+
+    expect(() => tool.inputSchema.parse({ ...add, stackedOffer: { offerType: 'REBATE' } })).toThrow()
+    expect(() => tool.inputSchema.parse({ ...add, stackedOffer: { offerType: 'DISCOUNT', header: 'Hi' } })).toThrow()
+    expect(() =>
+      tool.inputSchema.parse({ ...add, stackedOffer: { offerType: 'DISCOUNT', config: { autoOptimize: true } } }),
+    ).toThrow()
+  })
+
+  it('tells the agent which pairs exist and how to finish one', () => {
+    const offer = findTool('update_blueprint_offer').tool.description
+    expect(offer).toContain('PAUSE then DISCOUNT or PLAN_CHANGE')
+    expect(offer).toContain('`stackedOffer: null`')
+    expect(offer).toContain('publish_blueprint refuses a pair')
+    expect(findTool('get_blueprint').tool.description).toContain('`stackedOffer`')
+  })
+
   it('routes edit_survey_structure with the op body', async () => {
     const { tool, post } = findTool('edit_survey_structure')
 
