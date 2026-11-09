@@ -2,6 +2,15 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## Unreleased
+
+### Added
+
+- `ck.track({ event, customerId?, uid?, userUid?, properties?, timestamp? })` sends a product usage event to `POST /v1/api/events/new`. Rejects with `ChurnkeyApiError` (`status`, `body`) on a non-2xx response.
+- `ck.trackBatch(events)` posts to the bulk endpoint in requests of up to 100. Bulk events have to be enabled for the account.
+- `apiBase` on the constructor, for pointing at a non-production API. Defaults to `https://api.churnkey.co`.
+- `engines.node >= 18`, since `track` uses the global `fetch`.
+
 ## 0.2.0 — 2026-06-10
 
 ### Added

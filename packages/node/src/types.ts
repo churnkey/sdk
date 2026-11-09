@@ -1,6 +1,8 @@
 export interface ChurnkeyConfig {
   appId: string
   apiKey: string
+  /** Base URL of the Churnkey API. Defaults to `https://api.churnkey.co`. */
+  apiBase?: string
 }
 
 export type Mode = 'live' | 'test' | 'sandbox'
@@ -29,4 +31,22 @@ export interface TokenPayload {
   m: Mode
   /** Issued at (epoch ms) */
   t: number
+}
+
+/** Flat key/value attributes attached to a tracked event. */
+export type TrackProperties = Record<string, string | number | boolean | Date>
+
+export interface TrackParams {
+  /** Event name in Title Case "Object Action" form, e.g. `'Job Scheduled'`. */
+  event: string
+  /** The customer ID from your billing provider (e.g. Stripe `cus_...`). Required unless `uid` is set. */
+  customerId?: string
+  /** The customer's ID in your own system. Required unless `customerId` is set. */
+  uid?: string
+  /** The person acting inside the account, for B2B products with several users per customer. */
+  userUid?: string
+  /** Flat attributes of the event. Up to 256 keys and 10 KB. */
+  properties?: TrackProperties
+  /** When the event happened. Defaults to the time the server receives it. Use for backfills. */
+  timestamp?: Date
 }

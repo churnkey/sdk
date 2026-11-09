@@ -1,6 +1,6 @@
 # @churnkey/node
 
-Server-side helper for Churnkey auth. Generate session tokens for `@churnkey/react`, or HMAC hashes for the hosted embed — same credentials, different wire shapes.
+Server-side helper for Churnkey. Generate session tokens for `@churnkey/react` or HMAC hashes for the hosted embed, and send product usage events from your backend.
 
 You only need this package when you want Churnkey to handle billing operations or when you're using the hosted embed. For analytics-only integration with `@churnkey/react`, a token isn't required.
 
@@ -61,6 +61,34 @@ const token = ck.createToken({
 
 If your org is connected to a [Stripe Sandbox](https://docs.stripe.com/sandboxes) rather than classic test mode, pass `mode: 'sandbox'` instead. Sandboxes live under a separate Stripe account ID with their own credentials, and Churnkey routes billing actions accordingly.
 
+## Track events
+
+Send product usage events from your backend so Churnkey can tell active customers from quiet ones and measure activation and retention for each paying account.
+
+```typescript
+await ck.track({
+  event: 'Job Scheduled',
+  customerId: 'cus_123',
+  properties: { plan: 'pro', jobs: 4 },
+})
+```
+
+Name events in Title Case as object plus action: `'Job Scheduled'`, `'Report Exported'`. Identify the customer by `customerId` (your billing provider's ID), `uid` (the customer's ID in your own system), or both. For B2B products, pass `userUid` for the person acting inside the account.
+
+`track` resolves once the API has accepted the event and rejects with a `ChurnkeyApiError` (with `status` and `body`) on any non-2xx response. API-key traffic is rate limited per app ID; a 429 means slow down and retry.
+
+Pass `timestamp` to record when an event happened rather than when it arrived. For backfills, `trackBatch` sends up to 100 events per request and splits larger arrays for you. The bulk endpoint is enabled per account; contact support to turn it on.
+
+```typescript
+await ck.trackBatch(
+  rows.map((row) => ({
+    event: 'Job Completed',
+    customerId: row.stripeCustomerId,
+    timestamp: row.completedAt,
+  })),
+)
+```
+
 ## Using the hosted embed instead
 
 If you're using the hosted widget (script tag `churnkey.init({...})`) alongside or instead of the React SDK, it expects a raw HMAC hash rather than a session token. Same credentials, different wrapper:
@@ -76,12 +104,13 @@ You can use one `Churnkey` instance for both — no need to duplicate HMAC plumb
 
 ## Reference
 
-### `new Churnkey({ appId, apiKey })`
+### `new Churnkey({ appId, apiKey, apiBase? })`
 
 | Parameter | Description |
 |-----------|-------------|
 | `appId` | Your Churnkey app ID |
 | `apiKey` | Your Churnkey API key. Keep this on the server. |
+| `apiBase` | Optional. Base URL of the Churnkey API. Defaults to `https://api.churnkey.co`. |
 
 ### `ck.createToken({ customerId, subscriptionId?, mode? })`
 
@@ -100,6 +129,23 @@ Returns a `ck_`-prefixed token string.
 | `customerId` | The customer ID you'll pass to the hosted embed. |
 
 Returns the hex HMAC-SHA256 string expected by `churnkey.init({ authHash, ... })`. Use this when you're integrating the hosted embed widget directly instead of (or alongside) the React SDK.
+
+### `ck.track({ event, customerId?, uid?, userUid?, properties?, timestamp? })`
+
+| Parameter | Description |
+|-----------|-------------|
+| `event` | Event name in Title Case, e.g. `'Job Scheduled'` |
+| `customerId` | The customer ID from your billing provider. Required unless `uid` is set. |
+| `uid` | The customer's ID in your own system. Required unless `customerId` is set. |
+| `userUid` | Optional. The person acting inside the account, for B2B products. |
+| `properties` | Optional. Flat object of string, number, boolean or Date values. Up to 256 keys and 10 KB. |
+| `timestamp` | Optional `Date`. When the event happened. Defaults to the time the server receives it. |
+
+Returns a promise that resolves when the API accepts the event. Rejects with `ChurnkeyApiError` on a non-2xx response.
+
+### `ck.trackBatch(events)`
+
+Takes an array of the same parameters as `track` and posts them to the bulk endpoint in requests of up to 100. Every item is validated before the first request is sent. Requires bulk events to be enabled for your account.
 
 ## License
 
