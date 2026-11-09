@@ -322,6 +322,27 @@ describe('composer at-mentions', () => {
     await client.close()
   })
 
+  it('keeps working when a segment has no name, which the Segment model allows', async () => {
+    fetchMock.mockImplementation(async (input: URL | string) => {
+      const url = new URL(String(input))
+      if (url.pathname === '/v1/data/segments')
+        return Response.json([
+          { id: 'seg_unnamed', name: null, enabled: true, priority: 0 },
+          { id: 'seg_annual', name: 'Annual plans', enabled: true, priority: 1 },
+        ])
+      return fakeApi(input)
+    })
+    const client = await connect()
+    const all = await client.callTool({ name: MENTIONS_TOOL, arguments: { query: '' } })
+    expect(all.isError).toBeFalsy()
+    const items = (all.structuredContent as { items: Array<Record<string, string>> }).items
+    expect(items[0]).toMatchObject({ uri: 'churnkey://segments/seg_unnamed', name: 'Untitled segment flow' })
+    const filtered = await client.callTool({ name: MENTIONS_TOOL, arguments: { query: 'annual' } })
+    const uris = (filtered.structuredContent as { items: Array<Record<string, string>> }).items.map((i) => i.uri)
+    expect(uris).toContain('churnkey://segments/seg_annual')
+    await client.close()
+  })
+
   it('resolves a mentioned churnkey:// link to the entity', async () => {
     const client = await connect()
     const { contents } = await client.readResource({ uri: 'churnkey://segments/seg_annual' })
