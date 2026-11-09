@@ -6,6 +6,9 @@ import type { ToolDefinition } from './types'
 const BOUNDARY =
   "IMPORTANT: the actual DNS records live at the CUSTOMER's DNS provider — Churnkey only registers the domain on its edge. After adding a domain, relay the requiredRecords to the user (or their DNS assistant) verbatim, then poll check_domain_status to confirm propagation."
 
+export const ADD_CUSTOM_DOMAIN_UNAVAILABLE =
+  'add_custom_domain is temporarily unavailable. Add the custom domain from the Churnkey dashboard instead, or use set_hosted_subdomain for a churnkey.co subdomain (live immediately, no DNS needed).'
+
 export function dnsTools(client: ChurnkeyClient): ToolDefinition[] {
   return [
     {
@@ -47,9 +50,7 @@ export function dnsTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'add_custom_domain',
       title: 'Register a custom domain',
       description: [
-        'Register a custom domain (e.g. billing.example.com) for Churnkey-hosted pages. Idempotent — re-adding an existing domain returns its current state instead of failing.',
-        '',
-        `The response includes \`requiredRecords\` (the CNAME the customer must add) and a \`nextStep\`. ${BOUNDARY}`,
+        'TEMPORARILY UNAVAILABLE: custom domains cannot be registered through the Data API right now. Calling this tool returns an error. Tell the user to add the custom domain from the Churnkey dashboard, or use set_hosted_subdomain (works immediately, no DNS needed) instead.',
         '',
         'Requires confirm: "add_custom_domain".',
       ].join('\n'),
@@ -58,7 +59,11 @@ export function dnsTools(client: ChurnkeyClient): ToolDefinition[] {
         domain: z.string().describe('Full hostname like "billing.example.com" — lowercase, no protocol, no path.'),
       }),
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
-      handler: async (args) => client.post('/data/dns/domains', { body: args }),
+      // Disabled while POST /v1/data/dns/domains is switched off server-side.
+      // Restore: handler: async (args) => client.post('/data/dns/domains', { body: args }),
+      handler: async () => {
+        throw new Error(ADD_CUSTOM_DOMAIN_UNAVAILABLE)
+      },
     },
     {
       name: 'check_domain_status',

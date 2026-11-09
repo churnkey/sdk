@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ChurnkeyClient } from '../../src/client'
-import { dnsTools } from '../../src/tools/dns'
+import { ADD_CUSTOM_DOMAIN_UNAVAILABLE, dnsTools } from '../../src/tools/dns'
 
 function makeClient() {
   return {
@@ -34,5 +34,17 @@ describe('dns tools', () => {
     expect(client.post).toHaveBeenCalledWith('/data/dns/domains/42/remove', {
       body: { confirm: 'remove_custom_domain' },
     })
+  })
+
+  it('reports add_custom_domain as temporarily unavailable without calling the API', async () => {
+    const client = makeClient()
+    const byName = Object.fromEntries(dnsTools(client).map((t) => [t.name, t]))
+
+    await expect(
+      byName.add_custom_domain.handler(
+        byName.add_custom_domain.inputSchema.parse({ confirm: 'add_custom_domain', domain: 'billing.example.com' }),
+      ),
+    ).rejects.toThrow(ADD_CUSTOM_DOMAIN_UNAVAILABLE)
+    expect(client.post).not.toHaveBeenCalled()
   })
 })
