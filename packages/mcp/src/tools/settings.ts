@@ -70,7 +70,7 @@ export function settingsTools(client: ChurnkeyClient): ToolDefinition[] {
         'Each setting comes with its current value, default, an explanation of what it does, and a recommendation — read and relay these to the user BEFORE proposing changes. Great for a read-only audit ("show me my settings and flag anything unusual").',
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async () => client.get('/data/stripe-settings'),
     },
     {
@@ -89,7 +89,7 @@ export function settingsTools(client: ChurnkeyClient): ToolDefinition[] {
           ),
         updates: stripeSettingsUpdates,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => client.post('/data/stripe-settings', { body: args }),
     },
     {
@@ -101,7 +101,7 @@ export function settingsTools(client: ChurnkeyClient): ToolDefinition[] {
         'Per-session explainability: sessions record autoOptimizationKey (which optimizer bucket served the offer) — read it via list_sessions.',
       ].join('\n'),
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async () => client.get('/data/adaptive-offers'),
     },
     {
@@ -135,7 +135,7 @@ export function settingsTools(client: ChurnkeyClient): ToolDefinition[] {
           .describe('Discount percentage bounds (5–95, step 5).'),
         monthsDurationRange: range(1, 12, 'months').optional().describe('Discount duration bounds in months (1–12).'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => client.post('/data/adaptive-offers', { body: args }),
     },
   ]

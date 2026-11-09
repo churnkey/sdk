@@ -13,7 +13,7 @@ export function abTestTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         "All cancel-flow A/B tests with lifecycle state (draft / enrolling / tracking / awaiting_decision / paused / completed / abandoned), hypothesis, primary metric, the two arm segment ids, winner + rationale, and cached final metrics for completed tests. Tests are two-arm with an implicit 50/50 split — traffic-split configuration and multivariate tests aren't supported.",
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async () => client.get('/data/ab-tests'),
     },
     {
@@ -57,7 +57,7 @@ export function abTestTools(client: ChurnkeyClient): ToolDefinition[] {
         expectedSessions: z.number().int().min(1).optional().describe('Expected sessions, for sample-size planning.'),
         targetConfidence: z.number().min(0.5).max(0.999).optional().describe('Required confidence (default 0.95).'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       handler: async (args) => client.post('/data/ab-tests', { body: args }),
     },
     {
@@ -69,7 +69,7 @@ export function abTestTools(client: ChurnkeyClient): ToolDefinition[] {
         confirm: confirmLiteral('start_ab_test'),
         abTestId,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const { abTestId: id, ...body } = args as { abTestId: string; confirm: string }
         return client.post(`/data/ab-tests/${encodeURIComponent(id)}/start`, { body })
@@ -84,7 +84,7 @@ export function abTestTools(client: ChurnkeyClient): ToolDefinition[] {
         confirm: confirmLiteral('pause_ab_test'),
         abTestId,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const { abTestId: id, ...body } = args as { abTestId: string; confirm: string }
         return client.post(`/data/ab-tests/${encodeURIComponent(id)}/pause`, { body })
@@ -99,7 +99,7 @@ export function abTestTools(client: ChurnkeyClient): ToolDefinition[] {
         confirm: confirmLiteral('complete_ab_test'),
         abTestId,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const { abTestId: id, ...body } = args as { abTestId: string; confirm: string }
         return client.post(`/data/ab-tests/${encodeURIComponent(id)}/complete`, { body })
@@ -111,7 +111,7 @@ export function abTestTools(client: ChurnkeyClient): ToolDefinition[] {
       description:
         'Per-arm performance (sessions, saves, save rate, revenue per exposure, offer breakdown) with statistical significance (confidence, p-value) for the primary metric. Significance needs >= 30 sessions per arm — below that confidence reads 0. ALWAYS read this before pick_ab_test_winner and quote the confidence + sample sizes to the user. Warehouse-backed (~3h lag).',
       inputSchema: z.object({ abTestId }),
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       handler: async (args) =>
         client.get(`/data/ab-tests/${encodeURIComponent((args as { abTestId: string }).abTestId)}/metrics`),
     },
@@ -135,7 +135,7 @@ export function abTestTools(client: ChurnkeyClient): ToolDefinition[] {
             'Required when deciding before the enrollment window has elapsed. Only after explicit user agreement.',
           ),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
       handler: async (args) => {
         const { abTestId: id, ...body } = args as { abTestId: string } & Record<string, unknown>
         return client.post(`/data/ab-tests/${encodeURIComponent(id)}/winner`, { body })

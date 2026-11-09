@@ -253,7 +253,7 @@ export function registerDashboard(server: McpServer, client: ChurnkeyClient): vo
         'Data source: the Churnkey analytics warehouse (~3-hour refresh). Boosted revenue covers live mode only.',
       ].join('\n'),
       inputSchema: dashboardInput.shape,
-      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       _meta: {
         ui: { resourceUri: DASHBOARD_URI },
         // Legacy flat key still read by older MCP Apps hosts.
