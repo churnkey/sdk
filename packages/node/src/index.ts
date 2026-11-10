@@ -16,7 +16,12 @@ export class ChurnkeyApiError extends Error {
   readonly status: number
   /** Response body, trimmed. Empty when the server sent none. */
   readonly body: string
-  /** From `trackBatch`: how many events the API had accepted before this request failed. */
+  /**
+   * How many events the API is known to have stored: every event in a request that succeeded
+   * before this one, plus the events of a `verified: false` request, which the API stores
+   * anyway. The failed request may also have stored its events (a 5xx can come after the
+   * write), so this is a floor, and a retry from here can send some events twice.
+   */
   readonly sent: number
 
   constructor(status: number, body: string, options: { message?: string; sent?: number } = {}) {
@@ -54,6 +59,7 @@ export class Churnkey {
   private appId: string
   private apiKey: string
   private apiBase: string
+  private mode: Mode
 
   constructor(config: ChurnkeyConfig) {
     if (!config.appId) throw new Error('appId is required')
@@ -61,6 +67,7 @@ export class Churnkey {
     this.appId = config.appId
     this.apiKey = config.apiKey
     this.apiBase = (config.apiBase ?? DEFAULT_API_BASE).replace(/\/+$/, '')
+    this.mode = config.mode ?? 'live'
   }
 
   /**
@@ -81,7 +88,7 @@ export class Churnkey {
       a: this.appId,
       c: params.customerId,
       h: this.authHash(params.customerId),
-      m: params.mode ?? 'live',
+      m: params.mode ?? this.mode,
       t: Date.now(),
     }
 
@@ -96,7 +103,7 @@ export class Churnkey {
 
   /** Record a product usage event for a customer. Resolves once the API has accepted it. */
   async track(params: TrackParams): Promise<void> {
-    await this.post('/v1/api/events/new', toEventBody(params))
+    await this.post('/v1/api/events/new', toEventBody(params), 0, 1)
   }
 
   /**
@@ -108,21 +115,25 @@ export class Churnkey {
   async trackBatch(events: TrackParams[]): Promise<void> {
     const bodies = events.map(toEventBody)
     for (let i = 0; i < bodies.length; i += BULK_LIMIT) {
-      await this.post('/v1/api/events/bulk', bodies.slice(i, i + BULK_LIMIT), i)
+      const chunk = bodies.slice(i, i + BULK_LIMIT)
+      await this.post('/v1/api/events/bulk', chunk, i, chunk.length)
     }
   }
 
-  private async post(path: string, body: unknown, sent = 0): Promise<void> {
+  /** `sent` is how many events earlier requests stored; `count` is how many this one carries. */
+  private async post(path: string, body: unknown, sent: number, count: number): Promise<void> {
     const res = await fetch(`${this.apiBase}${path}`, {
       method: 'POST',
       headers: {
         'x-ck-api-key': this.apiKey,
         'x-ck-app': this.appId,
+        'x-ck-mode': this.mode,
         'content-type': 'application/json',
       },
       body: JSON.stringify(body),
     })
-    const text = (await res.text()).trim()
+    // A 2xx has already stored the event, so a broken body stream must not turn it into a failure.
+    const text = (await res.text().catch(() => '')).trim()
     if (!res.ok) {
       throw new ChurnkeyApiError(res.status, text, { sent })
     }
@@ -130,9 +141,9 @@ export class Churnkey {
     // bad key would otherwise look like it works (and run on the unauthenticated rate limit).
     if (verifiedField(text) === false) {
       throw new ChurnkeyApiError(res.status, text, {
-        sent,
+        sent: sent + count,
         message:
-          'Churnkey did not verify the request: check that appId and apiKey are correct and belong to the same mode',
+          'Churnkey stored the events but did not verify the request: check that appId and apiKey are correct and that mode matches the key',
       })
     }
   }

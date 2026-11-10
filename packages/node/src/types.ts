@@ -3,6 +3,11 @@ export interface ChurnkeyConfig {
   apiKey: string
   /** Base URL of the Churnkey API. Defaults to `https://api.churnkey.co`. */
   apiBase?: string
+  /**
+   * The mode the API key belongs to. Defaults to `'live'`. Pass `'test'` for a test-mode key,
+   * or `'sandbox'` for a Stripe Sandbox key. Also the default `mode` for `createToken`.
+   */
+  mode?: Mode
 }
 
 export type Mode = 'live' | 'test' | 'sandbox'
@@ -11,7 +16,7 @@ export interface CreateTokenParams {
   customerId: string
   subscriptionId?: string
   /**
-   * Defaults to 'live'. Use 'test' to segregate staging sessions in analytics,
+   * Defaults to the client's `mode`. Use 'test' to segregate staging sessions in analytics,
    * or 'sandbox' when the org is connected to a Stripe Sandbox (sandboxes have
    * their own account ID and credentials, unlike classic test mode).
    */

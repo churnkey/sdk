@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Churnkey, ChurnkeyApiError } from '../src/index'
 
-function client(apiBase?: string) {
-  return new Churnkey({ appId: 'app_123', apiKey: 'sk_test', apiBase })
+function client(apiBase?: string, mode?: 'live' | 'test' | 'sandbox') {
+  return new Churnkey({ appId: 'app_123', apiKey: 'sk_test', apiBase, mode })
 }
 
 function fetchOnce(status: number, body = '') {
@@ -31,9 +31,16 @@ describe('track', () => {
     expect(init!.headers).toEqual({
       'x-ck-api-key': 'sk_test',
       'x-ck-app': 'app_123',
+      'x-ck-mode': 'live',
       'content-type': 'application/json',
     })
     expect(sentBody(spy)).toEqual({ event: 'Job Scheduled', customerId: 'cus_1' })
+  })
+
+  it('sends the configured mode so a test-mode key verifies', async () => {
+    const spy = fetchOnce(200)
+    await client(undefined, 'test').track({ event: 'Signed In', uid: 'acct_9' })
+    expect((spy.mock.calls[0][1]!.headers as Record<string, string>)['x-ck-mode']).toBe('test')
   })
 
   it('maps properties, userUid and timestamp onto the wire shape', async () => {
@@ -108,8 +115,25 @@ describe('track', () => {
       .catch((e) => e)
     expect(err).toBeInstanceOf(ChurnkeyApiError)
     expect(err.status).toBe(200)
-    expect(err.message).toContain('did not verify')
+    expect(err.message).toContain('stored the events but did not verify')
     expect(err.message).toContain('apiKey')
+    expect(err.sent).toBe(1)
+  })
+
+  it('treats a 2xx whose body cannot be read as accepted', async () => {
+    const res = new Response('{"verified":true}', { status: 200 })
+    vi.spyOn(res, 'text').mockRejectedValue(new TypeError('terminated'))
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(res)
+    await client().track({ event: 'Signed In', uid: 'acct_9' })
+  })
+
+  it('passes a network error through with no ChurnkeyApiError', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('fetch failed'))
+    const err = await client()
+      .track({ event: 'Signed In', uid: 'acct_9' })
+      .catch((e) => e)
+    expect(err).toBeInstanceOf(TypeError)
+    expect(err).not.toBeInstanceOf(ChurnkeyApiError)
   })
 
   it('accepts a 200 with verified: true and one with no JSON body', async () => {
@@ -187,8 +211,27 @@ describe('trackBatch', () => {
     expect(err.sent).toBe(200)
   })
 
-  it('rejects a bulk answer with verified: false', async () => {
-    fetchOnce(200, '{"status":"success","event_count":1,"verified":false}')
-    await expect(client().trackBatch([{ event: 'Job Scheduled', uid: 'acct_1' }])).rejects.toThrow('did not verify')
+  it('counts an unverified chunk as stored, since the API keeps it', async () => {
+    fetchOnce(200, '{"status":"success","event_count":3,"verified":false}')
+    const err = await client()
+      .trackBatch([
+        { event: 'Job Scheduled', uid: 'acct_1' },
+        { event: 'Job Scheduled', uid: 'acct_2' },
+        { event: 'Job Scheduled', uid: 'acct_3' },
+      ])
+      .catch((e) => e)
+    expect(err).toBeInstanceOf(ChurnkeyApiError)
+    expect(err.message).toContain('did not verify')
+    expect(err.sent).toBe(3)
+  })
+})
+
+describe('createToken', () => {
+  const decode = (token: string) => JSON.parse(Buffer.from(token.slice(3), 'base64url').toString())
+
+  it('defaults the token mode to the client mode, and to live without one', () => {
+    expect(decode(client().createToken({ customerId: 'cus_1' })).m).toBe('live')
+    expect(decode(client(undefined, 'test').createToken({ customerId: 'cus_1' })).m).toBe('test')
+    expect(decode(client(undefined, 'test').createToken({ customerId: 'cus_1', mode: 'sandbox' })).m).toBe('sandbox')
   })
 })
