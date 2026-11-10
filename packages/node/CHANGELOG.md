@@ -6,7 +6,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect 
 
 ### Added
 
-- `ck.track({ event, customerId?, uid?, userUid?, properties?, timestamp? })` sends a product usage event to `POST /v1/api/events/new`. Rejects with `ChurnkeyApiError` (`status`, `body`, `sent`) on a non-2xx response or a `verified: false` answer (the API stored the event but did not accept the key).
+- `ck.track({ event, customerId?, uid?, userUid?, properties?, timestamp? })` sends a product usage event to `POST /v1/api/events/new`. Rejects with `ChurnkeyApiError` (`status`, `body`, `sent`) on a non-2xx response, a `verified: false` answer (the API stored the event but did not accept the key), or a network failure (`status` 0, the original error on `cause`).
 - `ck.trackBatch(events)` posts to the bulk endpoint in requests of up to 100. Bulk events have to be enabled for the account. A failed request rejects with the number of events known to be stored on `error.sent`, a floor: the failing request may have stored its events too.
 - `apiBase` on the constructor, for pointing at a non-production API. Defaults to `https://api.churnkey.co`.
 - `mode` on the constructor, the mode the API key belongs to. `track` sends it as `x-ck-mode`, so a test-mode key verifies. It is also the default `mode` for `createToken`, which still defaults to `'live'` when neither is set.

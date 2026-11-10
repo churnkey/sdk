@@ -148,7 +148,7 @@ Returns a promise that resolves when the API accepts the event. Rejects with `Ch
 
 ### `ck.trackBatch(events)`
 
-Takes an array of the same parameters as `track` and posts them to the bulk endpoint in requests of up to 100. Every item is checked for `event` and `customerId` or `uid` before the first request is sent; the API's own limits (properties, name length) are checked per request. Requires bulk events to be enabled for your account.
+Takes an array of the same parameters as `track` and posts them to the bulk endpoint in requests of up to 100. Every item is checked for `event` and `customerId` or `uid` before the first request is sent; the API's own limits (256 property keys, 10,000 characters of JSON) are checked per request. Requires bulk events to be enabled for your account.
 
 ### `ChurnkeyApiError`
 

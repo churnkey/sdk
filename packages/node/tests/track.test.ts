@@ -128,7 +128,7 @@ describe('track', () => {
   })
 
   it('wraps a network error so it carries status 0 and the cause', async () => {
-    const cause = new TypeError('fetch failed')
+    const cause = new TypeError('fetch failed', { cause: { code: 'ECONNREFUSED' } })
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(cause)
     const err = await client()
       .track({ event: 'Signed In', uid: 'acct_9' })
@@ -137,7 +137,16 @@ describe('track', () => {
     expect(err.status).toBe(0)
     expect(err.sent).toBe(0)
     expect(err.cause).toBe(cause)
-    expect(err.message).toBe('Churnkey request failed: fetch failed')
+    expect(err.message).toBe('Churnkey request failed: fetch failed (ECONNREFUSED)')
+  })
+
+  it('does not attach an empty cause to an API error', async () => {
+    const res = new Response('nope', { status: 500 })
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(res)
+    const err = await client()
+      .track({ event: 'Signed In', uid: 'acct_9' })
+      .catch((e) => e)
+    expect(Object.hasOwn(err, 'cause')).toBe(false)
   })
 
   it('rejects an invalid timestamp before sending', async () => {

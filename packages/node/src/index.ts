@@ -27,9 +27,10 @@ export class ChurnkeyApiError extends Error {
   readonly sent: number
 
   constructor(status: number, body: string, options: { message?: string; sent?: number; cause?: unknown } = {}) {
-    super(options.message ?? `Churnkey API responded with ${status}${body ? `: ${body}` : ''}`, {
-      cause: options.cause,
-    })
+    super(
+      options.message ?? `Churnkey API responded with ${status}${body ? `: ${body}` : ''}`,
+      options.cause === undefined ? undefined : { cause: options.cause },
+    )
     this.name = 'ChurnkeyApiError'
     this.status = status
     this.body = body
@@ -143,8 +144,7 @@ export class Churnkey {
       })
     } catch (cause) {
       // No answer at all. The error still carries `sent`, so a batch can resume from there.
-      const reason = cause instanceof Error ? cause.message : String(cause)
-      throw new ChurnkeyApiError(0, '', { sent, cause, message: `Churnkey request failed: ${reason}` })
+      throw new ChurnkeyApiError(0, '', { sent, cause, message: `Churnkey request failed: ${failureReason(cause)}` })
     }
     // A 2xx has already stored the event, so a broken body stream must not turn it into a failure.
     const text = (await res.text().catch(() => '')).trim()
@@ -166,6 +166,17 @@ export class Churnkey {
       })
     }
   }
+}
+
+/**
+ * Node's fetch rejects with a bare "fetch failed" and keeps the real reason (ECONNREFUSED,
+ * ENOTFOUND, a timeout) one level down on `cause`, so surface that code when it is there.
+ */
+function failureReason(cause: unknown): string {
+  if (!(cause instanceof Error)) return String(cause)
+  const inner = cause.cause
+  const code = inner && typeof inner === 'object' && 'code' in inner ? (inner as { code?: unknown }).code : undefined
+  return typeof code === 'string' ? `${cause.message} (${code})` : cause.message
 }
 
 function verifiedField(text: string): unknown {
