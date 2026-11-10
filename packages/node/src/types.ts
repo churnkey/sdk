@@ -50,7 +50,7 @@ export interface TrackParams {
   uid?: string
   /** The person acting inside the account, for B2B products with several users per customer. */
   userUid?: string
-  /** Flat attributes of the event. Up to 256 keys and 10 KB. */
+  /** Flat attributes of the event. Up to 256 keys and 10,000 characters of JSON. A Date is sent as an ISO string. */
   properties?: TrackProperties
   /** When the event happened. Defaults to the time the server receives it. Use for backfills. */
   timestamp?: Date

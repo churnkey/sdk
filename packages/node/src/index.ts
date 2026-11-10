@@ -10,9 +10,11 @@ const BULK_LIMIT = 100
 
 /**
  * Thrown when the Churnkey API answers with a non-2xx status, or with `verified: false`, which
- * is how it reports an API key it does not accept (wrong key, revoked, or for another mode).
+ * is how it reports an API key it does not accept (wrong key, revoked, or for another mode), or
+ * when the request never got an answer (`status` 0, the network error as `cause`).
  */
 export class ChurnkeyApiError extends Error {
+  /** HTTP status; 0 when the request failed before a response arrived. */
   readonly status: number
   /** Response body, trimmed. Empty when the server sent none. */
   readonly body: string
@@ -24,8 +26,10 @@ export class ChurnkeyApiError extends Error {
    */
   readonly sent: number
 
-  constructor(status: number, body: string, options: { message?: string; sent?: number } = {}) {
-    super(options.message ?? `Churnkey API responded with ${status}${body ? `: ${body}` : ''}`)
+  constructor(status: number, body: string, options: { message?: string; sent?: number; cause?: unknown } = {}) {
+    super(options.message ?? `Churnkey API responded with ${status}${body ? `: ${body}` : ''}`, {
+      cause: options.cause,
+    })
     this.name = 'ChurnkeyApiError'
     this.status = status
     this.body = body
@@ -51,7 +55,10 @@ function toEventBody(params: TrackParams): EventBody {
   if (params.uid) body.uid = params.uid
   if (params.userUid) body.user = { uid: params.userUid }
   if (params.properties) body.eventData = params.properties
-  if (params.timestamp) body.eventDate = params.timestamp.toISOString()
+  if (params.timestamp) {
+    if (Number.isNaN(params.timestamp.getTime())) throw new Error('timestamp is invalid')
+    body.eventDate = params.timestamp.toISOString()
+  }
   return body
 }
 
@@ -122,20 +129,32 @@ export class Churnkey {
 
   /** `sent` is how many events earlier requests stored; `count` is how many this one carries. */
   private async post(path: string, body: unknown, sent: number, count: number): Promise<void> {
-    const res = await fetch(`${this.apiBase}${path}`, {
-      method: 'POST',
-      headers: {
-        'x-ck-api-key': this.apiKey,
-        'x-ck-app': this.appId,
-        'x-ck-mode': this.mode,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
+    let res: Response
+    try {
+      res = await fetch(`${this.apiBase}${path}`, {
+        method: 'POST',
+        headers: {
+          'x-ck-api-key': this.apiKey,
+          'x-ck-app': this.appId,
+          'x-ck-mode': this.mode,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      })
+    } catch (cause) {
+      // No answer at all. The error still carries `sent`, so a batch can resume from there.
+      const reason = cause instanceof Error ? cause.message : String(cause)
+      throw new ChurnkeyApiError(0, '', { sent, cause, message: `Churnkey request failed: ${reason}` })
+    }
     // A 2xx has already stored the event, so a broken body stream must not turn it into a failure.
     const text = (await res.text().catch(() => '')).trim()
     if (!res.ok) {
-      throw new ChurnkeyApiError(res.status, text, { sent })
+      const hint =
+        res.status === 404 && path.endsWith('/bulk') ? ' (bulk events may not be enabled for your account)' : ''
+      throw new ChurnkeyApiError(res.status, text, {
+        sent,
+        message: `Churnkey API responded with ${res.status}${text ? `: ${text}` : ''}${hint}`,
+      })
     }
     // The API stores an event it could not verify but answers 200 with verified: false, so a
     // bad key would otherwise look like it works (and run on the unauthenticated rate limit).

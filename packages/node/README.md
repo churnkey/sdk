@@ -73,7 +73,7 @@ await ck.track({
 })
 ```
 
-Name events in Title Case as object plus action: `'Job Scheduled'`, `'Report Exported'`. Identify the customer by `customerId` (your billing provider's ID), `uid` (the customer's ID in your own system), or both. For B2B products, pass `userUid` for the person acting inside the account.
+Name events in Title Case as object plus action: `'Job Scheduled'`, `'Report Exported'`. The API strips HTML from names and ids, so keep `<`, `>` and `&` out of them. Identify the customer by `customerId` (your billing provider's ID), `uid` (the customer's ID in your own system), or both. For B2B products, pass `userUid` for the person acting inside the account.
 
 `track` resolves once the API has accepted the event and rejects with a `ChurnkeyApiError` on a non-2xx response, or when the API answers `verified: false`. That answer means the API stored the event but did not accept the key: wrong key, revoked, or a key for another mode. Construct the client with `mode: 'test'` for a test-mode key.
 
@@ -141,14 +141,14 @@ Returns the hex HMAC-SHA256 string expected by `churnkey.init({ authHash, ... })
 | `customerId` | The customer ID from your billing provider. Required unless `uid` is set. |
 | `uid` | The customer's ID in your own system. Required unless `customerId` is set. |
 | `userUid` | Optional. The person acting inside the account, for B2B products. |
-| `properties` | Optional. Flat object of string, number, boolean or Date values. Up to 256 keys and 10 KB. |
+| `properties` | Optional. Flat object of string, number, boolean or Date values (a Date is sent as an ISO string). Up to 256 keys and 10,000 characters of JSON. |
 | `timestamp` | Optional `Date`. When the event happened. Defaults to the time the server receives it. |
 
-Returns a promise that resolves when the API accepts the event. Rejects with `ChurnkeyApiError` on a non-2xx response or a `verified: false` answer. A network failure rejects with the error `fetch` threw.
+Returns a promise that resolves when the API accepts the event. Rejects with `ChurnkeyApiError` on a non-2xx response, a `verified: false` answer, or a network failure (`status` 0, the underlying error as `cause`).
 
 ### `ck.trackBatch(events)`
 
-Takes an array of the same parameters as `track` and posts them to the bulk endpoint in requests of up to 100. Every item is validated before the first request is sent. Requires bulk events to be enabled for your account.
+Takes an array of the same parameters as `track` and posts them to the bulk endpoint in requests of up to 100. Every item is checked for `event` and `customerId` or `uid` before the first request is sent; the API's own limits (properties, name length) are checked per request. Requires bulk events to be enabled for your account.
 
 ### `ChurnkeyApiError`
 
@@ -156,7 +156,7 @@ Thrown by `track` and `trackBatch`.
 
 | Property | Description |
 |----------|-------------|
-| `status` | The HTTP status. `200` when the API answered `verified: false`. |
+| `status` | The HTTP status. `200` when the API answered `verified: false`; `0` when the request got no answer (the network error is on `cause`). |
 | `body` | The response body, trimmed. Empty when the server sent none. |
 | `sent` | How many events the API is known to have stored: every event in a request that succeeded before this one, plus the events of a `verified: false` request, which the API stores anyway. The failing request may also have stored its events, so treat this as a floor. For `track` it is `0`, or `1` after `verified: false`. |
 

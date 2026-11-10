@@ -127,13 +127,25 @@ describe('track', () => {
     await client().track({ event: 'Signed In', uid: 'acct_9' })
   })
 
-  it('passes a network error through with no ChurnkeyApiError', async () => {
-    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('fetch failed'))
+  it('wraps a network error so it carries status 0 and the cause', async () => {
+    const cause = new TypeError('fetch failed')
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(cause)
     const err = await client()
       .track({ event: 'Signed In', uid: 'acct_9' })
       .catch((e) => e)
-    expect(err).toBeInstanceOf(TypeError)
-    expect(err).not.toBeInstanceOf(ChurnkeyApiError)
+    expect(err).toBeInstanceOf(ChurnkeyApiError)
+    expect(err.status).toBe(0)
+    expect(err.sent).toBe(0)
+    expect(err.cause).toBe(cause)
+    expect(err.message).toBe('Churnkey request failed: fetch failed')
+  })
+
+  it('rejects an invalid timestamp before sending', async () => {
+    const spy = fetchOnce(200)
+    await expect(client().track({ event: 'Signed In', uid: 'acct_9', timestamp: new Date('x') })).rejects.toThrow(
+      'timestamp is invalid',
+    )
+    expect(spy).not.toHaveBeenCalled()
   })
 
   it('accepts a 200 with verified: true and one with no JSON body', async () => {
@@ -186,7 +198,7 @@ describe('trackBatch', () => {
     expect(spy).not.toHaveBeenCalled()
   })
 
-  it('rejects with the status when a chunk fails', async () => {
+  it('rejects with the status when a chunk fails, and says why a bulk 404 usually happens', async () => {
     fetchOnce(404, 'Not found')
     const err = await client()
       .trackBatch([{ event: 'Job Scheduled', uid: 'acct_1' }])
@@ -194,6 +206,39 @@ describe('trackBatch', () => {
     expect(err).toBeInstanceOf(ChurnkeyApiError)
     expect(err.status).toBe(404)
     expect(err.sent).toBe(0)
+    expect(err.message).toBe(
+      'Churnkey API responded with 404: Not found (bulk events may not be enabled for your account)',
+    )
+  })
+
+  it('keeps the stored count when a later chunk never gets an answer', async () => {
+    let calls = 0
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+      calls += 1
+      if (calls === 3) throw new TypeError('fetch failed')
+      return new Response('{"verified":true}', { status: 200 })
+    })
+    const events = Array.from({ length: 250 }, (_, i) => ({ event: 'Job Scheduled', uid: `acct_${i}` }))
+    const err = await client()
+      .trackBatch(events)
+      .catch((e) => e)
+    expect(err).toBeInstanceOf(ChurnkeyApiError)
+    expect(err.status).toBe(0)
+    expect(err.sent).toBe(200)
+  })
+
+  it('counts a verified: false middle chunk as stored on top of the earlier ones', async () => {
+    let calls = 0
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+      calls += 1
+      return new Response(calls === 2 ? '{"verified":false}' : '{"verified":true}', { status: 200 })
+    })
+    const events = Array.from({ length: 250 }, (_, i) => ({ event: 'Job Scheduled', uid: `acct_${i}` }))
+    const err = await client()
+      .trackBatch(events)
+      .catch((e) => e)
+    expect(err).toBeInstanceOf(ChurnkeyApiError)
+    expect(err.sent).toBe(200)
   })
 
   it('says how many events were already accepted when a later chunk fails', async () => {
