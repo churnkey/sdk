@@ -75,9 +75,11 @@ await ck.track({
 
 Name events in Title Case as object plus action: `'Job Scheduled'`, `'Report Exported'`. Identify the customer by `customerId` (your billing provider's ID), `uid` (the customer's ID in your own system), or both. For B2B products, pass `userUid` for the person acting inside the account.
 
-`track` resolves once the API has accepted the event and rejects with a `ChurnkeyApiError` (with `status` and `body`) on any non-2xx response. API-key traffic is rate limited per app ID; a 429 means slow down and retry.
+`track` resolves once the API has accepted the event and rejects with a `ChurnkeyApiError` (with `status` and `body`) on a non-2xx response, or when the API answers `verified: false`, which means it did not accept the API key (wrong key, revoked, or for another mode).
 
-Pass `timestamp` to record when an event happened rather than when it arrived. For backfills, `trackBatch` sends up to 100 events per request and splits larger arrays for you. The bulk endpoint is enabled per account; contact support to turn it on.
+Requests are rate limited. By default the limit is per IP address, 50 requests a minute, so a backend that calls `track` once per user action from one host will see 429s; batch with `trackBatch`, or ask support for a per-account limit (accounts with bulk events enabled get one). `track` does not retry; a 429 means slow down and send again.
+
+Pass `timestamp` to record when an event happened rather than when it arrived. For backfills, `trackBatch` sends up to 100 events per request and splits larger arrays for you. The bulk endpoint is enabled per account; contact support to turn it on. Requests go in order, so if one fails the earlier ones are already stored: the error's `sent` is how many, so a retry can start from there.
 
 ```typescript
 await ck.trackBatch(
@@ -141,11 +143,11 @@ Returns the hex HMAC-SHA256 string expected by `churnkey.init({ authHash, ... })
 | `properties` | Optional. Flat object of string, number, boolean or Date values. Up to 256 keys and 10 KB. |
 | `timestamp` | Optional `Date`. When the event happened. Defaults to the time the server receives it. |
 
-Returns a promise that resolves when the API accepts the event. Rejects with `ChurnkeyApiError` on a non-2xx response.
+Returns a promise that resolves when the API accepts the event. Rejects with `ChurnkeyApiError` on a non-2xx response or a `verified: false` answer.
 
 ### `ck.trackBatch(events)`
 
-Takes an array of the same parameters as `track` and posts them to the bulk endpoint in requests of up to 100. Every item is validated before the first request is sent. Requires bulk events to be enabled for your account.
+Takes an array of the same parameters as `track` and posts them to the bulk endpoint in requests of up to 100. Every item is validated before the first request is sent. Requires bulk events to be enabled for your account. On failure the `ChurnkeyApiError` carries `sent`, the number of events already accepted.
 
 ## License
 

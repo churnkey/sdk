@@ -100,6 +100,24 @@ describe('track', () => {
       'Churnkey API responded with 500',
     )
   })
+
+  it('rejects a 200 that says verified: false, since the API stores the event but did not accept the key', async () => {
+    fetchOnce(200, '{"status":"success","event_id":"abc","verified":false}')
+    const err = await client()
+      .track({ event: 'Signed In', uid: 'acct_9' })
+      .catch((e) => e)
+    expect(err).toBeInstanceOf(ChurnkeyApiError)
+    expect(err.status).toBe(200)
+    expect(err.message).toContain('did not verify')
+    expect(err.message).toContain('apiKey')
+  })
+
+  it('accepts a 200 with verified: true and one with no JSON body', async () => {
+    fetchOnce(200, '{"status":"success","verified":true}')
+    await client().track({ event: 'Signed In', uid: 'acct_9' })
+    fetchOnce(200, 'ok')
+    await client().track({ event: 'Signed In', uid: 'acct_9' })
+  })
 })
 
 describe('trackBatch', () => {
@@ -151,5 +169,26 @@ describe('trackBatch', () => {
       .catch((e) => e)
     expect(err).toBeInstanceOf(ChurnkeyApiError)
     expect(err.status).toBe(404)
+    expect(err.sent).toBe(0)
+  })
+
+  it('says how many events were already accepted when a later chunk fails', async () => {
+    let calls = 0
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+      calls += 1
+      return new Response(calls < 3 ? '{"verified":true}' : 'Too many requests', { status: calls < 3 ? 200 : 429 })
+    })
+    const events = Array.from({ length: 250 }, (_, i) => ({ event: 'Job Scheduled', uid: `acct_${i}` }))
+    const err = await client()
+      .trackBatch(events)
+      .catch((e) => e)
+    expect(err).toBeInstanceOf(ChurnkeyApiError)
+    expect(err.status).toBe(429)
+    expect(err.sent).toBe(200)
+  })
+
+  it('rejects a bulk answer with verified: false', async () => {
+    fetchOnce(200, '{"status":"success","event_count":1,"verified":false}')
+    await expect(client().trackBatch([{ event: 'Job Scheduled', uid: 'acct_1' }])).rejects.toThrow('did not verify')
   })
 })

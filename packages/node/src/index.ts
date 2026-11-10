@@ -8,17 +8,23 @@ export const VERSION = '0.2.0'
 const DEFAULT_API_BASE = 'https://api.churnkey.co'
 const BULK_LIMIT = 100
 
-/** Thrown when the Churnkey API answers a request with a non-2xx status. */
+/**
+ * Thrown when the Churnkey API answers with a non-2xx status, or with `verified: false`, which
+ * is how it reports an API key it does not accept (wrong key, revoked, or for another mode).
+ */
 export class ChurnkeyApiError extends Error {
   readonly status: number
   /** Response body, trimmed. Empty when the server sent none. */
   readonly body: string
+  /** From `trackBatch`: how many events the API had accepted before this request failed. */
+  readonly sent: number
 
-  constructor(status: number, body: string) {
-    super(`Churnkey API responded with ${status}${body ? `: ${body}` : ''}`)
+  constructor(status: number, body: string, options: { message?: string; sent?: number } = {}) {
+    super(options.message ?? `Churnkey API responded with ${status}${body ? `: ${body}` : ''}`)
     this.name = 'ChurnkeyApiError'
     this.status = status
     this.body = body
+    this.sent = options.sent ?? 0
   }
 }
 
@@ -95,16 +101,18 @@ export class Churnkey {
 
   /**
    * Record many events in one call, in requests of up to 100. Meant for
-   * backfills; the bulk endpoint has to be enabled for your account.
+   * backfills; the bulk endpoint has to be enabled for your account. Requests go
+   * in order, so when one fails the earlier ones are already stored: the error's
+   * `sent` says how many, so a retry can skip them.
    */
   async trackBatch(events: TrackParams[]): Promise<void> {
     const bodies = events.map(toEventBody)
     for (let i = 0; i < bodies.length; i += BULK_LIMIT) {
-      await this.post('/v1/api/events/bulk', bodies.slice(i, i + BULK_LIMIT))
+      await this.post('/v1/api/events/bulk', bodies.slice(i, i + BULK_LIMIT), i)
     }
   }
 
-  private async post(path: string, body: unknown): Promise<void> {
+  private async post(path: string, body: unknown, sent = 0): Promise<void> {
     const res = await fetch(`${this.apiBase}${path}`, {
       method: 'POST',
       headers: {
@@ -114,8 +122,27 @@ export class Churnkey {
       },
       body: JSON.stringify(body),
     })
+    const text = (await res.text()).trim()
     if (!res.ok) {
-      throw new ChurnkeyApiError(res.status, (await res.text()).trim())
+      throw new ChurnkeyApiError(res.status, text, { sent })
     }
+    // The API stores an event it could not verify but answers 200 with verified: false, so a
+    // bad key would otherwise look like it works (and run on the unauthenticated rate limit).
+    if (verifiedField(text) === false) {
+      throw new ChurnkeyApiError(res.status, text, {
+        sent,
+        message:
+          'Churnkey did not verify the request: check that appId and apiKey are correct and belong to the same mode',
+      })
+    }
+  }
+}
+
+function verifiedField(text: string): unknown {
+  try {
+    const parsed: unknown = JSON.parse(text)
+    return parsed !== null && typeof parsed === 'object' ? (parsed as { verified?: unknown }).verified : undefined
+  } catch {
+    return undefined
   }
 }
