@@ -3,7 +3,7 @@ import type { ChurnkeyConfig, CreateTokenParams, Mode, TokenPayload, TrackParams
 
 export type { ChurnkeyConfig, CreateTokenParams, Mode, TokenPayload, TrackParams, TrackProperties }
 
-export const VERSION = '0.2.0'
+export const VERSION = '0.3.0'
 
 const DEFAULT_API_BASE = 'https://api.churnkey.co'
 const BULK_LIMIT = 100
