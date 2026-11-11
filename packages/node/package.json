@@ -1,7 +1,7 @@
 {
   "name": "@churnkey/node",
   "version": "0.2.0",
-  "description": "Server-side SDK for Churnkey. Generate session tokens for use with @churnkey/react.",
+  "description": "Server-side Churnkey client: session tokens for @churnkey/react and product events via track().",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -29,11 +29,17 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
