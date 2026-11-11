@@ -4,8 +4,18 @@ import type { ToolDefinition } from './types'
 
 const stripeSettingsUpdates = z
   .object({
-    planChangeProrate: z.boolean().optional().describe('Apply proration on plan changes.'),
-    planChangeImmediate: z.boolean().optional().describe('Apply plan changes immediately vs end of cycle.'),
+    planChangeProrate: z
+      .boolean()
+      .optional()
+      .describe(
+        'Apply proration on plan changes. On Stripe while planChangeImmediate is false, cancel flow plan changes land at the period boundary without proration, so this applies only to annual upsell, which switches plans immediately.',
+      ),
+    planChangeImmediate: z
+      .boolean()
+      .optional()
+      .describe(
+        'Apply cancel flow plan changes immediately (true) or at the end of the billing term (false). Read by Stripe, Chargebee and Paddle Billing; no effect on Braintree or Paddle Classic.',
+      ),
     cancelImmediate: z
       .boolean()
       .optional()

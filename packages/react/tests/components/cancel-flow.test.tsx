@@ -725,7 +725,7 @@ describe('a pair of offers in token mode', () => {
   })
 
   const copy = { headline: 'Before you go', body: '', cta: 'Pause subscription', declineCta: 'No thanks' }
-  const pairConfig = (offer: Record<string, unknown>) => ({
+  const pairConfig = (offer: Record<string, unknown>, settings: Record<string, unknown> = {}) => ({
     blueprintId: 'bp_1',
     steps: [
       { guid: 'pair-step', type: 'offer', offer },
@@ -740,14 +740,18 @@ describe('a pair of offers in token mode', () => {
         items: [{ price: { id: 'current', amount: { value: 3900, currency: 'USD' } } }],
       },
     ],
-    settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false },
+    settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false, ...settings },
   })
-  const stubPairFetch = (offer: Record<string, unknown>, parts: Record<string, unknown>[]) => {
+  const stubPairFetch = (
+    offer: Record<string, unknown>,
+    parts: Record<string, unknown>[],
+    settings: Record<string, unknown> = {},
+  ) => {
     const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => ({
       ok: true,
       status: 200,
       json: async () => {
-        if (String(url).includes('cancel-flow/config')) return pairConfig(offer)
+        if (String(url).includes('cancel-flow/config')) return pairConfig(offer, settings)
         if (String(url).includes('cancel-flow/actions/stacked')) return { acceptanceId: 'acc_1', parts }
         return {}
       },
@@ -843,6 +847,34 @@ describe('a pair of offers in token mode', () => {
     expect(requests.body('cancel-flow/actions/stacked')).toMatchObject({ planId: 'basic', coupon: 'PAIR20' })
   })
 
+  it('says the plan change is scheduled when only it applied and it waits for the end of the term', async () => {
+    const user = userEvent.setup()
+    stubPairFetch(
+      {
+        type: 'plan_change',
+        decisionId: 'p1',
+        plans: [
+          { id: 'current', name: 'Pro', amount: { value: 3900, currency: 'USD' } },
+          { id: 'basic', name: 'Basic', amount: { value: 1900, currency: 'USD' } },
+        ],
+        copy,
+        stackedOffer: { type: 'discount', decisionId: 'd1', couponId: 'PAIR20', percentOff: 20, copy },
+      },
+      [
+        { offerType: 'PLAN_CHANGE', status: 'APPLIED' },
+        { offerType: 'DISCOUNT', status: 'FAILED', failureReason: 'No such coupon' },
+      ],
+      { planChangeAtTermEnd: true },
+    )
+    render(<CancelFlow session={sessionToken()} />)
+
+    await user.click(await screen.findByText('Basic'))
+    await user.click(screen.getByText('Accept both offers'))
+
+    expect(await screen.findByText('Plan change scheduled.')).toBeInTheDocument()
+    expect(screen.getByText("We couldn't apply your discount. We'll handle it and let you know.")).toBeInTheDocument()
+  })
+
   const discount = { type: 'discount', decisionId: 'd1', couponId: 'PAIR20', percentOff: 20, copy }
   const pausePair = { type: 'pause', decisionId: 'pause1', months: 3, interval: 'month', copy, stackedOffer: discount }
   const SingleOffer = () => <p>Single offer</p>
@@ -923,7 +955,7 @@ describe('token-mode actions from the component', () => {
     vi.unstubAllGlobals()
   })
 
-  const stubFlow = (steps: Record<string, unknown>[]) => {
+  const stubFlow = (steps: Record<string, unknown>[], settings: Record<string, unknown> = {}) => {
     const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => ({
       ok: true,
       status: 200,
@@ -934,7 +966,12 @@ describe('token-mode actions from the component', () => {
               steps,
               customer: { id: 'cus_1' },
               subscriptions: [],
-              settings: { clickToCancelEnabled: false, strictFTCComplianceEnabled: false, cancelAtPeriodEnd: true },
+              settings: {
+                clickToCancelEnabled: false,
+                strictFTCComplianceEnabled: false,
+                cancelAtPeriodEnd: true,
+                ...settings,
+              },
             }
           : {},
     }))
@@ -954,6 +991,31 @@ describe('token-mode actions from the component', () => {
 
     await screen.findByText('Discount applied.')
     expect(urls()).toContain('orgs/app_1/cancel-flow/actions/discount')
+  })
+
+  it('says a plan change is scheduled when it waits for the end of the term', async () => {
+    stubFlow(
+      [
+        {
+          guid: 's',
+          type: 'offer',
+          offer: {
+            type: 'plan_change',
+            decisionId: 'p',
+            plans: [{ id: 'basic', name: 'Basic', amount: { value: 1900, currency: 'USD' } }],
+            copy,
+          },
+        },
+        { guid: 'c', type: 'confirm' },
+      ],
+      { planChangeAtTermEnd: true },
+    )
+    render(<CancelFlow session={sessionToken()} />)
+
+    await userEvent.setup().click(await screen.findByText('Switch to Basic'))
+
+    expect(await screen.findByText('Plan change scheduled.')).toBeInTheDocument()
+    expect(screen.getByText('Your new plan starts at the end of your current billing period.')).toBeInTheDocument()
   })
 
   it('cancels on the server without a handler, and leaves it to the handler when there is one', async () => {

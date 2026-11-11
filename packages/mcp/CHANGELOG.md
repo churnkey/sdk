@@ -2,6 +2,24 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2.5.0 - 2026-11-09
+
+### Added
+
+- `update_blueprint_offer` takes `stackedOffer`, the second offer of a [stacked offer](https://docs.churnkey.co/cancel-flows/offers/stacked-offers) pair. Pass its `offerType` and `config` to add it or change its type, `config` alone to edit it, or `null` to remove it. The tool description lists the allowed pairs and the billing provider limits, says when the second offer starts, what a pair needs before it can be published, and which clients skip pairs. The response carries `stackedOffer` (`offerGuid` and `offerType`, or null). Before this, an agent could not add, edit or remove a pair, and nothing told it what the `stackedOffer` it read in `get_blueprint` was.
+- `get_blueprint` describes `stackedOffer`, whose coupon or plans arrive resolved like those of any other offer.
+
+### Changed
+
+- Changing an offer's type with `update_blueprint_offer` keeps its second offer when the new pair is still allowed, as the dashboard builder does. It used to remove the second offer on any type change.
+- `publish_blueprint` refuses a flow with a pair whose discount has no coupon or whose plan change has no plan, as the dashboard builder does.
+
+## 2.4.1 - 2026-11-03
+
+### Changed
+
+- `update_stripe_settings` describes `planChangeImmediate` as applying cancel flow plan changes at the end of the billing term when false, and names the providers that read it: Stripe, Chargebee and Paddle Billing. It used to say "end of cycle" with no provider, while Stripe ignored the setting, so an agent could tell a Stripe merchant their plan changes would wait when they did not. Stripe now honours it. `planChangeProrate` notes that on Stripe, while `planChangeImmediate` is false, it applies only to annual upsell, which switches plans immediately.
+
 ## 2.4.0 - 2026-10-27
 
 ### Changed
