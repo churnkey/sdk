@@ -5,8 +5,10 @@ import {
   buildMessages,
   catalogLocale,
   defaultMessages,
+  expandPluralPaths,
   formatMessage,
   type MessagesPatch,
+  PLURAL_PATHS,
   selectTiming,
 } from '../../src/core/messages'
 import { createLocaleLoader, hasLocalePack, loadLocaleMessages, packs, peekLocaleMessages } from '../../src/locales'
@@ -157,9 +159,14 @@ describe('built-in packs', () => {
   it('every pack carries every translatable string, with its placeholders', async () => {
     for (const [tag, load] of Object.entries(packs)) {
       const pack = flatten((await load()).default)
-      expect(Object.keys(pack).sort(), tag).toEqual(Object.keys(english).sort())
+      // Plural messages carry the forms this language has, not English's two.
+      const expected = expandPluralPaths(english, tag)
+      expect(Object.keys(pack).sort(), tag).toEqual(Object.keys(expected).sort())
       for (const [path, value] of Object.entries(pack)) {
-        expect(placeholders(value), `${tag} ${path}`).toEqual(placeholders(english[path]))
+        // The zero, one and two forms may leave the number out ("شهرين" is "two months").
+        const numberOptional = /\.(zero|one|two)$/.test(path) && PLURAL_PATHS.has(path.replace(/\.\w+$/, ''))
+        const strip = (names: string[]) => names.filter((name) => !(numberOptional && name === 'count'))
+        expect(strip(placeholders(value)), `${tag} ${path}`).toEqual(strip(placeholders(expected[path])))
       }
     }
   })

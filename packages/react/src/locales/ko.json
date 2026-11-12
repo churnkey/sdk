@@ -109,7 +109,9 @@
       "unspecified": "할인 혜택",
       "nextRenewal": "다음 갱신 시 {discount}",
       "forLife": "평생 {discount}",
-      "forMonths": "{duration} 동안 {discount}"
+      "forMonths": {
+        "other": "{count}개월 동안 {discount}"
+      }
     },
     "planInterval": {
       "day": "일",
@@ -120,15 +122,19 @@
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% 할인은 어때요?",
-        "body": "{duration} 동안 {percent}% 할인해 드릴게요.",
         "headlineNoAmount": "특별 혜택",
         "bodyNoAmount": "할인 혜택을 드리고 싶어요.",
-        "cta": "혜택 받기"
+        "cta": "혜택 받기",
+        "body": {
+          "other": "{count}개월 동안 {percent}% 할인해 드릴게요."
+        }
       },
       "pause": {
         "headline": "대신 잠시 쉬어갈까요?",
-        "body": "구독을 최대 {duration} 동안 일시중지할 수 있어요.",
-        "cta": "구독 일시중지"
+        "cta": "구독 일시중지",
+        "body": {
+          "other": "구독을 최대 {count}개월까지 일시정지할 수 있어요."
+        }
       },
       "plan_change": {
         "headline": "다른 요금제로 바꿔볼까요?",
@@ -137,8 +143,10 @@
       },
       "trial_extension": {
         "headline": "시간이 더 필요하세요?",
-        "body": "체험 기간을 {duration} 연장해 드릴게요.",
-        "cta": "체험 연장"
+        "cta": "체험 연장",
+        "body": {
+          "other": "체험 기간을 {count}일 연장해 드릴게요."
+        }
       },
       "contact": {
         "headline": "먼저 문의해 보실래요?",

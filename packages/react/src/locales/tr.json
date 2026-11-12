@@ -109,7 +109,10 @@
       "unspecified": "Bir indirim",
       "nextRenewal": "Bir sonraki yenilemenizde {discount}",
       "forLife": "Ömür boyu {discount}",
-      "forMonths": "{duration} boyunca {discount}"
+      "forMonths": {
+        "one": "{count} ay boyunca {discount}",
+        "other": "{count} ay boyunca {discount}"
+      }
     },
     "planInterval": {
       "day": "gün",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "%{percent} indirime ne dersiniz?",
-        "body": "Size {duration} boyunca %{percent} indirim sunmak isteriz.",
         "headlineNoAmount": "Özel teklif",
         "bodyNoAmount": "Size bir indirim sunmak isteriz.",
-        "cta": "Teklifi kabul et"
+        "cta": "Teklifi kabul et",
+        "body": {
+          "one": "Size {count} ay boyunca %{percent} indirim sunmak istiyoruz.",
+          "other": "Size {count} ay boyunca %{percent} indirim sunmak istiyoruz."
+        }
       },
       "pause": {
         "headline": "Bunun yerine ara vermeye ne dersiniz?",
-        "body": "Aboneliğinizi {duration} süreye kadar duraklatın.",
-        "cta": "Aboneliği duraklat"
+        "cta": "Aboneliği duraklat",
+        "body": {
+          "one": "Aboneliğinizi en fazla {count} ay duraklatın.",
+          "other": "Aboneliğinizi en fazla {count} ay duraklatın."
+        }
       },
       "plan_change": {
         "headline": "Farklı bir plana geçmek ister misiniz?",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "Daha fazla zamana mı ihtiyacınız var?",
-        "body": "Deneme sürenizi {duration} uzatacağız.",
-        "cta": "Denemeyi uzat"
+        "cta": "Denemeyi uzat",
+        "body": {
+          "one": "Deneme sürenizi {count} gün uzatacağız.",
+          "other": "Deneme sürenizi {count} gün uzatacağız."
+        }
       },
       "contact": {
         "headline": "Önce bizimle konuşur musunuz?",

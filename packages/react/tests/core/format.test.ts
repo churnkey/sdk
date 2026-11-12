@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
-import { discountPhrase, formatDuration, formatPeriodEnd, formatPrice, formatShortDate } from '../../src/core/format'
+import { describe, expect, it } from 'vitest'
+import { discountPhrase, formatPeriodEnd, formatPrice, formatShortDate } from '../../src/core/format'
 import { defaultMessages, mergeMessages } from '../../src/core/messages'
 
 describe('discountPhrase', () => {
@@ -16,7 +16,12 @@ describe('discountPhrase', () => {
 
   it('takes its words and its number formats from the catalog and the locale', () => {
     const de = mergeMessages(defaultMessages, {
-      offer: { discount: { percentOff: '{percent} % Rabatt', forMonths: '{duration} lang {discount}' } },
+      offer: {
+        discount: {
+          percentOff: '{percent} % Rabatt',
+          forMonths: { one: '{count} Monat lang {discount}', other: '{count} Monate lang {discount}' },
+        },
+      },
     })
     expect(discountPhrase({ percentOff: 25, durationInMonths: 3 }, de, 'de')).toBe('3 Monate lang 25 % Rabatt')
     expect(discountPhrase({ amountOff: 500, currency: 'EUR', durationInMonths: 1 }, de, 'de')).toBe(
@@ -24,27 +29,27 @@ describe('discountPhrase', () => {
     )
   })
 
-  it('pluralize the duration by the language, not a singular/plural pair', () => {
-    const pl = mergeMessages(defaultMessages, { offer: { discount: { forMonths: '{discount} przez {duration}' } } })
+  it("pick the plural form by the language's own rules", () => {
+    const pl = mergeMessages(defaultMessages, {
+      offer: {
+        discount: {
+          forMonths: {
+            one: '{discount} przez {count} miesiąc',
+            few: '{discount} przez {count} miesiące',
+            many: '{discount} przez {count} miesięcy',
+            other: '{discount} przez {count} miesiąca',
+          },
+        },
+      },
+    })
+    expect(discountPhrase({ percentOff: 25, durationInMonths: 1 }, pl, 'pl')).toBe('25% off przez 1 miesiąc')
     expect(discountPhrase({ percentOff: 25, durationInMonths: 3 }, pl, 'pl')).toBe('25% off przez 3 miesiące')
     expect(discountPhrase({ percentOff: 25, durationInMonths: 5 }, pl, 'pl')).toBe('25% off przez 5 miesięcy')
-    expect(formatDuration(1, 'day', defaultMessages, 'en')).toBe('1 day')
-  })
-
-  it('fall back to the catalog words where Intl has no unit names or no unit style', () => {
-    const words = mergeMessages(defaultMessages, { common: { month: 'mahina', months: 'mahine' } })
-    // ICU has no unit names for Bhojpuri and prints "३ m".
-    expect(formatDuration(3, 'month', words, 'bho')).toBe('3 mahine')
-    expect(formatDuration(1, 'month', words, 'en_US')).toBe('1 mahina')
-    // Chinese "天" is one letter but real data, not the root fallback.
-    expect(formatDuration(14, 'day', defaultMessages, 'zh-CN')).toBe('14天')
-    const RealNumberFormat = Intl.NumberFormat
-    vi.spyOn(Intl, 'NumberFormat').mockImplementation(((tag: string, opts?: Intl.NumberFormatOptions) => {
-      if (opts?.style === 'unit') throw new RangeError('Invalid style')
-      return new RealNumberFormat(tag, opts)
-    }) as typeof Intl.NumberFormat)
-    expect(formatDuration(14, 'day', defaultMessages, 'en')).toBe('14 days')
-    vi.restoreAllMocks()
+    // A form the translation lacks, or a malformed tag, uses `other`.
+    expect(discountPhrase({ percentOff: 25, durationInMonths: 3 }, pl, 'en_US')).toBe('25% off przez 3 miesiąca')
+    // A plain string override applies to every form.
+    const flat = mergeMessages(defaultMessages, { offer: { discount: { forMonths: '{discount}, {count} mo.' } } })
+    expect(discountPhrase({ percentOff: 25, durationInMonths: 1 }, flat, 'en')).toBe('25% off, 1 mo.')
   })
 })
 

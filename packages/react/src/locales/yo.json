@@ -109,7 +109,9 @@
       "unspecified": "Ẹ̀dínwó kan",
       "nextRenewal": "{discount} lórí àtúnṣe tó kàn",
       "forLife": "{discount} títí ayé",
-      "forMonths": "{discount} fún {duration}"
+      "forMonths": {
+        "other": "{discount} fún oṣù {count}"
+      }
     },
     "planInterval": {
       "day": "ọjọ́",
@@ -120,15 +122,19 @@
     "defaultCopy": {
       "discount": {
         "headline": "Ǹjẹ́ ìdínwó {percent}% ńkọ́?",
-        "body": "A fẹ́ fún ọ ní ẹ̀dínwó {percent}% fún {duration}.",
         "headlineNoAmount": "Ìfilọ́lẹ̀ pàtàkì",
         "bodyNoAmount": "A fẹ́ fún yín ní ẹ̀dínwó kan.",
-        "cta": "Gba ìfilọ́lẹ̀"
+        "cta": "Gba ìfilọ́lẹ̀",
+        "body": {
+          "other": "A fẹ́ fún ọ ní ẹ̀dínwó {percent}% fún oṣù {count}."
+        }
       },
       "pause": {
         "headline": "Ẹ sinmi na dípò rẹ̀?",
-        "body": "Dá ìforúkọsílẹ̀ rẹ dúró fún títí di {duration}.",
-        "cta": "Dá ìforúkọsílẹ̀ dúró"
+        "cta": "Dá ìforúkọsílẹ̀ dúró",
+        "body": {
+          "other": "Dá ìforúkọsílẹ̀ rẹ dúró fún títí di oṣù {count}."
+        }
       },
       "plan_change": {
         "headline": "Ẹ yí padà sí ètò mìíràn?",
@@ -137,8 +143,10 @@
       },
       "trial_extension": {
         "headline": "Ẹ nílò àkókò sí i?",
-        "body": "A óò mú àkókò ìdánwò rẹ pọ̀ sí i pẹ̀lú {duration}.",
-        "cta": "Fa ìdánwò gùn"
+        "cta": "Fa ìdánwò gùn",
+        "body": {
+          "other": "A óò fa àkókò àyẹ̀wò rẹ gùn sí i ní ọjọ́ {count}."
+        }
       },
       "contact": {
         "headline": "Ẹ kọ́kọ́ bá wa sọ̀rọ̀?",

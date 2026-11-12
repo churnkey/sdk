@@ -19,6 +19,22 @@ export interface TimingVariants {
  */
 export type TimingAware = string | TimingVariants
 
+/**
+ * One message in each plural form a language has, by CLDR category. English
+ * has `one` and `other`; Polish adds `few` and `many`, Arabic `zero` and
+ * `two`. `{count}` is the number; the form is picked with `Intl.PluralRules`,
+ * and a form a translation lacks falls back to `other`. A plain string
+ * override applies to every form.
+ */
+export interface PluralForms {
+  zero?: string
+  one?: string
+  two?: string
+  few?: string
+  many?: string
+  other: string
+}
+
 /** Success-screen copy for one accepted offer type. */
 export interface SavedOfferCopy {
   title: string
@@ -166,8 +182,8 @@ export interface CancelFlowMessages {
       nextRenewal: string
       /** Supports `{discount}`. */
       forLife: string
-      /** Supports `{discount}` and `{duration}` ("3 months", formatted for the language). */
-      forMonths: string
+      /** Supports `{discount}` and `{count}` (the number of months). */
+      forMonths: PluralForms
     }
     /** After a plan's price and a slash ("$29/month"), by billing interval. */
     planInterval: {
@@ -179,17 +195,18 @@ export interface CancelFlowMessages {
     /** Copy for a local-mode offer declared without `copy`. Connected mode
      *  gets its copy from the server. */
     defaultCopy: {
-      discount: OfferCopyDefaults & {
-        /** `headline` and `body` support `{percent}`; `body` also `{duration}`
-         *  ("3 months"). These two are used when the offer has no `percentOff`. */
+      /** `headline` supports `{percent}`; `body` `{percent}` and `{count}`
+       *  (months). The `NoAmount` pair is used when the offer has no `percentOff`. */
+      discount: Omit<OfferCopyDefaults, 'body'> & {
+        body: PluralForms
         headlineNoAmount: string
         bodyNoAmount: string
       }
-      /** The body supports `{duration}` ("3 months"). */
-      pause: OfferCopyDefaults
+      /** The body supports `{count}` (months). */
+      pause: Omit<OfferCopyDefaults, 'body'> & { body: PluralForms }
       plan_change: OfferCopyDefaults
-      /** The body supports `{duration}` ("14 days"). */
-      trial_extension: OfferCopyDefaults
+      /** The body supports `{count}` (days). */
+      trial_extension: Omit<OfferCopyDefaults, 'body'> & { body: PluralForms }
       /** The offer's `label`, when set, replaces the CTA. */
       contact: OfferCopyDefaults
       /** The CTA is the offer's `label`. */
@@ -212,7 +229,9 @@ export type MessagesPatch<T = CancelFlowMessages> = {
     ? string
     : T[K] extends TimingAware
       ? string | Partial<TimingVariants>
-      : MessagesPatch<T[K]>
+      : T[K] extends PluralForms
+        ? string | Partial<PluralForms>
+        : MessagesPatch<T[K]>
 }
 
 export interface I18nConfig {
@@ -350,7 +369,7 @@ export const defaultMessages: CancelFlowMessages = {
       unspecified: 'A discount',
       nextRenewal: '{discount} your next renewal',
       forLife: '{discount} for life',
-      forMonths: '{discount} for {duration}',
+      forMonths: { one: '{discount} for {count} month', other: '{discount} for {count} months' },
     },
     planInterval: {
       day: 'day',
@@ -361,14 +380,20 @@ export const defaultMessages: CancelFlowMessages = {
     defaultCopy: {
       discount: {
         headline: 'How about {percent}% off?',
-        body: "We'd like to offer you {percent}% off for {duration}.",
+        body: {
+          one: "We'd like to offer you {percent}% off for {count} month.",
+          other: "We'd like to offer you {percent}% off for {count} months.",
+        },
         headlineNoAmount: 'Special offer',
         bodyNoAmount: "We'd like to offer you a discount.",
         cta: 'Accept offer',
       },
       pause: {
         headline: 'Take a break instead?',
-        body: 'Pause your subscription for up to {duration}.',
+        body: {
+          one: 'Pause your subscription for up to {count} month.',
+          other: 'Pause your subscription for up to {count} months.',
+        },
         cta: 'Pause subscription',
       },
       plan_change: {
@@ -378,7 +403,7 @@ export const defaultMessages: CancelFlowMessages = {
       },
       trial_extension: {
         headline: 'Need more time?',
-        body: "We'll extend your trial by {duration}.",
+        body: { one: "We'll extend your trial by {count} day.", other: "We'll extend your trial by {count} days." },
         cta: 'Extend trial',
       },
       contact: {
@@ -424,6 +449,71 @@ export function selectTiming(value: TimingAware, cancelAtPeriodEnd: boolean | nu
   return (cancelAtPeriodEnd ?? true) ? value.atPeriodEnd : value.immediate
 }
 
+const PLURAL_CATEGORIES = ['zero', 'one', 'two', 'few', 'many', 'other'] as const
+
+/** The form of `forms` for `count` in `locale`, with `{count}` and `vars` filled in. */
+export function formatPlural(
+  forms: PluralForms,
+  count: number,
+  locale: string | undefined,
+  vars: Record<string, string | number> = {},
+): string {
+  let category: Intl.LDMLPluralRule = 'other'
+  try {
+    category = new Intl.PluralRules(locale).select(count)
+  } catch {
+    // A malformed tag: `other`.
+  }
+  return formatMessage(forms[category] ?? forms.other, { ...vars, count })
+}
+
+/** Plural categories `locale` uses, for the pack generator and its test. */
+export function pluralCategories(locale: string): Intl.LDMLPluralRule[] {
+  return new Intl.PluralRules(locale).resolvedOptions().pluralCategories
+}
+
+/** Leaves holding `PluralForms`, by dot-path. */
+export const PLURAL_PATHS: ReadonlySet<string> = new Set([
+  'offer.discount.forMonths',
+  'offer.defaultCopy.discount.body',
+  'offer.defaultCopy.pause.body',
+  'offer.defaultCopy.trial_extension.body',
+])
+
+/**
+ * The flattened English catalog as `locale` needs it translated: each plural
+ * leaf in that language's own forms (`.one` text for `one`, `.other` for the
+ * rest). For the pack generator and its test.
+ */
+export function expandPluralPaths(flat: Record<string, string>, locale: string): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const [path, text] of Object.entries(flat)) {
+    const base = path.slice(0, path.lastIndexOf('.'))
+    if (!PLURAL_PATHS.has(base)) out[path] = text
+  }
+  for (const base of PLURAL_PATHS) {
+    if (!(`${base}.other` in flat)) continue
+    for (const category of pluralCategories(locale)) {
+      out[`${base}.${category}`] = flat[`${base}.${category === 'one' ? 'one' : 'other'}`] ?? flat[`${base}.other`]
+    }
+  }
+  return out
+}
+
+function mergePlural(base: PluralForms, patch: unknown): PluralForms {
+  if (typeof patch === 'string') {
+    if (patch === '') return base
+    return Object.fromEntries(Object.keys(base).map((key) => [key, patch])) as unknown as PluralForms
+  }
+  if (typeof patch !== 'object' || patch === null || Array.isArray(patch)) return base
+  const merged: PluralForms = { ...base }
+  for (const category of PLURAL_CATEGORIES) {
+    const value = (patch as Record<string, unknown>)[category]
+    if (typeof value === 'string' && value) merged[category] = value
+  }
+  return merged
+}
+
 /** Replace `{name}` tokens. Unknown tokens are left in place. */
 export function formatMessage(template: string, vars: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (match, name) => {
@@ -450,6 +540,7 @@ const TIMING_AWARE_PATHS: ReadonlySet<string> = new Set([
 // dashboard field must not clobber a real string — same rule as the embed),
 // which is why defaults may legitimately hold '' but patches never land one.
 function mergeValue(base: unknown, patch: unknown, path: string): unknown {
+  if (PLURAL_PATHS.has(path)) return mergePlural(base as PluralForms, patch)
   if (typeof base === 'string' || isTimingVariants(base)) {
     if (typeof patch === 'string') return patch === '' ? base : patch
     if (isTimingVariants(patch) && TIMING_AWARE_PATHS.has(path)) {

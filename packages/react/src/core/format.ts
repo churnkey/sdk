@@ -1,4 +1,4 @@
-import { type CancelFlowMessages, formatMessage } from './messages'
+import { type CancelFlowMessages, formatMessage, formatPlural } from './messages'
 import type { DirectSubscription } from './types'
 
 // Currencies whose smallest unit equals one major unit (no fractional part).
@@ -137,32 +137,6 @@ export function formatPeriodEnd(
   return localeDate(d, locale, { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
-// ICU's root fallback for a language with no unit names ("3 m", "14 d").
-const ROOT_UNIT = { day: 'd', month: 'm' } as const
-
-/**
- * A count with its unit, pluralized for the language ("3 months", "3 miesiące",
- * "5 miesięcy"): Intl knows each language's plural forms, a singular/plural
- * pair does not. Where Intl has no unit names for the language, or no unit
- * formatting at all (Safari before 14.1), the catalog's `common` words.
- */
-export function formatDuration(
-  value: number,
-  unit: 'day' | 'month',
-  messages: CancelFlowMessages,
-  locale?: string,
-): string {
-  try {
-    const text = new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'long' }).format(value)
-    if (text.replace(/[\p{N}\s]/gu, '') !== ROOT_UNIT[unit]) return text
-  } catch {
-    // Unsupported style or a malformed tag: the catalog words below.
-  }
-  const { day, days, month, months } = messages.common
-  const word = unit === 'day' ? (value === 1 ? day : days) : value === 1 ? month : months
-  return `${value} ${word}`
-}
-
 // ─── Discount phrasing ─────────────────────────────────────────────────────
 
 /**
@@ -195,8 +169,5 @@ export function discountPhrase(
   if (duration === 'once') return formatMessage(text.nextRenewal, { discount })
   if (duration === 'forever') return formatMessage(text.forLife, { discount })
   if (!durationInMonths) return discount
-  return formatMessage(text.forMonths, {
-    discount,
-    duration: formatDuration(durationInMonths, 'month', messages, locale),
-  })
+  return formatPlural(text.forMonths, durationInMonths, locale, { discount })
 }

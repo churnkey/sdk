@@ -109,7 +109,10 @@
       "unspecified": "एगो छूट",
       "nextRenewal": "रउआ अगिला नवीकरण पर {discount}",
       "forLife": "जिनगी भर खातिर {discount}",
-      "forMonths": "{duration} खातिर {discount}"
+      "forMonths": {
+        "one": "{count} महीना खातिर {discount}",
+        "other": "{count} महीना खातिर {discount}"
+      }
     },
     "planInterval": {
       "day": "दिन",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% छूट कइसन रही?",
-        "body": "हम राउर खातिर {duration} तक {percent}% छूट देवल चाहत बानी।",
         "headlineNoAmount": "खास ऑफर",
         "bodyNoAmount": "हम रउआ के छूट देबे चाहत बानी।",
-        "cta": "ऑफर मानीं"
+        "cta": "ऑफर मानीं",
+        "body": {
+          "one": "हम राउर {count} महीना खातिर {percent}% छूट देबे के चाहतानी।",
+          "other": "हम राउर {count} महीना खातिर {percent}% छूट देबे के चाहतानी।"
+        }
       },
       "pause": {
         "headline": "एकरा बदले थोड़ा आराम लेब?",
-        "body": "आपन सब्सक्रिप्शन {duration} तक रोक दीं।",
-        "cta": "सब्सक्रिप्शन रोकीं"
+        "cta": "सब्सक्रिप्शन रोकीं",
+        "body": {
+          "one": "आपन सब्सक्रिप्शन के {count} महीना तक रोकीं।",
+          "other": "आपन सब्सक्रिप्शन के {count} महीना तक रोकीं।"
+        }
       },
       "plan_change": {
         "headline": "दोसर प्लान में बदलब?",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "अउरी समय चाहीं?",
-        "body": "हम राउर ट्रायल {duration} बढ़ा देब।",
-        "cta": "ट्रायल बढ़ाईं"
+        "cta": "ट्रायल बढ़ाईं",
+        "body": {
+          "one": "हम राउर ट्रायल {count} दिन बढ़ा देब।",
+          "other": "हम राउर ट्रायल {count} दिन बढ़ा देब।"
+        }
       },
       "contact": {
         "headline": "पहिले हमनी से बात करब?",

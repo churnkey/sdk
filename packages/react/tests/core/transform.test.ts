@@ -32,7 +32,10 @@ describe('defaultOfferCopy', () => {
     const es = mergeMessages(defaultMessages, {
       offer: {
         defaultCopy: {
-          pause: { headline: '¿Mejor una pausa?', body: 'Pausa tu suscripción hasta {duration}.' },
+          pause: {
+            headline: '¿Mejor una pausa?',
+            body: { one: 'Pausa {count} mes.', other: 'Pausa tu suscripción hasta {count} meses.' },
+          },
           declineCta: 'No, gracias',
         },
       },

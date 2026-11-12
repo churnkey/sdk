@@ -109,7 +109,12 @@
       "unspecified": "Sleva",
       "nextRenewal": "{discount} na další obnovení",
       "forLife": "{discount} navždy",
-      "forMonths": "{discount} na {duration}"
+      "forMonths": {
+        "one": "{discount} na {count} měsíc",
+        "few": "{discount} na {count} měsíce",
+        "many": "{discount} na {count} měsíce",
+        "other": "{discount} na {count} měsíců"
+      }
     },
     "planInterval": {
       "day": "den",
@@ -120,15 +125,25 @@
     "defaultCopy": {
       "discount": {
         "headline": "Co říkáte na slevu {percent} %?",
-        "body": "Rádi vám nabídneme slevu {percent} % na {duration}.",
         "headlineNoAmount": "Speciální nabídka",
         "bodyNoAmount": "Rádi bychom vám nabídli slevu.",
-        "cta": "Přijmout nabídku"
+        "cta": "Přijmout nabídku",
+        "body": {
+          "one": "Rádi vám nabídneme slevu {percent} % na {count} měsíc.",
+          "few": "Rádi vám nabídneme slevu {percent} % na {count} měsíce.",
+          "many": "Rádi vám nabídneme slevu {percent} % na {count} měsíce.",
+          "other": "Rádi vám nabídneme slevu {percent} % na {count} měsíců."
+        }
       },
       "pause": {
         "headline": "Dát si raději pauzu?",
-        "body": "Pozastavte si předplatné až na {duration}.",
-        "cta": "Pozastavit předplatné"
+        "cta": "Pozastavit předplatné",
+        "body": {
+          "one": "Pozastavte si předplatné až na {count} měsíc.",
+          "few": "Pozastavte si předplatné až na {count} měsíce.",
+          "many": "Pozastavte si předplatné až na {count} měsíce.",
+          "other": "Pozastavte si předplatné až na {count} měsíců."
+        }
       },
       "plan_change": {
         "headline": "Přejít na jiný tarif?",
@@ -137,8 +152,13 @@
       },
       "trial_extension": {
         "headline": "Potřebujete více času?",
-        "body": "Prodloužíme vám zkušební dobu o {duration}.",
-        "cta": "Prodloužit zkušební období"
+        "cta": "Prodloužit zkušební období",
+        "body": {
+          "one": "Prodloužíme vám zkušební období o {count} den.",
+          "few": "Prodloužíme vám zkušební období o {count} dny.",
+          "many": "Prodloužíme vám zkušební období o {count} dne.",
+          "other": "Prodloužíme vám zkušební období o {count} dní."
+        }
       },
       "contact": {
         "headline": "Nejdřív si promluvme?",

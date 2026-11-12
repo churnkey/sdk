@@ -109,7 +109,10 @@
       "unspecified": "رعایت",
       "nextRenewal": "اگلی تجدید پر {discount}",
       "forLife": "{discount}، ہمیشہ کے لیے",
-      "forMonths": "{duration} کے لیے {discount}"
+      "forMonths": {
+        "one": "{count} مہینے کے لیے {discount}",
+        "other": "{count} مہینوں کے لیے {discount}"
+      }
     },
     "planInterval": {
       "day": "دن",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% رعایت کیسی رہے گی؟",
-        "body": "ہم آپ کو {duration} کے لیے {percent}% رعایت دینا چاہتے ہیں۔",
         "headlineNoAmount": "خصوصی پیشکش",
         "bodyNoAmount": "ہم آپ کو رعایت دینا چاہتے ہیں۔",
-        "cta": "پیشکش قبول کریں"
+        "cta": "پیشکش قبول کریں",
+        "body": {
+          "one": "ہم آپ کو {count} مہینے کے لیے {percent}% رعایت دینا چاہتے ہیں۔",
+          "other": "ہم آپ کو {count} مہینوں کے لیے {percent}% رعایت دینا چاہتے ہیں۔"
+        }
       },
       "pause": {
         "headline": "اس کے بجائے وقفہ لیں؟",
-        "body": "اپنی سبسکرپشن کو {duration} تک روکیں۔",
-        "cta": "سبسکرپشن موقوف کریں"
+        "cta": "سبسکرپشن موقوف کریں",
+        "body": {
+          "one": "اپنی سبسکرپشن کو زیادہ سے زیادہ {count} مہینے کے لیے روکیں۔",
+          "other": "اپنی سبسکرپشن کو زیادہ سے زیادہ {count} مہینوں کے لیے روکیں۔"
+        }
       },
       "plan_change": {
         "headline": "کوئی دوسرا پلان اپنائیں؟",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "مزید وقت چاہیے؟",
-        "body": "ہم آپ کا ٹرائل {duration} بڑھا دیں گے۔",
-        "cta": "ٹرائل بڑھائیں"
+        "cta": "ٹرائل بڑھائیں",
+        "body": {
+          "one": "ہم آپ کا ٹرائل {count} دن بڑھا دیں گے۔",
+          "other": "ہم آپ کا ٹرائل {count} دن بڑھا دیں گے۔"
+        }
       },
       "contact": {
         "headline": "پہلے ہم سے بات کریں؟",

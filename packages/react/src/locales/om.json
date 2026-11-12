@@ -109,7 +109,10 @@
       "unspecified": "Hir'ina gatii",
       "nextRenewal": "{discount} haaromsa itti aanu irratti",
       "forLife": "{discount} yeroo hundaaf",
-      "forMonths": "{discount} yeroo {duration}"
+      "forMonths": {
+        "one": "{discount} — ji'a {count}",
+        "other": "{discount} — ji'a {count}"
+      }
     },
     "planInterval": {
       "day": "guyyaa",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "%{percent} hir'ata taanaan how ta'a?",
-        "body": "Yeroo {duration} kanaaf hanga {percent}% hir'isnee sif kennuu feena.",
         "headlineNoAmount": "Dhiyeessii addaa",
         "bodyNoAmount": "Hir'ina gatii sif kennuu feena.",
-        "cta": "Dhiyeessii fudhadhu"
+        "cta": "Dhiyeessii fudhadhu",
+        "body": {
+          "one": "Ji'a {count} f hanga hanga %{percent} irraa gadi buusuu siif dhiyeessuu barbaadna.",
+          "other": "Ji'a {count} f hanga hanga %{percent} irraa gadi buusuu siif dhiyeessuu barbaadna."
+        }
       },
       "pause": {
         "headline": "Kanaa mannaa boqodhaa?",
-        "body": "Maallaqa tajaajilaa keessan hanga {duration} dhaabsisuu dandeessu.",
-        "cta": "Hajajjii dhaabi"
+        "cta": "Hajajjii dhaabi",
+        "body": {
+          "one": "Sabaabbii keessan hanga ji'a {count} dhaabsisaa.",
+          "other": "Sabaabbii keessan hanga ji'a {count} dhaabsisaa."
+        }
       },
       "plan_change": {
         "headline": "Karoora biraatti jijjiiramtaa?",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "Yeroo dabalataa barbaaddaa?",
-        "body": "Yeroo yaalii keessan {duration} dabalnee dheeressina.",
-        "cta": "Yaalii dheeressi"
+        "cta": "Yaalii dheeressi",
+        "body": {
+          "one": "Yeroo yaalii keessan guyyaa {count} dheeressina.",
+          "other": "Yeroo yaalii keessan guyyaa {count} dheeressina."
+        }
       },
       "contact": {
         "headline": "Duraan nu waliin haasa'aa?",

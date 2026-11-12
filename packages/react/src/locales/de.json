@@ -109,7 +109,10 @@
       "unspecified": "Ein Rabatt",
       "nextRenewal": "{discount} auf Ihre nächste Verlängerung",
       "forLife": "{discount} auf Lebenszeit",
-      "forMonths": "{discount} für {duration}"
+      "forMonths": {
+        "one": "{discount} für {count} Monat",
+        "other": "{discount} für {count} Monate"
+      }
     },
     "planInterval": {
       "day": "Tag",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "Wie wäre es mit {percent} % Rabatt?",
-        "body": "Wir möchten Ihnen {percent} % Rabatt für {duration} anbieten.",
         "headlineNoAmount": "Sonderangebot",
         "bodyNoAmount": "Wir möchten Ihnen einen Rabatt anbieten.",
-        "cta": "Angebot annehmen"
+        "cta": "Angebot annehmen",
+        "body": {
+          "one": "Wir möchten Ihnen {percent} % Rabatt für {count} Monat anbieten.",
+          "other": "Wir möchten Ihnen {percent} % Rabatt für {count} Monate anbieten."
+        }
       },
       "pause": {
         "headline": "Lieber eine Pause einlegen?",
-        "body": "Pausieren Sie Ihr Abo für bis zu {duration}.",
-        "cta": "Abo pausieren"
+        "cta": "Abo pausieren",
+        "body": {
+          "one": "Pausieren Sie Ihr Abonnement für bis zu {count} Monat.",
+          "other": "Pausieren Sie Ihr Abonnement für bis zu {count} Monate."
+        }
       },
       "plan_change": {
         "headline": "Zu einem anderen Tarif wechseln?",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "Brauchen Sie mehr Zeit?",
-        "body": "Wir verlängern Ihre Testphase um {duration}.",
-        "cta": "Testphase verlängern"
+        "cta": "Testphase verlängern",
+        "body": {
+          "one": "Wir verlängern Ihre Testphase um {count} Tag.",
+          "other": "Wir verlängern Ihre Testphase um {count} Tage."
+        }
       },
       "contact": {
         "headline": "Erst mit uns sprechen?",

@@ -109,7 +109,11 @@
       "unspecified": "Une réduction",
       "nextRenewal": "{discount} sur votre prochain renouvellement",
       "forLife": "{discount} à vie",
-      "forMonths": "{discount} pendant {duration}"
+      "forMonths": {
+        "one": "{discount} pendant {count} mois",
+        "many": "{discount} pendant {count} mois",
+        "other": "{discount} pendant {count} mois"
+      }
     },
     "planInterval": {
       "day": "jour",
@@ -120,15 +124,23 @@
     "defaultCopy": {
       "discount": {
         "headline": "Et si on vous offrait {percent} % de réduction ?",
-        "body": "Nous aimerions vous offrir {percent} % de réduction pendant {duration}.",
         "headlineNoAmount": "Offre spéciale",
         "bodyNoAmount": "Nous aimerions vous proposer une réduction.",
-        "cta": "Accepter l'offre"
+        "cta": "Accepter l'offre",
+        "body": {
+          "one": "Nous aimerions vous offrir {percent} % de réduction pendant {count} mois.",
+          "many": "Nous aimerions vous offrir {percent} % de réduction pendant {count} mois.",
+          "other": "Nous aimerions vous offrir {percent} % de réduction pendant {count} mois."
+        }
       },
       "pause": {
         "headline": "Une pause plutôt ?",
-        "body": "Suspendez votre abonnement jusqu'à {duration}.",
-        "cta": "Suspendre l'abonnement"
+        "cta": "Suspendre l'abonnement",
+        "body": {
+          "one": "Mettez votre abonnement en pause jusqu’à {count} mois.",
+          "many": "Mettez votre abonnement en pause jusqu’à {count} de mois.",
+          "other": "Mettez votre abonnement en pause jusqu’à {count} mois."
+        }
       },
       "plan_change": {
         "headline": "Passer à une autre formule ?",
@@ -137,8 +149,12 @@
       },
       "trial_extension": {
         "headline": "Besoin de plus de temps ?",
-        "body": "Nous prolongerons votre essai de {duration}.",
-        "cta": "Prolonger l'essai"
+        "cta": "Prolonger l'essai",
+        "body": {
+          "one": "Nous prolongeons votre essai de {count} jour.",
+          "many": "Nous prolongeons votre essai de {count} de jours.",
+          "other": "Nous prolongeons votre essai de {count} jours."
+        }
       },
       "contact": {
         "headline": "Parlons-en d'abord ?",

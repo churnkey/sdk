@@ -109,7 +109,11 @@
       "unspecified": "Um desconto",
       "nextRenewal": "{discount} na sua próxima renovação",
       "forLife": "{discount} para sempre",
-      "forMonths": "{discount} por {duration}"
+      "forMonths": {
+        "one": "{discount} por {count} mês",
+        "many": "{discount} por {count} de meses",
+        "other": "{discount} por {count} meses"
+      }
     },
     "planInterval": {
       "day": "dia",
@@ -120,15 +124,23 @@
     "defaultCopy": {
       "discount": {
         "headline": "Que tal {percent}% de desconto?",
-        "body": "Queremos oferecer {percent}% de desconto por {duration}.",
         "headlineNoAmount": "Oferta especial",
         "bodyNoAmount": "Queremos oferecer um desconto para você.",
-        "cta": "Aceitar oferta"
+        "cta": "Aceitar oferta",
+        "body": {
+          "one": "Queremos oferecer a você {percent}% de desconto por {count} mês.",
+          "many": "Queremos oferecer a você {percent}% de desconto por {count} de meses.",
+          "other": "Queremos oferecer a você {percent}% de desconto por {count} meses."
+        }
       },
       "pause": {
         "headline": "Que tal uma pausa?",
-        "body": "Pause sua assinatura por até {duration}.",
-        "cta": "Pausar assinatura"
+        "cta": "Pausar assinatura",
+        "body": {
+          "one": "Pause sua assinatura por até {count} mês.",
+          "many": "Pause sua assinatura por até {count} de meses.",
+          "other": "Pause sua assinatura por até {count} meses."
+        }
       },
       "plan_change": {
         "headline": "Mudar para outro plano?",
@@ -137,8 +149,12 @@
       },
       "trial_extension": {
         "headline": "Precisa de mais tempo?",
-        "body": "Vamos estender seu período de teste por {duration}.",
-        "cta": "Estender teste"
+        "cta": "Estender teste",
+        "body": {
+          "one": "Vamos estender seu período de teste em {count} dia.",
+          "many": "Vamos estender seu período de teste em {count} de dias.",
+          "other": "Vamos estender seu período de teste em {count} dias."
+        }
       },
       "contact": {
         "headline": "Que tal falar conosco antes?",

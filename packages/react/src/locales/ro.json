@@ -109,7 +109,11 @@
       "unspecified": "O reducere",
       "nextRenewal": "{discount} la următoarea reînnoire",
       "forLife": "{discount} pe viață",
-      "forMonths": "{discount} timp de {duration}"
+      "forMonths": {
+        "one": "{discount} pentru {count} lună",
+        "few": "{discount} pentru {count} luni",
+        "other": "{discount} pentru {count} de luni"
+      }
     },
     "planInterval": {
       "day": "zi",
@@ -120,15 +124,23 @@
     "defaultCopy": {
       "discount": {
         "headline": "Ce zici de {percent}% reducere?",
-        "body": "Vrem să îți oferim {percent}% reducere timp de {duration}.",
         "headlineNoAmount": "Ofertă specială",
         "bodyNoAmount": "Vrem să-ți oferim o reducere.",
-        "cta": "Acceptă oferta"
+        "cta": "Acceptă oferta",
+        "body": {
+          "one": "Vrem să-ți oferim o reducere de {percent}% timp de {count} lună.",
+          "few": "Vrem să-ți oferim o reducere de {percent}% timp de {count} luni.",
+          "other": "Vrem să-ți oferim o reducere de {percent}% timp de {count} de luni."
+        }
       },
       "pause": {
         "headline": "Preferi o pauză?",
-        "body": "Pune abonamentul în pauză pentru maximum {duration}.",
-        "cta": "Pauză abonament"
+        "cta": "Pauză abonament",
+        "body": {
+          "one": "Pune-ți abonamentul în pauză pentru cel mult {count} lună.",
+          "few": "Pune-ți abonamentul în pauză pentru cel mult {count} luni.",
+          "other": "Pune-ți abonamentul în pauză pentru cel mult {count} de luni."
+        }
       },
       "plan_change": {
         "headline": "Treci la alt plan?",
@@ -137,8 +149,12 @@
       },
       "trial_extension": {
         "headline": "Ai nevoie de mai mult timp?",
-        "body": "Îți prelungim perioada de probă cu {duration}.",
-        "cta": "Prelungește proba"
+        "cta": "Prelungește proba",
+        "body": {
+          "one": "Îți prelungim perioada de probă cu {count} zi.",
+          "few": "Îți prelungim perioada de probă cu {count} zile.",
+          "other": "Îți prelungim perioada de probă cu {count} de zile."
+        }
       },
       "contact": {
         "headline": "Vorbește mai întâi cu noi?",

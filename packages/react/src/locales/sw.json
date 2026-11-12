@@ -109,7 +109,10 @@
       "unspecified": "Punguzo",
       "nextRenewal": "{discount} katika kusasisha kwako kujacho",
       "forLife": "{discount} maishani",
-      "forMonths": "{discount} kwa {duration}"
+      "forMonths": {
+        "one": "{discount} kwa mwezi {count}",
+        "other": "{discount} kwa miezi {count}"
+      }
     },
     "planInterval": {
       "day": "siku",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "Je, punguzo la {percent}%?",
-        "body": "Tungependa kukupa punguzo la {percent}% kwa {duration}.",
         "headlineNoAmount": "Ofa maalum",
         "bodyNoAmount": "Tungependa kukupa punguzo.",
-        "cta": "Kubali ofa"
+        "cta": "Kubali ofa",
+        "body": {
+          "one": "Tungependa kukupa punguzo la {percent}% kwa mwezi {count}.",
+          "other": "Tungependa kukupa punguzo la {percent}% kwa miezi {count}."
+        }
       },
       "pause": {
         "headline": "Pumzika badala yake?",
-        "body": "Sitisha usajili wako kwa hadi {duration}.",
-        "cta": "Sitisha usajili"
+        "cta": "Sitisha usajili",
+        "body": {
+          "one": "Sitisha usajili wako kwa hadi mwezi {count}.",
+          "other": "Sitisha usajili wako kwa hadi miezi {count}."
+        }
       },
       "plan_change": {
         "headline": "Badili uende mpango mwingine?",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "Unahitaji muda zaidi?",
-        "body": "Tutaongeza muda wa jaribio lako kwa {duration}.",
-        "cta": "Ongeza muda wa jaribio"
+        "cta": "Ongeza muda wa jaribio",
+        "body": {
+          "one": "Tutaongeza muda wa majaribio yako kwa siku {count}.",
+          "other": "Tutaongeza muda wa majaribio yako kwa siku {count}."
+        }
       },
       "contact": {
         "headline": "Zungumza nasi kwanza?",

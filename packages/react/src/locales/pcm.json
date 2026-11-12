@@ -109,7 +109,10 @@
       "unspecified": "Discount",
       "nextRenewal": "{discount} for your next renewal",
       "forLife": "{discount} for life",
-      "forMonths": "{discount} for {duration}"
+      "forMonths": {
+        "one": "{discount} for {count} month",
+        "other": "{discount} for {count} months"
+      }
     },
     "planInterval": {
       "day": "day",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "Wetin you go talk if we give you {percent}% off?",
-        "body": "We wan give you {percent}% off for {duration}.",
         "headlineNoAmount": "Special offer",
         "bodyNoAmount": "We wan give you discount.",
-        "cta": "Accept offer"
+        "cta": "Accept offer",
+        "body": {
+          "one": "We wan give you {percent}% off for {count} month.",
+          "other": "We wan give you {percent}% off for {count} months."
+        }
       },
       "pause": {
         "headline": "Make you rest small instead?",
-        "body": "Pause your subscription for up to {duration}.",
-        "cta": "Pause subscription"
+        "cta": "Pause subscription",
+        "body": {
+          "one": "Pause your subscription for up to {count} month.",
+          "other": "Pause your subscription for up to {count} months."
+        }
       },
       "plan_change": {
         "headline": "Change to another plan?",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "You need more time?",
-        "body": "We go extend your trial by {duration}.",
-        "cta": "Extend trial"
+        "cta": "Extend trial",
+        "body": {
+          "one": "We go extend your trial by {count} day.",
+          "other": "We go extend your trial by {count} days."
+        }
       },
       "contact": {
         "headline": "Make we talk first?",

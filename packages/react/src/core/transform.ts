@@ -4,8 +4,7 @@
 // as DirectPrice[], so this layer is a pure shape projection.
 
 import type { SdkConfig, SdkCustomOffer, SdkDiscountOffer, SdkOffer, SdkReason, SdkStep } from './api-types'
-import { formatDuration } from './format'
-import { type CancelFlowMessages, formatMessage } from './messages'
+import { type CancelFlowMessages, formatMessage, formatPlural } from './messages'
 import type { BuiltInOfferConfig, OfferConfig, OfferCopy, OfferDecision, ReasonConfig, Step } from './types'
 import { BUILT_IN_OFFER_TYPES } from './utils'
 
@@ -164,27 +163,23 @@ export function defaultOfferCopy(offer: OfferConfig, messages: CancelFlowMessage
           declineCta,
         }
       }
-      const vars = {
-        percent: o.percentOff,
-        duration: formatDuration(o.durationInMonths ?? 1, 'month', messages, locale),
-      }
+      const vars = { percent: o.percentOff }
       return {
         headline: formatMessage(text.discount.headline, vars),
-        body: formatMessage(text.discount.body, vars),
+        body: formatPlural(text.discount.body, o.durationInMonths ?? 1, locale, vars),
         cta: text.discount.cta,
         declineCta,
       }
     }
     case 'pause': {
-      const duration = formatDuration(o.months, 'month', messages, locale)
-      return { ...text.pause, body: formatMessage(text.pause.body, { duration }), declineCta }
+      return { ...text.pause, body: formatPlural(text.pause.body, o.months, locale), declineCta }
     }
     case 'plan_change':
       return { ...text.plan_change, declineCta }
     case 'trial_extension': {
       return {
         ...text.trial_extension,
-        body: formatMessage(text.trial_extension.body, { duration: formatDuration(o.days, 'day', messages, locale) }),
+        body: formatPlural(text.trial_extension.body, o.days, locale),
         declineCta,
       }
     }

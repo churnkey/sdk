@@ -109,7 +109,10 @@
       "unspecified": "یک تخفیف",
       "nextRenewal": "{discount} برای تمدید بعدی شما",
       "forLife": "{discount} برای همیشه",
-      "forMonths": "{discount} برای {duration}"
+      "forMonths": {
+        "one": "{discount} برای {count} ماه",
+        "other": "{discount} برای {count} ماه"
+      }
     },
     "planInterval": {
       "day": "روز",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "{percent}٪ تخفیف چطور است؟",
-        "body": "می‌خواهیم برای {duration}، {percent}٪ تخفیف به شما بدهیم.",
         "headlineNoAmount": "پیشنهاد ویژه",
         "bodyNoAmount": "می‌خواهیم به شما تخفیف بدهیم.",
-        "cta": "پذیرش پیشنهاد"
+        "cta": "پذیرش پیشنهاد",
+        "body": {
+          "one": "می‌خواهیم برای {count} ماه، {percent}٪ تخفیف به شما بدهیم.",
+          "other": "می‌خواهیم برای {count} ماه، {percent}٪ تخفیف به شما بدهیم."
+        }
       },
       "pause": {
         "headline": "به‌جایش کمی استراحت کنید؟",
-        "body": "اشتراک خود را تا {duration} متوقف کنید.",
-        "cta": "توقف اشتراک"
+        "cta": "توقف اشتراک",
+        "body": {
+          "one": "اشتراک خود را تا {count} ماه متوقف کنید.",
+          "other": "اشتراک خود را تا {count} ماه متوقف کنید."
+        }
       },
       "plan_change": {
         "headline": "به طرح دیگری بروید؟",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "به زمان بیشتری نیاز دارید؟",
-        "body": "دوره آزمایشی شما را {duration} تمدید می‌کنیم.",
-        "cta": "تمدید دوره آزمایشی"
+        "cta": "تمدید دوره آزمایشی",
+        "body": {
+          "one": "دوره آزمایشی شما را {count} روز تمدید می‌کنیم.",
+          "other": "دوره آزمایشی شما را {count} روز تمدید می‌کنیم."
+        }
       },
       "contact": {
         "headline": "اول با ما صحبت کنید؟",

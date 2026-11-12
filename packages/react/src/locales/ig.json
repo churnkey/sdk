@@ -109,7 +109,9 @@
       "unspecified": "Nkwụsị price",
       "nextRenewal": "{discount} n'ọhụrụ gị nke na-abịa",
       "forLife": "{discount} ruo mgbe ndụ gị",
-      "forMonths": "{discount} maka {duration}"
+      "forMonths": {
+        "other": "{discount} maka ọnwa {count}"
+      }
     },
     "planInterval": {
       "day": "ụbọchị",
@@ -120,15 +122,19 @@
     "defaultCopy": {
       "discount": {
         "headline": "Kedu ka {percent}% nkwụsị si dị?",
-        "body": "Anyị chọrọ inye gị mbelata {percent}% maka {duration}.",
         "headlineNoAmount": "Onyinye pụrụ iche",
         "bodyNoAmount": "Anyị chọrọ inye gị nkwụsị price.",
-        "cta": "Nabata onyinye"
+        "cta": "Nabata onyinye",
+        "body": {
+          "other": "Anyị chọrọ inye gị ndakpọ {percent}% maka ọnwa {count}."
+        }
       },
       "pause": {
         "headline": "Zuru ike kama?",
-        "body": "Kwụsịtụ ndenye aha gị ruo {duration}.",
-        "cta": "Kwụsịtụ ndenye aha"
+        "cta": "Kwụsịtụ ndenye aha",
+        "body": {
+          "other": "Kwụsịtụ ndenye aha gị ruo ọnwa {count}."
+        }
       },
       "plan_change": {
         "headline": "Gbanwee gaa na atụmatụ ọzọ?",
@@ -137,8 +143,10 @@
       },
       "trial_extension": {
         "headline": "Ị chọrọ oge ọzọ?",
-        "body": "Anyị ga-agbatị oge nnwale gị site na {duration}.",
-        "cta": "Gbatịa ọnwụnwa"
+        "cta": "Gbatịa ọnwụnwa",
+        "body": {
+          "other": "Anyị ga-agbatị oge nnwale gị site na ụbọchị {count}."
+        }
       },
       "contact": {
         "headline": "Kpọtụrụ anyị tupu?",

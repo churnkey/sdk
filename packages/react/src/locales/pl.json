@@ -109,7 +109,12 @@
       "unspecified": "Zniżka",
       "nextRenewal": "{discount} przy następnym odnowieniu",
       "forLife": "{discount} na zawsze",
-      "forMonths": "{discount} przez {duration}"
+      "forMonths": {
+        "one": "{discount} przez {count} miesiąc",
+        "few": "{discount} przez {count} miesiące",
+        "many": "{discount} przez {count} miesięcy",
+        "other": "{discount} przez {count} miesiąca"
+      }
     },
     "planInterval": {
       "day": "dzień",
@@ -120,15 +125,25 @@
     "defaultCopy": {
       "discount": {
         "headline": "Co powiecie na {percent}% zniżki?",
-        "body": "Chcemy zaproponować {percent}% zniżki przez {duration}.",
         "headlineNoAmount": "Oferta specjalna",
         "bodyNoAmount": "Chcemy zaproponować Wam zniżkę.",
-        "cta": "Skorzystaj z oferty"
+        "cta": "Skorzystaj z oferty",
+        "body": {
+          "one": "Chcemy zaproponować rabat {percent}% przez {count} miesiąc.",
+          "few": "Chcemy zaproponować rabat {percent}% przez {count} miesiące.",
+          "many": "Chcemy zaproponować rabat {percent}% przez {count} miesięcy.",
+          "other": "Chcemy zaproponować rabat {percent}% przez {count} miesiąca."
+        }
       },
       "pause": {
         "headline": "Może zamiast tego przerwa?",
-        "body": "Subskrypcję można wstrzymać maksymalnie na {duration}.",
-        "cta": "Wstrzymaj subskrypcję"
+        "cta": "Wstrzymaj subskrypcję",
+        "body": {
+          "one": "Wstrzymanie subskrypcji na okres do {count} miesiąca.",
+          "few": "Wstrzymanie subskrypcji na okres do {count} miesięcy.",
+          "many": "Wstrzymanie subskrypcji na okres do {count} miesięcy.",
+          "other": "Wstrzymanie subskrypcji na okres do {count} miesiąca."
+        }
       },
       "plan_change": {
         "headline": "Zmienić plan na inny?",
@@ -137,8 +152,13 @@
       },
       "trial_extension": {
         "headline": "Potrzebujecie więcej czasu?",
-        "body": "Przedłużymy okres próbny o {duration}.",
-        "cta": "Przedłuż okres próbny"
+        "cta": "Przedłuż okres próbny",
+        "body": {
+          "one": "Przedłużymy okres próbny o {count} dzień.",
+          "few": "Przedłużymy okres próbny o {count} dni.",
+          "many": "Przedłużymy okres próbny o {count} dni.",
+          "other": "Przedłużymy okres próbny o {count} dnia."
+        }
       },
       "contact": {
         "headline": "Porozmawiajmy najpierw?",

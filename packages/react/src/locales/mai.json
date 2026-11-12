@@ -109,7 +109,10 @@
       "unspecified": "एकटा छूट",
       "nextRenewal": "अहाँक अगिला नवीकरण पर {discount}",
       "forLife": "जीवनभरि लेल {discount}",
-      "forMonths": "{duration} लेल {discount}"
+      "forMonths": {
+        "one": "{count} मासक लेल {discount}",
+        "other": "{count} मासक लेल {discount}"
+      }
     },
     "planInterval": {
       "day": "दिन",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% छूट कেমন रहत?",
-        "body": "हम अहाँकेँ {duration} लेल {percent}% छूट दए चाहैत छी।",
         "headlineNoAmount": "विशेष प्रस्ताव",
         "bodyNoAmount": "हम अहाँकेँ छूट दिअय चाहैत छी।",
-        "cta": "प्रस्ताव स्वीकार करू"
+        "cta": "प्रस्ताव स्वीकार करू",
+        "body": {
+          "one": "हम अहाँकेँ {count} मासक लेल {percent}% छूट दिअय चाहैत छी।",
+          "other": "हम अहाँकेँ {count} मासक लेल {percent}% छूट दिअय चाहैत छी।"
+        }
       },
       "pause": {
         "headline": "बदलामे विराम लेब?",
-        "body": "अपन सदस्यता {duration} धरि रोकि दिअ।",
-        "cta": "सदस्यता रोकू"
+        "cta": "सदस्यता रोकू",
+        "body": {
+          "one": "अपन सदस्यता {count} मास धरि रोकि दियौ।",
+          "other": "अपन सदस्यता बेसीसँ बेसी {count} मास धरि रोकि दियौ।"
+        }
       },
       "plan_change": {
         "headline": "दोसर प्लान पर जाइ?",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "बेसी समय चाही?",
-        "body": "हम अहाँक ट्रायल {duration} बढ़ा देब।",
-        "cta": "ट्रायल बढ़ाउ"
+        "cta": "ट्रायल बढ़ाउ",
+        "body": {
+          "one": "हम अहाँक ट्रायल {count} दिन बढ़ा देब।",
+          "other": "हम अहाँक ट्रायल {count} दिन बढ़ा देब।"
+        }
       },
       "contact": {
         "headline": "पहिने हमरा सँ गप करब?",

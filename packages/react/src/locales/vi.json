@@ -109,7 +109,9 @@
       "unspecified": "Ưu đãi giảm giá",
       "nextRenewal": "{discount} cho lần gia hạn tiếp theo",
       "forLife": "{discount} trọn đời",
-      "forMonths": "{discount} trong {duration}"
+      "forMonths": {
+        "other": "{discount} trong {count} tháng"
+      }
     },
     "planInterval": {
       "day": "ngày",
@@ -120,15 +122,19 @@
     "defaultCopy": {
       "discount": {
         "headline": "Giảm {percent}% nhé?",
-        "body": "Chúng tôi muốn tặng bạn ưu đãi giảm {percent}% trong {duration}.",
         "headlineNoAmount": "Ưu đãi đặc biệt",
         "bodyNoAmount": "Chúng tôi muốn tặng bạn một ưu đãi giảm giá.",
-        "cta": "Nhận ưu đãi"
+        "cta": "Nhận ưu đãi",
+        "body": {
+          "other": "Chúng tôi muốn tặng bạn ưu đãi giảm {percent}% trong {count} tháng."
+        }
       },
       "pause": {
         "headline": "Tạm nghỉ thay vì hủy?",
-        "body": "Tạm dừng gói đăng ký của bạn tối đa {duration}.",
-        "cta": "Tạm dừng đăng ký"
+        "cta": "Tạm dừng đăng ký",
+        "body": {
+          "other": "Tạm dừng gói đăng ký của bạn tối đa {count} tháng."
+        }
       },
       "plan_change": {
         "headline": "Chuyển sang gói khác?",
@@ -137,8 +143,10 @@
       },
       "trial_extension": {
         "headline": "Cần thêm thời gian?",
-        "body": "Chúng tôi sẽ gia hạn thời gian dùng thử của bạn thêm {duration}.",
-        "cta": "Gia hạn dùng thử"
+        "cta": "Gia hạn dùng thử",
+        "body": {
+          "other": "Chúng tôi sẽ gia hạn thời gian dùng thử của bạn thêm {count} ngày."
+        }
       },
       "contact": {
         "headline": "Trao đổi với chúng tôi trước nhé?",

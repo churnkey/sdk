@@ -109,7 +109,10 @@
       "unspecified": "Rangwame",
       "nextRenewal": "{discount} a sabuntawarka ta gaba",
       "forLife": "{discount} har abada",
-      "forMonths": "{discount} na tsawon {duration}"
+      "forMonths": {
+        "one": "{discount} na wata {count}",
+        "other": "{discount} na watanni {count}"
+      }
     },
     "planInterval": {
       "day": "rana",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "Me ka cewa a rage {percent}%?",
-        "body": "Muna so mu ba ka rangwamen {percent}% na tsawon {duration}.",
         "headlineNoAmount": "Tayi na musamman",
         "bodyNoAmount": "Muna so mu ba ka rangwame.",
-        "cta": "Karɓi tayin"
+        "cta": "Karɓi tayin",
+        "body": {
+          "one": "Muna so mu ba ka rangwamen {percent}% na wata {count}.",
+          "other": "Muna so mu ba ka rangwamen {percent}% na watanni {count}."
+        }
       },
       "pause": {
         "headline": "Ka huta maimakon haka?",
-        "body": "Dakatar da biyan kuɗinka har na tsawon {duration}.",
-        "cta": "Dakatar da biyan kuɗi"
+        "cta": "Dakatar da biyan kuɗi",
+        "body": {
+          "one": "Dakatar da biyan kuɗinka har zuwa wata {count}.",
+          "other": "Dakatar da biyan kuɗinka har zuwa watanni {count}."
+        }
       },
       "plan_change": {
         "headline": "Ka koma wani tsari daban?",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "Kana buƙatar ƙarin lokaci?",
-        "body": "Za mu ƙara maka lokacin gwajinka da {duration}.",
-        "cta": "Ƙara lokacin gwaji"
+        "cta": "Ƙara lokacin gwaji",
+        "body": {
+          "one": "Za mu ƙara wa gwajinka kwana {count}.",
+          "other": "Za mu ƙara wa gwajinka kwanaki {count}."
+        }
       },
       "contact": {
         "headline": "Ka fara magana da mu?",

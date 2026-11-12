@@ -109,7 +109,10 @@
       "unspecified": "رعايت",
       "nextRenewal": "توهان جي ايندڙ تجديد تي {discount}",
       "forLife": "عمر ڀر لاءِ {discount}",
-      "forMonths": "{duration} لاءِ {discount}"
+      "forMonths": {
+        "one": "{count} مهيني لاءِ {discount}",
+        "other": "{count} مهينن لاءِ {discount}"
+      }
     },
     "planInterval": {
       "day": "ڏينهن",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% رعايت ڪيئن رهندي؟",
-        "body": "اسان توهان کي {duration} لاءِ {percent}% ڇوٽ ڏيڻ چاهيون ٿا.",
         "headlineNoAmount": "خاص آڇ",
         "bodyNoAmount": "اسين توهان کي رعايت ڏيڻ چاهيون ٿا.",
-        "cta": "آڇ قبول ڪريو"
+        "cta": "آڇ قبول ڪريو",
+        "body": {
+          "one": "اسين توهان کي {count} مهيني لاءِ {percent}% رعايت ڏيڻ چاهيون ٿا.",
+          "other": "اسين توهان کي {count} مهينن لاءِ {percent}% رعايت ڏيڻ چاهيون ٿا."
+        }
       },
       "pause": {
         "headline": "بدران ٿورو وقفو وٺو؟",
-        "body": "پنهنجي رڪنيت کي {duration} تائين روڪي ڇڏيو.",
-        "cta": "رڪنيت روڪيو"
+        "cta": "رڪنيت روڪيو",
+        "body": {
+          "one": "پنهنجي رڪنيت کي {count} مهيني تائين روڪيو.",
+          "other": "پنهنجي رڪنيت کي {count} مهينن تائين روڪيو."
+        }
       },
       "plan_change": {
         "headline": "ڪو ٻيو پلان چونڊيو؟",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "وڌيڪ وقت گهرجي؟",
-        "body": "اسان توهان جو آزمائشي دور {duration} وڌائينداسين.",
-        "cta": "آزمائشي مدو وڌايو"
+        "cta": "آزمائشي مدو وڌايو",
+        "body": {
+          "one": "اسين توهان جو آزمائشي مدو {count} ڏينهن وڌائينداسين.",
+          "other": "اسين توهان جو آزمائشي مدو {count} ڏينهن وڌائينداسين."
+        }
       },
       "contact": {
         "headline": "پهرين اسان سان ڳالهايو؟",

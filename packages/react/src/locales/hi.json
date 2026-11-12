@@ -109,7 +109,10 @@
       "unspecified": "एक छूट",
       "nextRenewal": "अगले नवीनीकरण पर {discount}",
       "forLife": "हमेशा के लिए {discount}",
-      "forMonths": "{duration} के लिए {discount}"
+      "forMonths": {
+        "one": "{discount} {count} महीने के लिए",
+        "other": "{discount} {count} महीनों के लिए"
+      }
     },
     "planInterval": {
       "day": "दिन",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% छूट कैसी रहेगी?",
-        "body": "हम आपको {duration} के लिए {percent}% की छूट देना चाहते हैं।",
         "headlineNoAmount": "विशेष ऑफ़र",
         "bodyNoAmount": "हम आपको छूट देना चाहते हैं।",
-        "cta": "ऑफ़र स्वीकारें"
+        "cta": "ऑफ़र स्वीकारें",
+        "body": {
+          "one": "हम आपको {count} महीने के लिए {percent}% की छूट देना चाहते हैं।",
+          "other": "हम आपको {count} महीनों के लिए {percent}% की छूट देना चाहते हैं।"
+        }
       },
       "pause": {
         "headline": "इसके बजाय ब्रेक लें?",
-        "body": "अपनी सदस्यता को {duration} तक के लिए रोकें।",
-        "cta": "सदस्यता रोकें"
+        "cta": "सदस्यता रोकें",
+        "body": {
+          "one": "अपनी सदस्यता को अधिकतम {count} महीने के लिए रोकें।",
+          "other": "अपनी सदस्यता को अधिकतम {count} महीनों के लिए रोकें।"
+        }
       },
       "plan_change": {
         "headline": "किसी दूसरे प्लान पर जाएँ?",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "और समय चाहिए?",
-        "body": "हम आपका ट्रायल {duration} बढ़ा देंगे।",
-        "cta": "ट्रायल बढ़ाएँ"
+        "cta": "ट्रायल बढ़ाएँ",
+        "body": {
+          "one": "हम आपका ट्रायल {count} दिन बढ़ा देंगे।",
+          "other": "हम आपका ट्रायल {count} दिन बढ़ा देंगे।"
+        }
       },
       "contact": {
         "headline": "पहले हमसे बात करें?",

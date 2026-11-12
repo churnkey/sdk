@@ -109,7 +109,11 @@
       "unspecified": "Un descuento",
       "nextRenewal": "{discount} en tu próxima renovación",
       "forLife": "{discount} de por vida",
-      "forMonths": "{discount} durante {duration}"
+      "forMonths": {
+        "one": "{discount} durante {count} mes",
+        "many": "{discount} durante {count} de meses",
+        "other": "{discount} durante {count} meses"
+      }
     },
     "planInterval": {
       "day": "día",
@@ -120,15 +124,23 @@
     "defaultCopy": {
       "discount": {
         "headline": "¿Qué te parece un {percent}% de descuento?",
-        "body": "Queremos ofrecerte un {percent}% de descuento durante {duration}.",
         "headlineNoAmount": "Oferta especial",
         "bodyNoAmount": "Queremos ofrecerte un descuento.",
-        "cta": "Aceptar oferta"
+        "cta": "Aceptar oferta",
+        "body": {
+          "one": "Queremos ofrecerte un {percent}% de descuento durante {count} mes.",
+          "many": "Queremos ofrecerte un {percent}% de descuento durante {count} de meses.",
+          "other": "Queremos ofrecerte un {percent}% de descuento durante {count} meses."
+        }
       },
       "pause": {
         "headline": "¿Prefieres tomarte un descanso?",
-        "body": "Pausa tu suscripción por hasta {duration}.",
-        "cta": "Pausar suscripción"
+        "cta": "Pausar suscripción",
+        "body": {
+          "one": "Pausa tu suscripción hasta {count} mes.",
+          "many": "Pausa tu suscripción hasta {count} de meses.",
+          "other": "Pausa tu suscripción hasta {count} meses."
+        }
       },
       "plan_change": {
         "headline": "¿Cambiar a otro plan?",
@@ -137,8 +149,12 @@
       },
       "trial_extension": {
         "headline": "¿Necesitas más tiempo?",
-        "body": "Ampliaremos tu prueba {duration}.",
-        "cta": "Ampliar prueba"
+        "cta": "Ampliar prueba",
+        "body": {
+          "one": "Ampliaremos tu prueba {count} día.",
+          "many": "Ampliaremos tu prueba {count} de días.",
+          "other": "Ampliaremos tu prueba {count} días."
+        }
       },
       "contact": {
         "headline": "¿Hablamos antes?",

@@ -109,7 +109,9 @@
       "unspecified": "ส่วนลด",
       "nextRenewal": "{discount}สำหรับการต่ออายุครั้งถัดไป",
       "forLife": "{discount}ตลอดชีพ",
-      "forMonths": "{discount} เป็นเวลา {duration}"
+      "forMonths": {
+        "other": "{discount} นาน {count} เดือน"
+      }
     },
     "planInterval": {
       "day": "วัน",
@@ -120,15 +122,19 @@
     "defaultCopy": {
       "discount": {
         "headline": "ลด {percent}% สนใจไหม?",
-        "body": "เรามีส่วนลด {percent}% ให้คุณเป็นเวลา {duration}",
         "headlineNoAmount": "ข้อเสนอพิเศษ",
         "bodyNoAmount": "เรามีส่วนลดพิเศษมอบให้คุณ",
-        "cta": "รับข้อเสนอ"
+        "cta": "รับข้อเสนอ",
+        "body": {
+          "other": "เรามีส่วนลด {percent}% ให้คุณนาน {count} เดือน"
+        }
       },
       "pause": {
         "headline": "พักไว้ก่อนดีไหม?",
-        "body": "พักการสมัครสมาชิกได้นานสูงสุด {duration}",
-        "cta": "พักการสมัครสมาชิก"
+        "cta": "พักการสมัครสมาชิก",
+        "body": {
+          "other": "พักการสมัครสมาชิกของคุณได้นานสูงสุด {count} เดือน"
+        }
       },
       "plan_change": {
         "headline": "เปลี่ยนไปใช้แพ็กเกจอื่นไหม?",
@@ -137,8 +143,10 @@
       },
       "trial_extension": {
         "headline": "ต้องการเวลาเพิ่มไหม?",
-        "body": "เราจะขยายระยะเวลาทดลองใช้ให้คุณอีก {duration}",
-        "cta": "ขยายช่วงทดลองใช้"
+        "cta": "ขยายช่วงทดลองใช้",
+        "body": {
+          "other": "เราจะขยายช่วงทดลองใช้ของคุณออกไปอีก {count} วัน"
+        }
       },
       "contact": {
         "headline": "คุยกับเราก่อนไหม?",

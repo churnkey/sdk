@@ -105,6 +105,16 @@ export function useCancelFlowMachine(config: FlowConfig): CancelFlowMachineHandl
     }
   }, [config.session, explicitLocale, machine])
 
+  // English needs no pack, so a regional English browser (en-GB, en-IN) gets
+  // its date and number formats and its dashboard `en-GB` entries at once.
+  // After mount, so the server render and the first client render agree.
+  useEffect(() => {
+    if (explicitLocale) return
+    const detected = resolveLocale(undefined)
+    const tag = detected.toLowerCase()
+    if (tag !== 'en' && tag.split('-')[0] === 'en') machine.setLocale(detected, undefined)
+  }, [explicitLocale, machine])
+
   const loadConfig = useCallback(() => {
     if (!config.session) return
     setLoadError(null)

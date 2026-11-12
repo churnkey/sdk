@@ -109,7 +109,10 @@
       "unspecified": "Endirim",
       "nextRenewal": "Növbəti yenilənmədə {discount}",
       "forLife": "Ömürlük {discount}",
-      "forMonths": "{duration} üçün {discount}"
+      "forMonths": {
+        "one": "{count} ay üçün {discount}",
+        "other": "{count} ay üçün {discount}"
+      }
     },
     "planInterval": {
       "day": "gün",
@@ -120,15 +123,21 @@
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% endirimə nə deyirsiniz?",
-        "body": "Sizə {duration} üçün {percent}% endirim təklif etmək istərdik.",
         "headlineNoAmount": "Xüsusi təklif",
         "bodyNoAmount": "Sizə endirim təklif etmək istəyirik.",
-        "cta": "Təklifi qəbul et"
+        "cta": "Təklifi qəbul et",
+        "body": {
+          "one": "Sizə {count} ay müddətinə {percent}% endirim təklif etmək istəyirik.",
+          "other": "Sizə {count} ay müddətinə {percent}% endirim təklif etmək istəyirik."
+        }
       },
       "pause": {
         "headline": "Əvəzinə fasilə verək?",
-        "body": "Abunəliyinizi {duration} müddətinədək dayandırın.",
-        "cta": "Abunəliyi dayandır"
+        "cta": "Abunəliyi dayandır",
+        "body": {
+          "one": "Abunəliyinizi {count} aya qədər dayandırın.",
+          "other": "Abunəliyinizi {count} aya qədər dayandırın."
+        }
       },
       "plan_change": {
         "headline": "Başqa plana keçək?",
@@ -137,8 +146,11 @@
       },
       "trial_extension": {
         "headline": "Daha çox vaxt lazımdır?",
-        "body": "Sınaq müddətinizi {duration} uzadacağıq.",
-        "cta": "Sınağı uzat"
+        "cta": "Sınağı uzat",
+        "body": {
+          "one": "Sınaq müddətinizi {count} gün uzadacağıq.",
+          "other": "Sınaq müddətinizi {count} gün uzadacağıq."
+        }
       },
       "contact": {
         "headline": "Əvvəlcə bizimlə danışaq?",

@@ -111,6 +111,23 @@ describe('useCancelFlow', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  it('a regional English browser gets its formats and en-GB overrides, connected or local', async () => {
+    vi.spyOn(navigator, 'language', 'get').mockReturnValue('en-GB')
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ ...goodResponse, translations: { 'en-GB': { common: { back: 'Go back (GB)' } } } }),
+    } as Response)
+    const connected = renderHook(() => useCancelFlow({ session: TOKEN }))
+    await waitFor(() => expect(connected.result.current.isLoading).toBe(false))
+    expect(connected.result.current.locale).toBe('en-GB')
+    expect(connected.result.current.messages.common.back).toBe('Go back (GB)')
+
+    const local = renderHook(() =>
+      useCancelFlow({ steps: [{ type: 'survey', reasons: [{ id: 'r1', label: 'Test' }] }] }),
+    )
+    await waitFor(() => expect(local.result.current.locale).toBe('en-GB'))
+  })
+
   it('in local mode ignores the browser language: the steps are in whatever language they were written', () => {
     vi.spyOn(navigator, 'language', 'get').mockReturnValue('es-ES')
     const { result } = renderHook(() =>

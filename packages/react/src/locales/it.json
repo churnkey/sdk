@@ -109,7 +109,11 @@
       "unspecified": "Uno sconto",
       "nextRenewal": "{discount} sul prossimo rinnovo",
       "forLife": "{discount} per sempre",
-      "forMonths": "{discount} per {duration}"
+      "forMonths": {
+        "one": "{discount} per {count} mese",
+        "many": "{discount} per {count} di mesi",
+        "other": "{discount} per {count} mesi"
+      }
     },
     "planInterval": {
       "day": "giorno",
@@ -120,15 +124,23 @@
     "defaultCopy": {
       "discount": {
         "headline": "Che ne direbbe del {percent}% di sconto?",
-        "body": "Vorremmo offrirLe il {percent}% di sconto per {duration}.",
         "headlineNoAmount": "Offerta speciale",
         "bodyNoAmount": "Vorremmo offrirLe uno sconto.",
-        "cta": "Accetta l'offerta"
+        "cta": "Accetta l'offerta",
+        "body": {
+          "one": "Vorremmo offrirLe il {percent}% di sconto per {count} mese.",
+          "many": "Vorremmo offrirLe il {percent}% di sconto per {count} di mesi.",
+          "other": "Vorremmo offrirLe il {percent}% di sconto per {count} mesi."
+        }
       },
       "pause": {
         "headline": "Preferisce fare una pausa?",
-        "body": "Metta in pausa il Suo abbonamento fino a {duration}.",
-        "cta": "Sospendi abbonamento"
+        "cta": "Sospendi abbonamento",
+        "body": {
+          "one": "Metta in pausa l'abbonamento per un massimo di {count} mese.",
+          "many": "Metta in pausa l'abbonamento per un massimo di {count} di mesi.",
+          "other": "Metta in pausa l'abbonamento per un massimo di {count} mesi."
+        }
       },
       "plan_change": {
         "headline": "Passare a un altro piano?",
@@ -137,8 +149,12 @@
       },
       "trial_extension": {
         "headline": "Ha bisogno di più tempo?",
-        "body": "Estenderemo la Sua prova di {duration}.",
-        "cta": "Estendi la prova"
+        "cta": "Estendi la prova",
+        "body": {
+          "one": "Estenderemo la Sua prova di {count} giorno.",
+          "many": "Estenderemo la Sua prova di {count} di giorni.",
+          "other": "Estenderemo la Sua prova di {count} giorni."
+        }
       },
       "contact": {
         "headline": "Prima parli con noi?",

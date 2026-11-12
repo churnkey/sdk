@@ -32,7 +32,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { defaultMessages } from '../packages/react/src/core/messages'
+import { defaultMessages, expandPluralPaths, PLURAL_PATHS } from '../packages/react/src/core/messages'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT_DIR = resolve(ROOT, 'packages/react/src/locales')
@@ -198,11 +198,15 @@ function validate(lang: string, source: Flat, pack: Flat): { errors: string[]; w
       errors.push(`${path}: missing`)
       continue
     }
-    const want = placeholders(english)
-    const got = placeholders(value)
+    // The zero, one and two forms may leave the number out ("شهرين" is "two months").
+    const category = path.slice(path.lastIndexOf('.') + 1)
+    const numberOptional =
+      PLURAL_PATHS.has(path.slice(0, path.lastIndexOf('.'))) && ['zero', 'one', 'two'].includes(category)
+    const want = placeholders(english).filter((p) => !(numberOptional && p === 'count'))
+    const got = placeholders(value).filter((p) => !(numberOptional && p === 'count'))
     if (want.join() !== got.join())
       errors.push(`${path}: placeholders ${JSON.stringify(got)} != ${JSON.stringify(want)}`)
-    // Only placeholders and punctuation left ("{duration}{discount}" in Chinese) is fine.
+    // Only placeholders and punctuation left is fine.
     const letters = value.replace(/\{\w+\}/g, '')
     const hasLetters = /\p{L}/u.test(letters)
     if (NON_LATIN.has(lang) && hasLetters && ![...letters].some((ch) => ch.charCodeAt(0) > 127))
@@ -354,7 +358,8 @@ async function translate(provider: Provider, lang: string, text: Flat): Promise<
    - Effectiveness of retention incentives
 3. These are interface strings: button labels, headings, short notices. Keep them as short as the English.
 4. Keep every {placeholder} token exactly as written, in braces, untranslated. Reorder it in the sentence if the grammar needs that.
-   Placeholders are filled with finished phrases in ${LANGUAGES[lang]}: {duration} is a number and unit in dictionary form ("3 months"), {discount} a whole discount phrase ("25% off"), {amount} a formatted price, {date} a formatted date. Never attach a suffix, case ending or particle to a placeholder; when the grammar needs a case marker or postposition, use a separate word or rephrase so the placeholder stands alone. {duration} is always in the nominative: build the sentence so that form is correct there (for example as the object of a preposition that takes it, or after a noun like "period:"), not after a word that needs another case.
+   Placeholders are filled with finished phrases in ${LANGUAGES[lang]}: {discount} a whole discount phrase ("25% off"), {amount} a formatted price, {date} a formatted date. Never attach a suffix, case ending or particle to one of those; when the grammar needs a case marker or postposition, use a separate word or rephrase so the placeholder stands alone. {count} is a bare number: write the unit next to it yourself, in the form the number and the sentence need.
+   A key ending in .zero, .one, .two, .few, .many or .other is one message in a CLDR plural category of ${LANGUAGES[lang]}: write the whole string as it reads for a {count} in that category (the English given is its "one" or "other" form).
 5. Keep punctuation style (a trailing period or ellipsis stays).
 ${REGISTER[lang] ? `6. ${REGISTER[lang]}` : ''}
 Return a JSON object with exactly the same keys as the input.`
@@ -472,7 +477,16 @@ async function main() {
     Array.from({ length: CONCURRENCY }, async () => {
       for (let lang = queue.shift(); lang; lang = queue.shift()) {
         try {
-          const r = await generate(provider, lang, source, previous, pending[lang] ?? [], seeds[lang] ?? {}, force)
+          // Each plural message in the forms this language has (Polish adds few and many).
+          const r = await generate(
+            provider,
+            lang,
+            expandPluralPaths(source, lang),
+            expandPluralPaths(previous, lang),
+            pending[lang] ?? [],
+            seeds[lang] ?? {},
+            force,
+          )
           results.push(r)
           delete pending[lang]
           if (r.status === 'written') {
@@ -497,10 +511,12 @@ async function main() {
   // A language not brought current this run (failed, or outside --only) owes
   // the strings whose English changed, on top of what it already owed.
   const done = new Set(results.map((r) => r.lang))
-  const changed = Object.keys(source).filter((path) => previous[path] !== source[path])
   for (const lang of Object.keys(LANGUAGES)) {
     if (done.has(lang)) continue
-    const owed = [...new Set([...(pending[lang] ?? []), ...changed])].filter((path) => path in source)
+    const now = expandPluralPaths(source, lang)
+    const before = expandPluralPaths(previous, lang)
+    const changed = Object.keys(now).filter((path) => before[path] !== now[path])
+    const owed = [...new Set([...(pending[lang] ?? []), ...changed])].filter((path) => path in now)
     if (owed.length) pending[lang] = owed
   }
   if (Object.keys(pending).length) writeFileSync(PENDING_FILE, `${JSON.stringify(pending, null, 2)}\n`)
