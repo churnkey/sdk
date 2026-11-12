@@ -7,7 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect 
 ### Added
 
 - Built-in translations of the SDK's own strings (buttons, loading, confirm and success copy) in the same 50 languages the embed ships. Only the pack for the language in use is loaded, as its own chunk; English visitors download nothing extra. Dashboard SDK translations still override the pack, and `i18n.messages` still override both.
-- The discount phrase ("25% off for 3 months") and the copy local mode gives an offer declared without `copy` now come from the catalog, under `offer.discount` and `offer.defaultCopy`, so they are translated with the rest. Code that builds a full `CancelFlowMessages` object needs the new keys; a `messages` patch does not.
+- The discount phrase ("25% off for 3 months") and the copy local mode gives an offer declared without `copy` now come from the catalog, under `offer.discount` and `offer.defaultCopy`, so they are translated with the rest. Durations in them ("3 months") are one `{duration}` placeholder, pluralized for the language by `Intl`. The plan grid's "/month" reads `offer.planInterval`. Code that builds a full `CancelFlowMessages` object needs the new keys; a `messages` patch does not.
 - `locale` on `useCancelFlow`'s result, `CancelFlowMachine` and the step component props: the language the chrome renders in, as a BCP 47 tag. Custom steps and custom offers (`CustomStepProps`, `CustomOfferProps`) get it too, along with `messages`, the resolved catalog. The `TermExtensionOffer` and `PassthroughOffer` recipes use both.
 
 ### Changed
