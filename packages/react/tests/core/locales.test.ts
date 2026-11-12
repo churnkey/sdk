@@ -7,6 +7,7 @@ import {
   defaultMessages,
   expandPluralPaths,
   formatMessage,
+  formatPlural,
   type MessagesPatch,
   PLURAL_PATHS,
   selectTiming,
@@ -142,6 +143,54 @@ describe('catalogLocale', () => {
     // A failed or slow pack: English text, English dates.
     expect(catalogLocale('es', undefined, undefined, undefined)).toBe('en')
     expect(catalogLocale('en-GB', undefined, undefined, undefined)).toBe('en-GB')
+  })
+})
+
+describe('plural forms', () => {
+  const plPack: MessagesPatch = {
+    offer: {
+      discount: {
+        forMonths: {
+          one: '{discount} przez {count} miesiąc',
+          few: '{discount} przez {count} miesiące',
+          many: '{discount} przez {count} miesięcy',
+          other: '{discount} przez {count} miesiąca',
+        },
+      },
+    },
+  }
+  const months = (messages: ReturnType<typeof buildMessages>, count: number, locale: string) =>
+    formatPlural(messages.offer.discount.forMonths, count, locale, { discount: 'X' })
+
+  it('are picked with the rules of the language they are in, not the requested one', () => {
+    // Croatian overrides elsewhere, English forms here: Croatian rules would say "21 month".
+    const hr = buildMessages({ locale: 'hr' }, { hr: { common: { back: 'Natrag' } } })
+    expect(months(hr, 21, 'hr')).toBe('X for 21 months')
+    // The Japanese pack timed out but an org entry exists: still "1 month".
+    const ja = buildMessages({ locale: 'ja' }, { ja: { common: { back: '戻る' } } })
+    expect(months(ja, 1, 'ja')).toBe('X for 1 month')
+    const pl = buildMessages({ locale: 'pl' }, undefined, plPack)
+    expect([1, 2, 5, 22].map((n) => months(pl, n, 'pl'))).toEqual([
+      'X przez 1 miesiąc',
+      'X przez 2 miesiące',
+      'X przez 5 miesięcy',
+      'X przez 22 miesiące',
+    ])
+  })
+
+  it('an override with `other` replaces every form; one without edits only those it names', () => {
+    const whole = buildMessages(
+      { locale: 'pl' },
+      { pl: { offer: { discount: { forMonths: { one: 'jeden (org)', other: '{count} (org)' } } } } },
+      plPack,
+    )
+    expect([1, 2, 5].map((n) => months(whole, n, 'pl'))).toEqual(['jeden (org)', '2 (org)', '5 (org)'])
+    const edit = buildMessages(
+      { locale: 'pl', messages: { pl: { offer: { discount: { forMonths: { few: '{count} (dev)' } } } } } },
+      undefined,
+      plPack,
+    )
+    expect([2, 5].map((n) => months(edit, n, 'pl'))).toEqual(['2 (dev)', 'X przez 5 miesięcy'])
   })
 })
 

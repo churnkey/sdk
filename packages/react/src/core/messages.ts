@@ -22,9 +22,11 @@ export type TimingAware = string | TimingVariants
 /**
  * One message in each plural form a language has, by CLDR category. English
  * has `one` and `other`; Polish adds `few` and `many`, Arabic `zero` and
- * `two`. `{count}` is the number; the form is picked with `Intl.PluralRules`,
- * and a form a translation lacks falls back to `other`. A plain string
- * override applies to every form.
+ * `two`. `{count}` is the number; the form is picked with `Intl.PluralRules`
+ * for the language the forms are in, and a form a translation lacks falls
+ * back to `other`. An override that sets `other` (or a plain string)
+ * replaces every form, so it is never mixed with another language's; one
+ * without `other` edits only the forms it names. Render one with `formatPlural`.
  */
 export interface PluralForms {
   zero?: string
@@ -452,15 +454,26 @@ export function selectTiming(value: TimingAware, cancelAtPeriodEnd: boolean | nu
 const PLURAL_CATEGORIES = ['zero', 'one', 'two', 'few', 'many', 'other'] as const
 
 /** The form of `forms` for `count` in `locale`, with `{count}` and `vars` filled in. */
+// The language each plural leaf from `buildMessages` is in, so English forms
+// are never picked with Croatian rules ("21 month") when only part of the
+// catalog is translated. Kept beside the catalog, not in it, so the catalog
+// stays plain strings.
+const pluralLanguage = new WeakMap<PluralForms, string>()
+
+/**
+ * The form of `forms` for `count`, with `{count}` and `vars` filled in. The
+ * plural rules are those of the language the forms are in when they came
+ * from `buildMessages`, else `locale`.
+ */
 export function formatPlural(
   forms: PluralForms,
   count: number,
-  locale: string | undefined,
+  locale?: string,
   vars: Record<string, string | number> = {},
 ): string {
   let category: Intl.LDMLPluralRule = 'other'
   try {
-    category = new Intl.PluralRules(locale).select(count)
+    category = new Intl.PluralRules(pluralLanguage.get(forms) ?? locale).select(count)
   } catch {
     // A malformed tag: `other`.
   }
@@ -479,6 +492,12 @@ export const PLURAL_PATHS: ReadonlySet<string> = new Set([
   'offer.defaultCopy.pause.body',
   'offer.defaultCopy.trial_extension.body',
 ])
+
+// The defaults are English.
+for (const path of PLURAL_PATHS) {
+  const forms = path.split('.').reduce<unknown>((node, key) => (node as Record<string, unknown>)[key], defaultMessages)
+  pluralLanguage.set(forms as PluralForms, 'en')
+}
 
 /**
  * The flattened English catalog as `locale` needs it translated: each plural
@@ -500,17 +519,28 @@ export function expandPluralPaths(flat: Record<string, string>, locale: string):
   return out
 }
 
-function mergePlural(base: PluralForms, patch: unknown): PluralForms {
+function mergePlural(base: PluralForms, patch: unknown, language: string | undefined): PluralForms {
+  let merged: PluralForms
+  let replaced = false
   if (typeof patch === 'string') {
     if (patch === '') return base
-    return Object.fromEntries(Object.keys(base).map((key) => [key, patch])) as unknown as PluralForms
+    merged = { other: patch }
+    replaced = true
+  } else if (typeof patch === 'object' && patch !== null && !Array.isArray(patch)) {
+    const forms: Partial<PluralForms> = {}
+    for (const category of PLURAL_CATEGORIES) {
+      const value = (patch as Record<string, unknown>)[category]
+      if (typeof value === 'string' && value) forms[category] = value
+    }
+    if (Object.keys(forms).length === 0) return base
+    // With `other`, a whole set in this layer's language; without, an edit of the forms underneath.
+    replaced = forms.other !== undefined
+    merged = replaced ? (forms as PluralForms) : { ...base, ...forms }
+  } else {
+    return base
   }
-  if (typeof patch !== 'object' || patch === null || Array.isArray(patch)) return base
-  const merged: PluralForms = { ...base }
-  for (const category of PLURAL_CATEGORIES) {
-    const value = (patch as Record<string, unknown>)[category]
-    if (typeof value === 'string' && value) merged[category] = value
-  }
+  const tag = replaced ? language : pluralLanguage.get(base)
+  if (tag) pluralLanguage.set(merged, tag)
   return merged
 }
 
@@ -539,8 +569,8 @@ const TIMING_AWARE_PATHS: ReadonlySet<string> = new Set([
 // the catalog is closed. Empty-string overrides are also dropped (a blank
 // dashboard field must not clobber a real string — same rule as the embed),
 // which is why defaults may legitimately hold '' but patches never land one.
-function mergeValue(base: unknown, patch: unknown, path: string): unknown {
-  if (PLURAL_PATHS.has(path)) return mergePlural(base as PluralForms, patch)
+function mergeValue(base: unknown, patch: unknown, path: string, language?: string): unknown {
+  if (PLURAL_PATHS.has(path)) return mergePlural(base as PluralForms, patch, language)
   if (typeof base === 'string' || isTimingVariants(base)) {
     if (typeof patch === 'string') return patch === '' ? base : patch
     if (isTimingVariants(patch) && TIMING_AWARE_PATHS.has(path)) {
@@ -572,16 +602,21 @@ function mergeValue(base: unknown, patch: unknown, path: string): unknown {
     const merged: Record<string, unknown> = { ...(base as Record<string, unknown>) }
     for (const [key, value] of Object.entries(patch)) {
       if (value == null || !(key in merged)) continue
-      merged[key] = mergeValue(merged[key], value, path ? `${path}.${key}` : key)
+      merged[key] = mergeValue(merged[key], value, path ? `${path}.${key}` : key, language)
     }
     return merged
   }
   return base
 }
 
-export function mergeMessages(base: CancelFlowMessages, patch: MessagesPatch | undefined): CancelFlowMessages {
+/** `language` is the language `patch` is in, for its plural forms. */
+export function mergeMessages(
+  base: CancelFlowMessages,
+  patch: MessagesPatch | undefined,
+  language?: string,
+): CancelFlowMessages {
   if (!patch) return base
-  return mergeValue(base, patch, '') as CancelFlowMessages
+  return mergeValue(base, patch, '', language) as CancelFlowMessages
 }
 
 /** Language to ask the server for: the explicit locale, else the browser's. */
@@ -644,10 +679,10 @@ export function buildMessages(
   const tags = [...new Set([base, exact])].filter((tag) => tag !== 'en')
   const org = lowerKeys(orgMessages)
   const dev = lowerKeys(i18n?.messages)
-  let resolved = mergeMessages(defaultMessages, org.get('en'))
-  resolved = mergeMessages(resolved, dev.get('en'))
-  resolved = mergeMessages(resolved, localePack)
-  for (const tag of tags) resolved = mergeMessages(resolved, org.get(tag))
-  for (const tag of tags) resolved = mergeMessages(resolved, dev.get(tag))
+  let resolved = mergeMessages(defaultMessages, org.get('en'), 'en')
+  resolved = mergeMessages(resolved, dev.get('en'), 'en')
+  resolved = mergeMessages(resolved, localePack, i18n?.locale)
+  for (const tag of tags) resolved = mergeMessages(resolved, org.get(tag), tag)
+  for (const tag of tags) resolved = mergeMessages(resolved, dev.get(tag), tag)
   return resolved
 }
