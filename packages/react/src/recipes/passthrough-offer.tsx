@@ -20,8 +20,13 @@ import type { CustomOfferProps } from '../core/types'
  * passes through as the result; the merchant's handler tells offer types
  * apart via `customOfferType` on the accepted payload.
  */
-export function PassthroughOffer({ offer, onAccept, onDecline, isProcessing }: CustomOfferProps) {
-  const msg = defaultMessages
+export function PassthroughOffer({
+  offer,
+  onAccept,
+  onDecline,
+  isProcessing,
+  messages: msg = defaultMessages,
+}: CustomOfferProps) {
   // OfferDecision is a union; only the custom member carries `data`.
   const data = (offer as { data?: Record<string, unknown> }).data
 

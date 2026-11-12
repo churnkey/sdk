@@ -60,10 +60,16 @@ export function convertFromMinorUnits(value: number, currency = 'USD'): number {
  * whole amounts render compactly.
  */
 export function formatPrice(amount: number, currency = 'USD', locale?: string): string {
-  const options: Intl.NumberFormatOptions = { style: 'currency', currency, currencyDisplay: 'narrowSymbol' }
-  // Trim a zero fraction wherever the locale puts the symbol ("$29.00", "29,00 €").
-  const format = (tag: string | undefined) =>
-    new Intl.NumberFormat(tag, options).format(amount).replace(/[.,]00(?!\d)/, '')
+  // Whole amounts print without a fraction ("$29", "29 €"). Asking Intl for
+  // it, rather than trimming "00" from the output, leaves digit groups alone
+  // ("₹1,00,000" in hi).
+  const options: Intl.NumberFormatOptions = {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'narrowSymbol',
+    ...(Number.isInteger(amount) && { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+  }
+  const format = (tag: string | undefined) => new Intl.NumberFormat(tag, options).format(amount)
   try {
     return format(locale)
   } catch {

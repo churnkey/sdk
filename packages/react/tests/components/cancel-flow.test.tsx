@@ -287,6 +287,27 @@ describe('CancelFlow', () => {
     )
   })
 
+  it('hands custom offers the resolved messages and the chrome language', async () => {
+    const user = userEvent.setup()
+    render(
+      <CancelFlow
+        steps={[{ type: 'survey', reasons: [{ id: 'a', label: 'Pick me', offer: { type: 'change-seats' } }] }]}
+        onCancel={vi.fn().mockResolvedValue(undefined)}
+        i18n={{ locale: 'en-GB', messages: { 'en-GB': { common: { processing: 'Hang on' } } } }}
+        customComponents={{
+          'change-seats': ({ messages, locale }: CustomOfferProps) => (
+            <p data-testid="custom-offer">
+              {locale} {messages?.common.processing}
+            </p>
+          ),
+        }}
+      />,
+    )
+    await user.click(screen.getByText('Pick me'))
+    await user.click(screen.getByText('Continue'))
+    expect(screen.getByTestId('custom-offer')).toHaveTextContent('en-GB Hang on')
+  })
+
   it('renders the close button alongside step content', () => {
     renderFlow()
     // Close button is the only chrome — always present at the modal level.

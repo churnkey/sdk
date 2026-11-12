@@ -17,8 +17,15 @@ import type { CustomOfferProps, DirectSubscription } from '../core/types'
  * the resulting renewal date, and passes `{ days }` through `onAccept` so
  * the merchant's billing handler doesn't need to re-derive it.
  */
-export function TermExtensionOffer({ offer, subscriptions, onAccept, onDecline, isProcessing }: CustomOfferProps) {
-  const msg = defaultMessages
+export function TermExtensionOffer({
+  offer,
+  subscriptions,
+  onAccept,
+  onDecline,
+  isProcessing,
+  messages: msg = defaultMessages,
+  locale,
+}: CustomOfferProps) {
   // OfferDecision is a union; only the custom member carries `data`.
   const days = readDays((offer as { data?: Record<string, unknown> }).data)
   const newEnd = extendedPeriodEnd(subscriptions, days)
@@ -40,7 +47,7 @@ export function TermExtensionOffer({ offer, subscriptions, onAccept, onDecline, 
             {newEnd && (
               <div>
                 <div className="ck-trial-end-label">{msg.offer.newEndDateLabel}</div>
-                <div className="ck-trial-end-date">{formatMonthDay(newEnd)}</div>
+                <div className="ck-trial-end-date">{formatMonthDay(newEnd, locale)}</div>
               </div>
             )}
           </div>

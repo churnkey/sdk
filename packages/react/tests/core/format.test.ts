@@ -37,6 +37,14 @@ describe('dates and prices follow the locale', () => {
     expect(formatPrice(29, 'USD', 'de')).toBe('29\u00a0$')
   })
 
+  it('drop a zero fraction without touching digit groups', () => {
+    // Lakh grouping has a ",00" group mid-number; only the fraction goes.
+    expect(formatPrice(100000, 'INR', 'hi')).toBe('₹1,00,000')
+    expect(formatPrice(1000500, 'USD', 'en-IN')).toBe('$10,00,500')
+    expect(formatPrice(29.5, 'USD', 'en')).toBe('$29.50')
+    expect(formatPrice(1234.5, 'EUR', 'de')).toBe('1.234,50\u00a0€')
+  })
+
   it('fall back to the runtime default for a malformed tag instead of throwing', () => {
     expect(formatShortDate(date, 'en_US')).toBe(formatShortDate(date))
     expect(formatPrice(29, 'USD', 'en_US')).toBe(formatPrice(29, 'USD'))

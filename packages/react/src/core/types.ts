@@ -488,6 +488,10 @@ export interface CustomStepProps {
   subscriptions: DirectSubscription[]
   onNext: (result?: Record<string, unknown>) => void
   onBack: () => void
+  /** Resolved message catalog, in the language the chrome renders in. Fall back to `defaultMessages` when absent. */
+  messages?: CancelFlowMessages
+  /** Language the chrome renders in (BCP 47), for formatting dates and amounts. */
+  locale?: string
 }
 
 export interface CustomOfferProps {
@@ -497,6 +501,10 @@ export interface CustomOfferProps {
   onAccept: (result?: Record<string, unknown>) => Promise<void>
   onDecline: () => void
   isProcessing: boolean
+  /** Resolved message catalog, in the language the chrome renders in. Fall back to `defaultMessages` when absent. */
+  messages?: CancelFlowMessages
+  /** Language the chrome renders in (BCP 47), for formatting dates and amounts. */
+  locale?: string
 }
 
 // ─── Component overrides ─────────────────────────────────────────────────────

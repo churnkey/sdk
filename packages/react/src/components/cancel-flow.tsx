@@ -239,6 +239,8 @@ function StepRenderer({
             onAccept={machine.accept}
             onDecline={machine.decline}
             isProcessing={state.isProcessing}
+            messages={messages}
+            locale={locale}
           />
         )
       }
@@ -367,6 +369,8 @@ function StepRenderer({
           subscriptions={state.subscriptions}
           onNext={machine.next}
           onBack={machine.back}
+          messages={messages}
+          locale={locale}
         />
       )
     }
