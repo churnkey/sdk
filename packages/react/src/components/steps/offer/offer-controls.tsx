@@ -13,11 +13,18 @@ export function pauseResumeLine(template: string, date: string): string {
   return template.includes('{date}') ? formatMessage(template, { date }) : `${template} ${date}`
 }
 
-/** The words before and after the date, for a card that shows the date on its own line. */
-export function pauseResumeParts(template: string): [string, string] {
+/**
+ * The words before and after the date, for a card that shows the date on its
+ * own line; null when a word is glued to the date (Korean "{date}에", Amharic
+ * "በ{date}"), which can't be split without leaving a particle on its own line.
+ */
+export function pauseResumeParts(template: string): [string, string] | null {
   const at = template.indexOf('{date}')
   if (at < 0) return [template, '']
-  return [template.slice(0, at).trim(), template.slice(at + '{date}'.length).trim()]
+  const before = template.slice(0, at)
+  const after = template.slice(at + '{date}'.length)
+  if (/\S$/.test(before) || /^[^\s.,!?。、！？]/.test(after)) return null
+  return [before.trim(), after.trim()]
 }
 
 export function PauseChips({

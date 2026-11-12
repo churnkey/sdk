@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { pauseResumeParts } from '../../src/components/steps/offer/offer-controls'
 import {
   buildMessages,
   catalogLocale,
@@ -191,6 +192,29 @@ describe('plural forms', () => {
       plPack,
     )
     expect([2, 5].map((n) => months(edit, n, 'pl'))).toEqual(['2 (dev)', 'X przez 5 miesięcy'])
+  })
+
+  it('an edit in another language than the forms under it takes its own rules', () => {
+    // The Polish pack failed: English forms, then a Polish edit without `other`.
+    const pl = buildMessages(
+      { locale: 'pl' },
+      {
+        pl: {
+          offer: { discount: { forMonths: { one: '1 miesiąc', few: '{count} miesiące', many: '{count} miesięcy' } } },
+        },
+      },
+    )
+    expect([1, 2, 5].map((n) => months(pl, n, 'pl'))).toEqual(['1 miesiąc', '2 miesiące', '5 miesięcy'])
+  })
+})
+
+describe('pauseResumeParts', () => {
+  it('splits around the date only where no word is glued to it', () => {
+    expect(pauseResumeParts("We'll see you back on {date}")).toEqual(["We'll see you back on", ''])
+    expect(pauseResumeParts('Wir sehen uns am {date} wieder.')).toEqual(['Wir sehen uns am', 'wieder.'])
+    expect(pauseResumeParts('{date}。')).toEqual(['', '。'])
+    expect(pauseResumeParts('{date}에 다시 만나요')).toBeNull()
+    expect(pauseResumeParts('በ{date} እንገናኛለን')).toBeNull()
   })
 })
 

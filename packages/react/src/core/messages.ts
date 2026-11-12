@@ -463,7 +463,9 @@ const pluralLanguage = new WeakMap<PluralForms, string>()
 /**
  * The form of `forms` for `count`, with `{count}` and `vars` filled in. The
  * plural rules are those of the language the forms are in when they came
- * from `buildMessages`, else `locale`.
+ * from `buildMessages`, else `locale`. That language is tracked by object
+ * identity, so a copy (structuredClone, a JSON round trip) loses it: pass the
+ * forms from `messages` itself.
  */
 export function formatPlural(
   forms: PluralForms,
@@ -539,7 +541,9 @@ function mergePlural(base: PluralForms, patch: unknown, language: string | undef
   } else {
     return base
   }
-  const tag = replaced ? language : pluralLanguage.get(base)
+  // An edit in another language than the forms underneath (a Polish
+  // `{ few, many }` over English after the pack failed) takes its own rules.
+  const tag = replaced || (language && pluralLanguage.get(base) !== language) ? language : pluralLanguage.get(base)
   if (tag) pluralLanguage.set(merged, tag)
   return merged
 }

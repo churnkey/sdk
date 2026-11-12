@@ -107,8 +107,8 @@
       "percentOff": "ลด {percent}%",
       "amountOff": "ลด {amount}",
       "unspecified": "ส่วนลด",
-      "nextRenewal": "{discount}สำหรับการต่ออายุครั้งถัดไป",
-      "forLife": "{discount}ตลอดชีพ",
+      "nextRenewal": "{discount} สำหรับการต่ออายุครั้งถัดไป",
+      "forLife": "{discount} ตลอดชีพ",
       "forMonths": {
         "other": "{discount} นาน {count} เดือน"
       }

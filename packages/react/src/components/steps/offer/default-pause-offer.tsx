@@ -4,7 +4,7 @@ import { defaultMessages } from '../../../core/messages'
 import type { OfferDecision, OfferStepProps } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { RichText } from '../../rich-text'
-import { PauseChips, pauseResumeParts } from './offer-controls'
+import { PauseChips, pauseResumeLine, pauseResumeParts } from './offer-controls'
 
 export function DefaultPauseOffer({
   title,
@@ -28,7 +28,7 @@ export function DefaultPauseOffer({
   const resume = new Date()
   resume.setMonth(resume.getMonth() + months)
   const resumeDate = formatMonthDayLong(resume, locale)
-  const [before, after] = pauseResumeParts(msg.offer.pauseEyebrow)
+  const parts = pauseResumeParts(msg.offer.pauseEyebrow)
 
   return (
     <div className={cn('ck-step ck-step-offer', classNames?.root)}>
@@ -36,9 +36,15 @@ export function DefaultPauseOffer({
       {body && <RichText as="div" html={body} className={cn('ck-step-description', classNames?.description)} />}
 
       <div className={cn('ck-offer-card ck-pause-card', classNames?.card)}>
-        {before && <div className="ck-pause-eyebrow">{before}</div>}
-        <div className="ck-pause-date">{resumeDate}</div>
-        {after && <div className="ck-pause-eyebrow">{after}</div>}
+        {parts ? (
+          <>
+            {parts[0] && <div className="ck-pause-eyebrow">{parts[0]}</div>}
+            <div className="ck-pause-date">{resumeDate}</div>
+            {parts[1] && <div className="ck-pause-eyebrow">{parts[1]}</div>}
+          </>
+        ) : (
+          <div className="ck-pause-eyebrow">{pauseResumeLine(msg.offer.pauseEyebrow, resumeDate)}</div>
+        )}
         {max > 1 && <PauseChips max={max} months={months} onSelect={setMonths} classNames={classNames} msg={msg} />}
       </div>
       <button
