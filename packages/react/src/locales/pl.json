@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Plan zmieniony.",
-        "description": "Nowy plan jest już aktywny."
+        "description": "Nowy plan jest już aktywny.",
+        "scheduled": {
+          "title": "Zmiana planu zaplanowana.",
+          "description": "Nowy plan zacznie obowiązywać z końcem bieżącego okresu rozliczeniowego."
+        }
       },
       "rebate": {
         "title": "Zwrot zlecony.",

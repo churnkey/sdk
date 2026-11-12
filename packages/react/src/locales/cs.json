@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Plán změněn.",
-        "description": "Váš nový tarif je nyní aktivní."
+        "description": "Váš nový tarif je nyní aktivní.",
+        "scheduled": {
+          "title": "Změna tarifu naplánována.",
+          "description": "Nový tarif začne platit na konci aktuálního fakturačního období."
+        }
       },
       "rebate": {
         "title": "Platba byla vrácena.",

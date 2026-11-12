@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "计划已更改。",
-        "description": "您的新套餐现已生效。"
+        "description": "您的新套餐现已生效。",
+        "scheduled": {
+          "title": "套餐变更已安排。",
+          "description": "新套餐将在当前计费周期结束时生效。"
+        }
       },
       "rebate": {
         "title": "退款已发起。",

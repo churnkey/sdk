@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Paket berhasil diubah.",
-        "description": "Paket baru Anda sudah berlaku."
+        "description": "Paket baru Anda sudah berlaku.",
+        "scheduled": {
+          "title": "Perubahan paket telah dijadwalkan.",
+          "description": "Paket baru Anda dimulai di akhir periode tagihan saat ini."
+        }
       },
       "rebate": {
         "title": "Pengembalian dana diproses.",

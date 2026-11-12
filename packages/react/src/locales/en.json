@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Plan changed.",
-        "description": "Your new plan is now in effect."
+        "description": "Your new plan is now in effect.",
+        "scheduled": {
+          "title": "Plan change scheduled.",
+          "description": "Your new plan starts at the end of your current billing period."
+        }
       },
       "rebate": {
         "title": "Refund issued.",

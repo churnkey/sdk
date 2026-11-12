@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "ይሂ",
-        "description": "አዲሱ ዕቅድዎ አሁን ተግባራዊ ሆኗል።"
+        "description": "አዲሱ ዕቅድዎ አሁን ተግባራዊ ሆኗል።",
+        "scheduled": {
+          "title": "የዕቅድ ለውጥ ተይዞለታል።",
+          "description": "አዲሱ ዕቅድዎ አሁን ያለው የክፍያ ጊዜ ሲያበቃ ይጀምራል።"
+        }
       },
       "rebate": {
         "title": "ተመላሽ ገንዘብ ተልኳል።",

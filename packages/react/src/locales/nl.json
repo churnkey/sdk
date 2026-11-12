@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Plan gewijzigd.",
-        "description": "Je nieuwe abonnement is nu actief."
+        "description": "Je nieuwe abonnement is nu actief.",
+        "scheduled": {
+          "title": "Abonnementswijziging gepland.",
+          "description": "Je nieuwe abonnement gaat in aan het einde van je huidige factureringsperiode."
+        }
       },
       "rebate": {
         "title": "Terugbetaling verstuurd.",

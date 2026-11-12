@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Mpango umebadilishwa.",
-        "description": "Mpango wako mpya umeanza kutumika."
+        "description": "Mpango wako mpya umeanza kutumika.",
+        "scheduled": {
+          "title": "Mabadiliko ya mpango yamepangwa.",
+          "description": "Mpango wako mpya utaanza mwishoni mwa kipindi chako cha sasa cha malipo."
+        }
       },
       "rebate": {
         "title": "Pesa zimerejeshwa.",

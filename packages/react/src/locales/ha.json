@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Tsari an canza.",
-        "description": "Sabon tsarinka ya fara aiki yanzu."
+        "description": "Sabon tsarinka ya fara aiki yanzu.",
+        "scheduled": {
+          "title": "An tsara canjin tsarin.",
+          "description": "Sabon tsarinka zai fara a ƙarshen lokacin biyanka na yanzu."
+        }
       },
       "rebate": {
         "title": "An aika da maido da kuɗi.",

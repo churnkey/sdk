@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Ètò ti yípadà.",
-        "description": "Ìpèsè tuntun rẹ ti bẹ̀rẹ̀ iṣẹ́ báyìí."
+        "description": "Ìpèsè tuntun rẹ ti bẹ̀rẹ̀ iṣẹ́ báyìí.",
+        "scheduled": {
+          "title": "A ti ṣètò àyípadà ètò.",
+          "description": "Ètò tuntun rẹ yóò bẹ̀rẹ̀ ní òpin àkókò ìsanwó rẹ lọ́wọ́lọ́wọ́."
+        }
       },
       "rebate": {
         "title": "A ti dá owó rẹ padà.",

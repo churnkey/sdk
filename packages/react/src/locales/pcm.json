@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Plan don change.",
-        "description": "Your new plan don start work now."
+        "description": "Your new plan don start work now.",
+        "scheduled": {
+          "title": "Plan change don set.",
+          "description": "Your new plan go start when your current billing period finish."
+        }
       },
       "rebate": {
         "title": "Refund don commot.",

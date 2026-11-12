@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Kế hoạch đã thay đổi.",
-        "description": "Gói mới của bạn đã có hiệu lực."
+        "description": "Gói mới của bạn đã có hiệu lực.",
+        "scheduled": {
+          "title": "Đã lên lịch đổi gói.",
+          "description": "Gói mới của bạn sẽ bắt đầu khi kỳ thanh toán hiện tại kết thúc."
+        }
       },
       "rebate": {
         "title": "Đã hoàn tiền.",

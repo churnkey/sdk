@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "計劃已更改。",
-        "description": "你嘅新方案已經生效。"
+        "description": "你嘅新方案已經生效。",
+        "scheduled": {
+          "title": "已安排更改計劃。",
+          "description": "你嘅新計劃會喺目前結算期完結時開始。"
+        }
       },
       "rebate": {
         "title": "已退款。",

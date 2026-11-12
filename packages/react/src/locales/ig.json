@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Nkwụnye gbanwere.",
-        "description": "Atụmatụ gị ọhụrụ amalitela ọrụ."
+        "description": "Atụmatụ gị ọhụrụ amalitela ọrụ.",
+        "scheduled": {
+          "title": "Ahaziri mgbanwe atụmatụ.",
+          "description": "Atụmatụ gị ọhụrụ ga-amalite na ngwụsị oge ịkwụ ụgwọ gị nke ugbu a."
+        }
       },
       "rebate": {
         "title": "Enyela ụgwọ azụ.",

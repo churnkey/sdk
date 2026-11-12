@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Plan geändert.",
-        "description": "Ihr neuer Tarif ist jetzt aktiv."
+        "description": "Ihr neuer Tarif ist jetzt aktiv.",
+        "scheduled": {
+          "title": "Tarifwechsel geplant.",
+          "description": "Ihr neuer Tarif beginnt am Ende Ihres aktuellen Abrechnungszeitraums."
+        }
       },
       "rebate": {
         "title": "Erstattung veranlasst.",

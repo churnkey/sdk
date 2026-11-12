@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Piano cambiato.",
-        "description": "Il suo nuovo piano è ora attivo."
+        "description": "Il suo nuovo piano è ora attivo.",
+        "scheduled": {
+          "title": "Cambio di piano programmato.",
+          "description": "Il Suo nuovo piano inizierà al termine del periodo di fatturazione in corso."
+        }
       },
       "rebate": {
         "title": "Rimborso effettuato.",

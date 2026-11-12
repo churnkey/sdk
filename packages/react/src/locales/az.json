@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Plan dəyişdirildi.",
-        "description": "Yeni planınız artıq qüvvədədir."
+        "description": "Yeni planınız artıq qüvvədədir.",
+        "scheduled": {
+          "title": "Planın dəyişdirilməsi planlaşdırıldı.",
+          "description": "Yeni planınız cari hesablaşma dövrünün sonunda başlayır."
+        }
       },
       "rebate": {
         "title": "Geri ödəniş edildi.",

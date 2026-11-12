@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Karoorri jijjiirame.",
-        "description": "Karoorri keessan haaraan amma hojiirra jira."
+        "description": "Karoorri keessan haaraan amma hojiirra jira.",
+        "scheduled": {
+          "title": "Jijjiirraan karoora ramadameera.",
+          "description": "Karoorri keessan haaraan dhumaa yeroo kaffaltii amma jirutti ni jalqaba."
+        }
       },
       "rebate": {
         "title": "Maallaqni deebifameera.",

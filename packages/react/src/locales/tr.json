@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Plan değiştirildi.",
-        "description": "Yeni planınız artık geçerli."
+        "description": "Yeni planınız artık geçerli.",
+        "scheduled": {
+          "title": "Plan değişikliği planlandı.",
+          "description": "Yeni planınız, mevcut faturalandırma döneminizin sonunda başlayacak."
+        }
       },
       "rebate": {
         "title": "İade yapıldı.",

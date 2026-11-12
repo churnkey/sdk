@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "요금제가 변경되었습니다.",
-        "description": "새 요금제가 적용되었어요."
+        "description": "새 요금제가 적용되었어요.",
+        "scheduled": {
+          "title": "플랜 변경이 예약됐어요.",
+          "description": "새 플랜은 현재 결제 기간이 끝나면 시작돼요."
+        }
       },
       "rebate": {
         "title": "환불이 완료되었어요.",

@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Plan modifié.",
-        "description": "Votre nouvelle formule est désormais active."
+        "description": "Votre nouvelle formule est désormais active.",
+        "scheduled": {
+          "title": "Changement de formule programmé.",
+          "description": "Votre nouvelle formule prendra effet à la fin de votre période de facturation en cours."
+        }
       },
       "rebate": {
         "title": "Remboursement effectué.",

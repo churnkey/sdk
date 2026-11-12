@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "プランが変更されました。",
-        "description": "新しいプランが適用されました。"
+        "description": "新しいプランが適用されました。",
+        "scheduled": {
+          "title": "プラン変更を予約しました。",
+          "description": "新しいプランは、現在の請求期間の終了後に開始されます。"
+        }
       },
       "rebate": {
         "title": "返金を行いました。",

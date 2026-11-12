@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Paket wis diganti.",
-        "description": "Paket anyarmu wis aktif."
+        "description": "Paket anyarmu wis aktif.",
+        "scheduled": {
+          "title": "Owah-owahan paket wis dijadwalake.",
+          "description": "Paket anyarmu bakal diwiwiti nalika periode tagihan saiki rampung."
+        }
       },
       "rebate": {
         "title": "Dhuwit wis dibalekake.",

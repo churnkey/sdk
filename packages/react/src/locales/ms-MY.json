@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Pelan ditukar.",
-        "description": "Pelan baharu anda kini berkuat kuasa."
+        "description": "Pelan baharu anda kini berkuat kuasa.",
+        "scheduled": {
+          "title": "Pertukaran pelan dijadualkan.",
+          "description": "Pelan baharu anda bermula pada penghujung tempoh bil semasa anda."
+        }
       },
       "rebate": {
         "title": "Bayaran balik telah dikeluarkan.",

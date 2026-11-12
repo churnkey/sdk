@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Planul a fost schimbat.",
-        "description": "Noul tău plan este acum activ."
+        "description": "Noul tău plan este acum activ.",
+        "scheduled": {
+          "title": "Schimbarea planului a fost programată.",
+          "description": "Noul plan începe la sfârșitul perioadei curente de facturare."
+        }
       },
       "rebate": {
         "title": "Rambursare efectuată.",

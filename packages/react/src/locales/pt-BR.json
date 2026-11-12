@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Plano alterado.",
-        "description": "Seu novo plano já está em vigor."
+        "description": "Seu novo plano já está em vigor.",
+        "scheduled": {
+          "title": "Mudança de plano agendada.",
+          "description": "Seu novo plano começa no fim do período de cobrança atual."
+        }
       },
       "rebate": {
         "title": "Reembolso emitido.",

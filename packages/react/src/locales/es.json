@@ -52,7 +52,11 @@
       },
       "plan_change": {
         "title": "Plan cambiado.",
-        "description": "Tu nuevo plan ya está activo."
+        "description": "Tu nuevo plan ya está activo.",
+        "scheduled": {
+          "title": "Cambio de plan programado.",
+          "description": "Tu nuevo plan empieza al final del periodo de facturación actual."
+        }
       },
       "rebate": {
         "title": "Reembolso emitido.",
