@@ -127,7 +127,7 @@
       },
       "pause": {
         "headline": "Może zamiast tego przerwa?",
-        "body": "Możliwość wstrzymania subskrypcji na okres do {duration}.",
+        "body": "Subskrypcję można wstrzymać maksymalnie na {duration}.",
         "cta": "Wstrzymaj subskrypcję"
       },
       "plan_change": {

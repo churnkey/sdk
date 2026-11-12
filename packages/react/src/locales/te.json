@@ -109,7 +109,7 @@
       "unspecified": "తగ్గింపు",
       "nextRenewal": "మీ తదుపరి రెన్యువల్‌పై {discount}",
       "forLife": "జీవితకాలం {discount}",
-      "forMonths": "{duration} కోసం {discount}"
+      "forMonths": "{discount} — వ్యవధి: {duration}"
     },
     "planInterval": {
       "day": "రోజు",
@@ -120,14 +120,14 @@
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% తగ్గింపు ఎలా ఉంటుంది?",
-        "body": "{duration} పాటు మీకు {percent}% తగ్గింపు ఇవ్వాలనుకుంటున్నాము.",
+        "body": "మీకు {percent}% తగ్గింపు అందించాలనుకుంటున్నాము, వ్యవధి: {duration}.",
         "headlineNoAmount": "ప్రత్యేక ఆఫర్",
         "bodyNoAmount": "మీకు తగ్గింపు ఇవ్వాలనుకుంటున్నాం.",
         "cta": "ఆఫర్‌ను అంగీకరించండి"
       },
       "pause": {
         "headline": "బదులుగా కాస్త విరామం తీసుకుంటారా?",
-        "body": "మీ సబ్‌స్క్రిప్షన్‌ను {duration} వరకు పాజ్ చేయండి.",
+        "body": "మీ సభ్యత్వాన్ని పాజ్ చేయండి, గరిష్ట వ్యవధి: {duration}.",
         "cta": "సబ్‌స్క్రిప్షన్ పాజ్ చేయండి"
       },
       "plan_change": {
@@ -137,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "మరికొంత సమయం కావాలా?",
-        "body": "మీ ట్రయల్‌ను {duration} పొడిగిస్తాము.",
+        "body": "మీ ట్రయల్‌ను మేము {duration} పొడిగిస్తాము.",
         "cta": "ట్రయల్ పొడిగించండి"
       },
       "contact": {

@@ -120,14 +120,14 @@
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% ቅናሽ ቢደረግስ?",
-        "body": "ለ{duration} {percent}% ቅናሽ ልናደርግልዎ እንፈልጋለን።",
+        "body": "ለ{duration} የ{percent}% ቅናሽ ልናቀርብልዎ እንወዳለን።",
         "headlineNoAmount": "ልዩ ቅናሽ",
         "bodyNoAmount": "ቅናሽ ልናደርግልዎ እንፈልጋለን።",
         "cta": "ቅናሹን ተቀበል"
       },
       "pause": {
         "headline": "በምትኩ እረፍት ይውሰዱ?",
-        "body": "ደንበኝነትዎን እስከ {duration} ድረስ ባለበት ያቁሙ።",
+        "body": "የደንበኝነት ምዝገባዎን እስከ {duration} ድረስ ባለበት ያቁሙ።",
         "cta": "ምዝገባን አቁም"
       },
       "plan_change": {

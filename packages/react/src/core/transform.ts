@@ -164,7 +164,10 @@ export function defaultOfferCopy(offer: OfferConfig, messages: CancelFlowMessage
           declineCta,
         }
       }
-      const vars = { percent: o.percentOff, duration: formatDuration(o.durationInMonths ?? 1, 'month', locale) }
+      const vars = {
+        percent: o.percentOff,
+        duration: formatDuration(o.durationInMonths ?? 1, 'month', messages, locale),
+      }
       return {
         headline: formatMessage(text.discount.headline, vars),
         body: formatMessage(text.discount.body, vars),
@@ -173,7 +176,7 @@ export function defaultOfferCopy(offer: OfferConfig, messages: CancelFlowMessage
       }
     }
     case 'pause': {
-      const duration = formatDuration(o.months, 'month', locale)
+      const duration = formatDuration(o.months, 'month', messages, locale)
       return { ...text.pause, body: formatMessage(text.pause.body, { duration }), declineCta }
     }
     case 'plan_change':
@@ -181,7 +184,7 @@ export function defaultOfferCopy(offer: OfferConfig, messages: CancelFlowMessage
     case 'trial_extension': {
       return {
         ...text.trial_extension,
-        body: formatMessage(text.trial_extension.body, { duration: formatDuration(o.days, 'day', locale) }),
+        body: formatMessage(text.trial_extension.body, { duration: formatDuration(o.days, 'day', messages, locale) }),
         declineCta,
       }
     }

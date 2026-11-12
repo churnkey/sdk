@@ -109,7 +109,7 @@
       "unspecified": "خصم",
       "nextRenewal": "{discount} على تجديدك القادم",
       "forLife": "{discount} مدى الحياة",
-      "forMonths": "{discount} لمدة {duration}"
+      "forMonths": "{discount}، مدته {duration}"
     },
     "planInterval": {
       "day": "يوم",
@@ -120,14 +120,14 @@
     "defaultCopy": {
       "discount": {
         "headline": "ما رأيك بخصم {percent}%؟",
-        "body": "يسعدنا أن نمنحك خصمًا بنسبة {percent}% لمدة {duration}.",
+        "body": "نودّ أن نقدّم لك خصمًا بنسبة {percent}% مدته {duration}.",
         "headlineNoAmount": "عرض خاص",
         "bodyNoAmount": "يسعدنا أن نقدّم لك خصمًا.",
         "cta": "اقبل العرض"
       },
       "pause": {
         "headline": "ما رأيك بأخذ استراحة بدلًا من ذلك؟",
-        "body": "أوقف اشتراكك مؤقتًا لمدة تصل إلى {duration}.",
+        "body": "أوقف اشتراكك مؤقتًا مدةً أقصاها {duration}.",
         "cta": "إيقاف الاشتراك مؤقتًا"
       },
       "plan_change": {
@@ -137,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "هل تحتاج إلى مزيد من الوقت؟",
-        "body": "سنمدّد فترتك التجريبية لمدة {duration}.",
+        "body": "سنمدّد فترتك التجريبية مدةً قدرها {duration}.",
         "cta": "تمديد الفترة التجريبية"
       },
       "contact": {

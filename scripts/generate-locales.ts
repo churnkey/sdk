@@ -354,6 +354,7 @@ async function translate(provider: Provider, lang: string, text: Flat): Promise<
    - Effectiveness of retention incentives
 3. These are interface strings: button labels, headings, short notices. Keep them as short as the English.
 4. Keep every {placeholder} token exactly as written, in braces, untranslated. Reorder it in the sentence if the grammar needs that.
+   Placeholders are filled with finished phrases in ${LANGUAGES[lang]}: {duration} is a number and unit in dictionary form ("3 months"), {discount} a whole discount phrase ("25% off"), {amount} a formatted price, {date} a formatted date. Never attach a suffix, case ending or particle to a placeholder; when the grammar needs a case marker or postposition, use a separate word or rephrase so the placeholder stands alone. {duration} is always in the nominative: build the sentence so that form is correct there (for example as the object of a preposition that takes it, or after a noun like "period:"), not after a word that needs another case.
 5. Keep punctuation style (a trailing period or ellipsis stays).
 ${REGISTER[lang] ? `6. ${REGISTER[lang]}` : ''}
 Return a JSON object with exactly the same keys as the input.`

@@ -520,6 +520,28 @@ function lowerKeys(byLang: Record<string, MessagesPatch> | undefined): Map<strin
  * through for strings no pack carries (the empty-by-design ones). Keys are
  * matched case-insensitively (`pt-BR` ≡ `pt-br`).
  */
+/**
+ * The language a catalog from `buildMessages` is actually in: `locale` when
+ * its built-in translation or an override entry for it went on, else
+ * English. Dates and durations are formatted in it, so an English sentence
+ * doesn't carry a Swedish date when there is no Swedish to put around it.
+ */
+export function catalogLocale(
+  locale: string,
+  orgMessages: Record<string, MessagesPatch> | undefined,
+  devMessages: Record<string, MessagesPatch> | undefined,
+  localePack: MessagesPatch | undefined,
+): string {
+  const exact = locale.toLowerCase()
+  const base = exact.split('-')[0]
+  if (base === 'en' || localePack) return locale
+  const covers = (byLang?: Record<string, MessagesPatch>) => {
+    const keys = lowerKeys(byLang)
+    return keys.has(base) || keys.has(exact)
+  }
+  return covers(orgMessages) || covers(devMessages) ? locale : 'en'
+}
+
 export function buildMessages(
   i18n?: I18nConfig,
   orgMessages?: Record<string, MessagesPatch>,

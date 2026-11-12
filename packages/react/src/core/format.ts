@@ -137,19 +137,30 @@ export function formatPeriodEnd(
   return localeDate(d, locale, { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
+// ICU's root fallback for a language with no unit names ("3 m", "14 d").
+const ROOT_UNIT = { day: 'd', month: 'm' } as const
+
 /**
  * A count with its unit, pluralized for the language ("3 months", "3 miesiące",
- * "3 miesięcy" for 5). Intl knows each language's plural forms; a catalog
- * pair of singular and plural does not.
+ * "5 miesięcy"): Intl knows each language's plural forms, a singular/plural
+ * pair does not. Where Intl has no unit names for the language, or no unit
+ * formatting at all (Safari before 14.1), the catalog's `common` words.
  */
-export function formatDuration(value: number, unit: 'day' | 'week' | 'month' | 'year', locale?: string): string {
-  const format = (tag: string | undefined) =>
-    new Intl.NumberFormat(tag, { style: 'unit', unit, unitDisplay: 'long' }).format(value)
+export function formatDuration(
+  value: number,
+  unit: 'day' | 'month',
+  messages: CancelFlowMessages,
+  locale?: string,
+): string {
   try {
-    return format(locale)
+    const text = new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'long' }).format(value)
+    if (text.replace(/[\p{N}\s]/gu, '') !== ROOT_UNIT[unit]) return text
   } catch {
-    return format(undefined)
+    // Unsupported style or a malformed tag: the catalog words below.
   }
+  const { day, days, month, months } = messages.common
+  const word = unit === 'day' ? (value === 1 ? day : days) : value === 1 ? month : months
+  return `${value} ${word}`
 }
 
 // ─── Discount phrasing ─────────────────────────────────────────────────────
@@ -184,5 +195,8 @@ export function discountPhrase(
   if (duration === 'once') return formatMessage(text.nextRenewal, { discount })
   if (duration === 'forever') return formatMessage(text.forLife, { discount })
   if (!durationInMonths) return discount
-  return formatMessage(text.forMonths, { discount, duration: formatDuration(durationInMonths, 'month', locale) })
+  return formatMessage(text.forMonths, {
+    discount,
+    duration: formatDuration(durationInMonths, 'month', messages, locale),
+  })
 }

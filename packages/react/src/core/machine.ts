@@ -15,7 +15,7 @@ import type {
 import { AnalyticsClient, directDataToSessionCustomer, toApiMode } from './api'
 import type { SdkConfig } from './api-types'
 import { applyMergeFieldsToSteps } from './merge-fields'
-import { buildMessages, type CancelFlowMessages, type I18nConfig, type MessagesPatch } from './messages'
+import { buildMessages, type CancelFlowMessages, catalogLocale, type I18nConfig, type MessagesPatch } from './messages'
 import { buildStepGraph, type ResolvedStep, type StepGraph } from './step-graph'
 import type { SessionCredentials } from './token'
 import { defaultOfferCopy, transformSdkConfig } from './transform'
@@ -345,6 +345,8 @@ export class CancelFlowMachine {
   // it knows what the content is in.
   private currentLocale: string
   private localePack: MessagesPatch | undefined
+  // The language resolvedMessages is actually in; see catalogLocale.
+  private textLocale = 'en'
   private localCancelAtPeriodEnd: boolean | null = null
   private resolvedMessages: CancelFlowMessages
   private stepEnteredAt: number = Date.now()
@@ -441,11 +443,12 @@ export class CancelFlowMachine {
 
   /**
    * Language the chrome renders in, as a BCP 47 tag: `i18n.locale`, else the
-   * language the server translated the content into, else `en`. Dates and
-   * amounts are formatted with it.
+   * language the server translated the content into, else `en`; and `en`
+   * when there is no translation for it (no built-in pack, no override), so
+   * dates and amounts match the English around them.
    */
   get locale(): string {
-    return this.currentLocale
+    return this.textLocale
   }
 
   /** Whether `back()` would move anywhere — false on the first step and on success. */
@@ -640,12 +643,13 @@ export class CancelFlowMachine {
   }
 
   private resolveMessages(): CancelFlowMessages {
-    return buildMessages({ ...this.i18nConfig, locale: this.currentLocale }, this.config?.translations, this.localePack)
+    const org = this.config?.translations
+    this.textLocale = catalogLocale(this.currentLocale, org, this.i18nConfig?.messages, this.localePack)
+    return buildMessages({ ...this.i18nConfig, locale: this.currentLocale }, org, this.localePack)
   }
 
   // Read at build time, so the copy is in whatever language the catalog is in then.
-  private offerCopy = (offer: OfferConfig): OfferCopy =>
-    defaultOfferCopy(offer, this.resolvedMessages, this.currentLocale)
+  private offerCopy = (offer: OfferConfig): OfferCopy => defaultOfferCopy(offer, this.resolvedMessages, this.textLocale)
 
   private buildLocalGraph(): StepGraph {
     const merged = applyMergeFieldsToSteps(this.localSteps ?? [], this.directCustomer, this.customerAttributes)

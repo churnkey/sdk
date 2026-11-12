@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   buildMessages,
+  catalogLocale,
   defaultMessages,
   formatMessage,
   type MessagesPatch,
@@ -128,6 +129,19 @@ function flatten(node: unknown, prefix = '', out: Record<string, string> = {}): 
 }
 
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort()
+
+describe('catalogLocale', () => {
+  it('is the requested language only when there is text in it', () => {
+    const sv = { common: { back: 'Tillbaka' } }
+    expect(catalogLocale('sv', undefined, undefined, undefined)).toBe('en')
+    expect(catalogLocale('sv-SE', undefined, { sv }, undefined)).toBe('sv-SE')
+    expect(catalogLocale('sv', { SV: sv }, undefined, undefined)).toBe('sv')
+    expect(catalogLocale('es', undefined, undefined, { common: { back: 'Atrás' } })).toBe('es')
+    // A failed or slow pack: English text, English dates.
+    expect(catalogLocale('es', undefined, undefined, undefined)).toBe('en')
+    expect(catalogLocale('en-GB', undefined, undefined, undefined)).toBe('en-GB')
+  })
+})
 
 describe('built-in packs', () => {
   const english = flatten(defaultMessages)

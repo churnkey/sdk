@@ -2292,6 +2292,18 @@ describe('i18n / messages', () => {
     expect(machine.getSnapshot().currentStepId).toBe('step-0-offer')
   })
 
+  it('stays English, durations and all, when the requested language has no translation', () => {
+    const machine = new CancelFlowMachine({
+      ...baseConfig,
+      i18n: { locale: 'sv' },
+      steps: [{ type: 'offer', offer: { type: 'pause', months: 3 } }, { type: 'confirm' }],
+    })
+    // No Swedish pack and no Swedish overrides: "3 months", not "3 månader".
+    machine.setLocale('sv', undefined)
+    expect(machine.locale).toBe('en')
+    expect(machine.currentOffer?.copy.body).toBe('Pause your subscription for up to 3 months.')
+  })
+
   it('leaves cancelAtPeriodEnd null in local mode', () => {
     const machine = new CancelFlowMachine(baseConfig)
     expect(machine.getSnapshot().cancelAtPeriodEnd).toBeNull()

@@ -109,7 +109,7 @@
       "unspecified": "Korting",
       "nextRenewal": "{discount} op je volgende verlenging",
       "forLife": "{discount} voor altijd",
-      "forMonths": "{discount} korting gedurende {duration}"
+      "forMonths": "{discount} gedurende {duration}"
     },
     "planInterval": {
       "day": "dag",

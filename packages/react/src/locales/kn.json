@@ -109,7 +109,7 @@
       "unspecified": "ರಿಯಾಯಿತಿ",
       "nextRenewal": "ನಿಮ್ಮ ಮುಂದಿನ ನವೀಕರಣಕ್ಕೆ {discount}",
       "forLife": "ಜೀವನಪರ್ಯಂತ {discount}",
-      "forMonths": "{duration} ಕ್ಕೆ {discount}"
+      "forMonths": "{duration} ಅವಧಿಗೆ {discount}"
     },
     "planInterval": {
       "day": "ದಿನ",
@@ -120,14 +120,14 @@
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% ರಿಯಾಯಿತಿ ಹೇಗಿದೆ?",
-        "body": "{duration} ಕ್ಕೆ ನಿಮಗೆ {percent}% ರಿಯಾಯಿತಿ ನೀಡಲು ಬಯಸುತ್ತೇವೆ.",
+        "body": "{duration} ಅವಧಿಗೆ ನಿಮಗೆ {percent}% ರಿಯಾಯಿತಿ ನೀಡಲು ನಾವು ಬಯಸುತ್ತೇವೆ.",
         "headlineNoAmount": "ವಿಶೇಷ ಕೊಡುಗೆ",
         "bodyNoAmount": "ನಿಮಗೆ ರಿಯಾಯಿತಿ ನೀಡಲು ಬಯಸುತ್ತೇವೆ.",
         "cta": "ಕೊಡುಗೆ ಸ್ವೀಕರಿಸಿ"
       },
       "pause": {
         "headline": "ಬದಲಿಗೆ ವಿರಾಮ ತೆಗೆದುಕೊಳ್ಳುವಿರಾ?",
-        "body": "ನಿಮ್ಮ ಚಂದಾದಾರಿಕೆಯನ್ನು {duration} ವರೆಗೆ ವಿರಾಮಗೊಳಿಸಿ.",
+        "body": "ನಿಮ್ಮ ಚಂದಾದಾರಿಕೆಯನ್ನು ಗರಿಷ್ಠ {duration} ಅವಧಿಯವರೆಗೆ ವಿರಾಮಗೊಳಿಸಿ.",
         "cta": "ಚಂದಾದಾರಿಕೆ ವಿರಾಮಗೊಳಿಸಿ"
       },
       "plan_change": {
@@ -137,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "ಇನ್ನಷ್ಟು ಸಮಯ ಬೇಕೇ?",
-        "body": "ನಿಮ್ಮ ಟ್ರಯಲ್ ಅನ್ನು {duration} ವಿಸ್ತರಿಸುತ್ತೇವೆ.",
+        "body": "ನಿಮ್ಮ ಟ್ರಯಲ್ ಅವಧಿಯನ್ನು {duration} ಹೆಚ್ಚಿಸುತ್ತೇವೆ.",
         "cta": "ಟ್ರಯಲ್ ವಿಸ್ತರಿಸಿ"
       },
       "contact": {

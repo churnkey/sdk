@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { discountPhrase, formatDuration, formatPeriodEnd, formatPrice, formatShortDate } from '../../src/core/format'
 import { defaultMessages, mergeMessages } from '../../src/core/messages'
 
@@ -28,8 +28,23 @@ describe('discountPhrase', () => {
     const pl = mergeMessages(defaultMessages, { offer: { discount: { forMonths: '{discount} przez {duration}' } } })
     expect(discountPhrase({ percentOff: 25, durationInMonths: 3 }, pl, 'pl')).toBe('25% off przez 3 miesiące')
     expect(discountPhrase({ percentOff: 25, durationInMonths: 5 }, pl, 'pl')).toBe('25% off przez 5 miesięcy')
-    expect(formatDuration(1, 'day', 'en')).toBe('1 day')
-    expect(formatDuration(3, 'month', 'en_US')).toBe(formatDuration(3, 'month'))
+    expect(formatDuration(1, 'day', defaultMessages, 'en')).toBe('1 day')
+  })
+
+  it('fall back to the catalog words where Intl has no unit names or no unit style', () => {
+    const words = mergeMessages(defaultMessages, { common: { month: 'mahina', months: 'mahine' } })
+    // ICU has no unit names for Bhojpuri and prints "३ m".
+    expect(formatDuration(3, 'month', words, 'bho')).toBe('3 mahine')
+    expect(formatDuration(1, 'month', words, 'en_US')).toBe('1 mahina')
+    // Chinese "天" is one letter but real data, not the root fallback.
+    expect(formatDuration(14, 'day', defaultMessages, 'zh-CN')).toBe('14天')
+    const RealNumberFormat = Intl.NumberFormat
+    vi.spyOn(Intl, 'NumberFormat').mockImplementation(((tag: string, opts?: Intl.NumberFormatOptions) => {
+      if (opts?.style === 'unit') throw new RangeError('Invalid style')
+      return new RealNumberFormat(tag, opts)
+    }) as typeof Intl.NumberFormat)
+    expect(formatDuration(14, 'day', defaultMessages, 'en')).toBe('14 days')
+    vi.restoreAllMocks()
   })
 })
 
