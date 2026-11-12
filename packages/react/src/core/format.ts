@@ -137,6 +137,21 @@ export function formatPeriodEnd(
   return localeDate(d, locale, { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
+/**
+ * A count with its unit, pluralized for the language ("3 months", "3 miesiące",
+ * "3 miesięcy" for 5). Intl knows each language's plural forms; a catalog
+ * pair of singular and plural does not.
+ */
+export function formatDuration(value: number, unit: 'day' | 'week' | 'month' | 'year', locale?: string): string {
+  const format = (tag: string | undefined) =>
+    new Intl.NumberFormat(tag, { style: 'unit', unit, unitDisplay: 'long' }).format(value)
+  try {
+    return format(locale)
+  } catch {
+    return format(undefined)
+  }
+}
+
 // ─── Discount phrasing ─────────────────────────────────────────────────────
 
 /**
@@ -169,6 +184,5 @@ export function discountPhrase(
   if (duration === 'once') return formatMessage(text.nextRenewal, { discount })
   if (duration === 'forever') return formatMessage(text.forLife, { discount })
   if (!durationInMonths) return discount
-  const unit = durationInMonths === 1 ? messages.common.month : messages.common.months
-  return formatMessage(text.forMonths, { discount, months: durationInMonths, unit })
+  return formatMessage(text.forMonths, { discount, duration: formatDuration(durationInMonths, 'month', locale) })
 }

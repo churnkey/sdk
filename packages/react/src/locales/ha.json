@@ -109,19 +109,25 @@
       "unspecified": "Rangwame",
       "nextRenewal": "{discount} a sabuntawarka ta gaba",
       "forLife": "{discount} har abada",
-      "forMonths": "{discount} na tsawon {months} {unit}"
+      "forMonths": "{discount} na tsawon {duration}"
+    },
+    "planInterval": {
+      "day": "rana",
+      "week": "mako",
+      "month": "wata",
+      "year": "shekara"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Me ka cewa a rage {percent}%?",
-        "body": "Muna so mu ba ka rangwamen {percent}% na tsawon {months} {unit}.",
+        "body": "Muna so mu ba ka rangwamen {percent}% na tsawon {duration}.",
         "headlineNoAmount": "Tayi na musamman",
         "bodyNoAmount": "Muna so mu ba ka rangwame.",
         "cta": "Karɓi tayin"
       },
       "pause": {
         "headline": "Ka huta maimakon haka?",
-        "body": "Dakatar da biyan kuɗinka har na tsawon {months} {unit}.",
+        "body": "Dakatar da biyan kuɗinka har na tsawon {duration}.",
         "cta": "Dakatar da biyan kuɗi"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Kana buƙatar ƙarin lokaci?",
-        "body": "Za mu ƙara wa gwajinka {days} {unit}.",
+        "body": "Za mu ƙara maka lokacin gwajinka da {duration}.",
         "cta": "Ƙara lokacin gwaji"
       },
       "contact": {

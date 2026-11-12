@@ -109,19 +109,25 @@
       "unspecified": "Diskon",
       "nextRenewal": "{discount} kanggo perpanjangan sabanjure",
       "forLife": "{discount} selawase",
-      "forMonths": "{discount} suwene {months} {unit}"
+      "forMonths": "{discount} kanggo {duration}"
+    },
+    "planInterval": {
+      "day": "dina",
+      "week": "minggu",
+      "month": "sasi",
+      "year": "taun"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Diskon {percent}%, piye?",
-        "body": "Kami arep menehi diskon {percent}% suwene {months} {unit}.",
+        "body": "Kami arep menehi diskon {percent}% kanggo {duration}.",
         "headlineNoAmount": "Penawaran khusus",
         "bodyNoAmount": "Kami arep menehi diskon kanggo sampeyan.",
         "cta": "Trima penawaran"
       },
       "pause": {
         "headline": "Rehat sedhela wae?",
-        "body": "Setop langganan sampeyan nganti {months} {unit}.",
+        "body": "Setop langganan sampeyan nganti {duration}.",
         "cta": "Setop langganan"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Butuh wektu luwih akeh?",
-        "body": "Kami bakal nambah uji coba sampeyan {days} {unit}.",
+        "body": "Kami bakal nambah masa uji coba sampeyan {duration}.",
         "cta": "Tambah uji coba"
       },
       "contact": {

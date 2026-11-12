@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   buildMessages,
@@ -132,6 +134,10 @@ describe('built-in packs', () => {
 
   it('en.json is the English the packs were translated from; regenerate when it drifts', () => {
     expect(flatten(source)).toEqual(english)
+  })
+
+  it('no pack still owes a translation from a failed or --only generator run', () => {
+    expect(existsSync(resolve(__dirname, '../../../../scripts/locales-pending.json'))).toBe(false)
   })
 
   it('every pack carries every translatable string, with its placeholders', async () => {

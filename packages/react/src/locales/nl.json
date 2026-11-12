@@ -109,19 +109,25 @@
       "unspecified": "Korting",
       "nextRenewal": "{discount} op je volgende verlenging",
       "forLife": "{discount} voor altijd",
-      "forMonths": "{discount} gedurende {months} {unit}"
+      "forMonths": "{discount} korting gedurende {duration}"
+    },
+    "planInterval": {
+      "day": "dag",
+      "week": "week",
+      "month": "maand",
+      "year": "jaar"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Wat dacht je van {percent}% korting?",
-        "body": "We bieden je graag {percent}% korting gedurende {months} {unit}.",
+        "body": "We geven je graag {percent}% korting gedurende {duration}.",
         "headlineNoAmount": "Speciale aanbieding",
         "bodyNoAmount": "We bieden je graag een korting aan.",
         "cta": "Aanbieding accepteren"
       },
       "pause": {
         "headline": "Liever een pauze?",
-        "body": "Zet je abonnement tot {months} {unit} op pauze.",
+        "body": "Zet je abonnement tot {duration} on hold.",
         "cta": "Abonnement pauzeren"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Meer tijd nodig?",
-        "body": "We verlengen je proefperiode met {days} {unit}.",
+        "body": "We verlengen je proefperiode met {duration}.",
         "cta": "Proefperiode verlengen"
       },
       "contact": {

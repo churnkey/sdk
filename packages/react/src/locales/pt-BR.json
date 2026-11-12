@@ -109,19 +109,25 @@
       "unspecified": "Um desconto",
       "nextRenewal": "{discount} na sua próxima renovação",
       "forLife": "{discount} para sempre",
-      "forMonths": "{discount} por {months} {unit}"
+      "forMonths": "{discount} por {duration}"
+    },
+    "planInterval": {
+      "day": "dia",
+      "week": "semana",
+      "month": "mês",
+      "year": "ano"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Que tal {percent}% de desconto?",
-        "body": "Queremos oferecer {percent}% de desconto por {months} {unit}.",
+        "body": "Queremos oferecer {percent}% de desconto por {duration}.",
         "headlineNoAmount": "Oferta especial",
         "bodyNoAmount": "Queremos oferecer um desconto para você.",
         "cta": "Aceitar oferta"
       },
       "pause": {
         "headline": "Que tal uma pausa?",
-        "body": "Pause sua assinatura por até {months} {unit}.",
+        "body": "Pause sua assinatura por até {duration}.",
         "cta": "Pausar assinatura"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Precisa de mais tempo?",
-        "body": "Vamos estender seu período de teste por {days} {unit}.",
+        "body": "Vamos estender seu período de teste por {duration}.",
         "cta": "Estender teste"
       },
       "contact": {

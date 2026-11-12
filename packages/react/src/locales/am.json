@@ -109,19 +109,25 @@
       "unspecified": "ቅናሽ",
       "nextRenewal": "{discount} በሚቀጥለው እድሳትዎ",
       "forLife": "{discount} ለዕድሜ ልክ",
-      "forMonths": "{discount} ለ{months} {unit}"
+      "forMonths": "{discount} ለ{duration}"
+    },
+    "planInterval": {
+      "day": "ቀን",
+      "week": "ሳምንት",
+      "month": "ወር",
+      "year": "ዓመት"
     },
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% ቅናሽ ቢደረግስ?",
-        "body": "ለ{months} {unit} የ{percent}% ቅናሽ ልናደርግልዎ እንፈልጋለን።",
+        "body": "ለ{duration} {percent}% ቅናሽ ልናደርግልዎ እንፈልጋለን።",
         "headlineNoAmount": "ልዩ ቅናሽ",
         "bodyNoAmount": "ቅናሽ ልናደርግልዎ እንፈልጋለን።",
         "cta": "ቅናሹን ተቀበል"
       },
       "pause": {
         "headline": "በምትኩ እረፍት ይውሰዱ?",
-        "body": "ምዝገባዎን እስከ {months} {unit} ድረስ ያቁሙ።",
+        "body": "ደንበኝነትዎን እስከ {duration} ድረስ ባለበት ያቁሙ።",
         "cta": "ምዝገባን አቁም"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "ተጨማሪ ጊዜ ይፈልጋሉ?",
-        "body": "የሙከራ ጊዜዎን በ{days} {unit} እናራዝመዋለን።",
+        "body": "የሙከራ ጊዜዎን በ{duration} እናራዝመዋለን።",
         "cta": "ሙከራውን አራዝም"
       },
       "contact": {

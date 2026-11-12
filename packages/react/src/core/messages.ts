@@ -166,22 +166,29 @@ export interface CancelFlowMessages {
       nextRenewal: string
       /** Supports `{discount}`. */
       forLife: string
-      /** Supports `{discount}`, `{months}` and `{unit}` (`common.month` or `common.months`). */
+      /** Supports `{discount}` and `{duration}` ("3 months", formatted for the language). */
       forMonths: string
+    }
+    /** After a plan's price and a slash ("$29/month"), by billing interval. */
+    planInterval: {
+      day: string
+      week: string
+      month: string
+      year: string
     }
     /** Copy for a local-mode offer declared without `copy`. Connected mode
      *  gets its copy from the server. */
     defaultCopy: {
       discount: OfferCopyDefaults & {
-        /** `headline` and `body` support `{percent}`, `{months}` and `{unit}`;
-         *  these two are used when the offer has no `percentOff`. */
+        /** `headline` and `body` support `{percent}`; `body` also `{duration}`
+         *  ("3 months"). These two are used when the offer has no `percentOff`. */
         headlineNoAmount: string
         bodyNoAmount: string
       }
-      /** The body supports `{months}` and `{unit}`. */
+      /** The body supports `{duration}` ("3 months"). */
       pause: OfferCopyDefaults
       plan_change: OfferCopyDefaults
-      /** The body supports `{days}` and `{unit}` (`common.day` or `common.days`). */
+      /** The body supports `{duration}` ("14 days"). */
       trial_extension: OfferCopyDefaults
       /** The offer's `label`, when set, replaces the CTA. */
       contact: OfferCopyDefaults
@@ -343,19 +350,25 @@ export const defaultMessages: CancelFlowMessages = {
       unspecified: 'A discount',
       nextRenewal: '{discount} your next renewal',
       forLife: '{discount} for life',
-      forMonths: '{discount} for {months} {unit}',
+      forMonths: '{discount} for {duration}',
+    },
+    planInterval: {
+      day: 'day',
+      week: 'week',
+      month: 'month',
+      year: 'year',
     },
     defaultCopy: {
       discount: {
         headline: 'How about {percent}% off?',
-        body: "We'd like to offer you {percent}% off for {months} {unit}.",
+        body: "We'd like to offer you {percent}% off for {duration}.",
         headlineNoAmount: 'Special offer',
         bodyNoAmount: "We'd like to offer you a discount.",
         cta: 'Accept offer',
       },
       pause: {
         headline: 'Take a break instead?',
-        body: 'Pause your subscription for up to {months} {unit}.',
+        body: 'Pause your subscription for up to {duration}.',
         cta: 'Pause subscription',
       },
       plan_change: {
@@ -365,7 +378,7 @@ export const defaultMessages: CancelFlowMessages = {
       },
       trial_extension: {
         headline: 'Need more time?',
-        body: "We'll extend your trial by {days} {unit}.",
+        body: "We'll extend your trial by {duration}.",
         cta: 'Extend trial',
       },
       contact: {

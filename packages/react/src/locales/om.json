@@ -109,19 +109,25 @@
       "unspecified": "Hir'ina gatii",
       "nextRenewal": "{discount} haaromsa itti aanu irratti",
       "forLife": "{discount} yeroo hundaaf",
-      "forMonths": "{discount} {months} {unit} tiif"
+      "forMonths": "{discount} kan {duration}f"
+    },
+    "planInterval": {
+      "day": "guyyaa",
+      "week": "torban",
+      "month": "ji'a",
+      "year": "waggaa"
     },
     "defaultCopy": {
       "discount": {
         "headline": "%{percent} hir'ata taanaan how ta'a?",
-        "body": "{months} {unit} tiif %{percent} sif hir'isuu feena.",
+        "body": "{duration}f hir'ina {percent}% isinii kennuu barbaadna.",
         "headlineNoAmount": "Dhiyeessii addaa",
         "bodyNoAmount": "Hir'ina gatii sif kennuu feena.",
         "cta": "Dhiyeessii fudhadhu"
       },
       "pause": {
         "headline": "Kanaa mannaa boqodhaa?",
-        "body": "Maallaqa keessan hanga {months} {unit} tti dhaabsisuu dandeessa.",
+        "body": "Maallaqa keessan hanga {duration} dhaabsisuu dandeessu.",
         "cta": "Hajajjii dhaabi"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Yeroo dabalataa barbaaddaa?",
-        "body": "Yeroo yaalii kee {days} {unit} dheeressina.",
+        "body": "Yeroo yaalii keessan {duration} dheereffanna.",
         "cta": "Yaalii dheeressi"
       },
       "contact": {

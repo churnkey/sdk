@@ -109,19 +109,25 @@
       "unspecified": "一份优惠",
       "nextRenewal": "下次续订{discount}",
       "forLife": "终身{discount}",
-      "forMonths": "{months} {unit}内{discount}"
+      "forMonths": "{duration}{discount}"
+    },
+    "planInterval": {
+      "day": "天",
+      "week": "周",
+      "month": "月",
+      "year": "年"
     },
     "defaultCopy": {
       "discount": {
         "headline": "给您 {percent}% 折扣，如何？",
-        "body": "我们愿为您提供 {months} {unit}的 {percent}% 折扣。",
+        "body": "我们愿为您提供{duration}{percent}%的折扣。",
         "headlineNoAmount": "专属优惠",
         "bodyNoAmount": "我们愿为您提供一份优惠。",
         "cta": "接受优惠"
       },
       "pause": {
         "headline": "先休息一下？",
-        "body": "最长可暂停订阅 {months} {unit}。",
+        "body": "最长可暂停订阅{duration}。",
         "cta": "暂停订阅"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "需要更多时间？",
-        "body": "我们将为您延长试用 {days} {unit}。",
+        "body": "我们将为您的试用延长{duration}。",
         "cta": "延长试用"
       },
       "contact": {

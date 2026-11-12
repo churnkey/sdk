@@ -109,19 +109,25 @@
       "unspecified": "ஒரு தள்ளுபடி",
       "nextRenewal": "அடுத்த புதுப்பிப்பில் {discount}",
       "forLife": "வாழ்நாள் முழுவதும் {discount}",
-      "forMonths": "{months} {unit}க்கு {discount}"
+      "forMonths": "{duration}க்கு {discount}"
+    },
+    "planInterval": {
+      "day": "நாள்",
+      "week": "வாரம்",
+      "month": "மாதம்",
+      "year": "ஆண்டு"
     },
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% தள்ளுபடி வேண்டுமா?",
-        "body": "{months} {unit}க்கு {percent}% தள்ளுபடி வழங்க விரும்புகிறோம்.",
+        "body": "{duration}க்கு {percent}% தள்ளுபடி வழங்க விரும்புகிறோம்.",
         "headlineNoAmount": "சிறப்புச் சலுகை",
         "bodyNoAmount": "உங்களுக்கு ஒரு தள்ளுபடி வழங்க விரும்புகிறோம்.",
         "cta": "சலுகையை ஏற்கவும்"
       },
       "pause": {
         "headline": "அதற்குப் பதிலாக ஓய்வு எடுக்கலாமா?",
-        "body": "உங்கள் சந்தாவை {months} {unit} வரை இடைநிறுத்தலாம்.",
+        "body": "உங்கள் சந்தாவை {duration} வரை இடைநிறுத்தலாம்.",
         "cta": "சந்தாவை இடைநிறுத்து"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "கூடுதல் நேரம் வேண்டுமா?",
-        "body": "உங்கள் சோதனைக் காலத்தை {days} {unit} நீட்டிப்போம்.",
+        "body": "உங்கள் சோதனைக் காலத்தை {duration} நீட்டிக்கிறோம்.",
         "cta": "சோதனையை நீட்டி"
       },
       "contact": {

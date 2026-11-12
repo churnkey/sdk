@@ -18,7 +18,11 @@
  * validation. Only what changed is translated: strings a pack is missing,
  * and strings whose English differs from en.json, the catalog as of the last
  * run (a test fails when it drifts); strings the catalog dropped are dropped
- * from every pack. --force redoes everything. CHURNKEY_EMBED_DIR points at a
+ * from every pack. A language that fails or is left out by --only still owes
+ * the strings that changed; locales-pending.json next to this script records
+ * them for the next run, so en.json can advance without a successful pack
+ * being retranslated (and losing its hand edits). A test fails while that
+ * file exists. --force redoes everything. CHURNKEY_EMBED_DIR points at a
  * churnkey-embed checkout (default: a churnkey-embed next to this repo, or
  * next to the repo this is a worktree of); without one nothing is seeded.
  */
@@ -33,6 +37,7 @@ import { defaultMessages } from '../packages/react/src/core/messages'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT_DIR = resolve(ROOT, 'packages/react/src/locales')
 const SOURCE_FILE = resolve(OUT_DIR, 'en.json')
+const PENDING_FILE = resolve(ROOT, 'scripts/locales-pending.json')
 const EMBED_DIR =
   process.env.CHURNKEY_EMBED_DIR ??
   [resolve(ROOT, '../churnkey-embed'), resolve(ROOT, '../../churnkey-embed')].find((dir) => existsSync(dir)) ??
@@ -197,8 +202,10 @@ function validate(lang: string, source: Flat, pack: Flat): { errors: string[]; w
     const got = placeholders(value)
     if (want.join() !== got.join())
       errors.push(`${path}: placeholders ${JSON.stringify(got)} != ${JSON.stringify(want)}`)
+    // Only placeholders and punctuation left ("{duration}{discount}" in Chinese) is fine.
     const letters = value.replace(/\{\w+\}/g, '')
-    if (NON_LATIN.has(lang) && ![...letters].some((ch) => ch.charCodeAt(0) > 127))
+    const hasLetters = /\p{L}/u.test(letters)
+    if (NON_LATIN.has(lang) && hasLetters && ![...letters].some((ch) => ch.charCodeAt(0) > 127))
       errors.push(`${path}: still Latin script: ${value}`)
     else if (value === english && english.length > 3) warnings.push(`${path}: identical to English`)
   }
@@ -382,19 +389,29 @@ Return a JSON object with exactly the same keys as the input.`
 }
 
 /** Strings to (re)translate for `lang`: everything under --force, else what the pack lacks or whose English changed. */
-function stale(source: Flat, previous: Flat, existing: Flat | undefined, force: boolean): string[] {
+function stale(source: Flat, previous: Flat, existing: Flat | undefined, owed: string[], force: boolean): string[] {
   if (force || !existing) return Object.keys(source)
   const problems = new Set(validate('', source, existing).errors.map((e) => e.split(':')[0]))
-  return Object.keys(source).filter((path) => problems.has(path) || previous[path] !== source[path])
+  return Object.keys(source).filter(
+    (path) => problems.has(path) || previous[path] !== source[path] || owed.includes(path),
+  )
 }
 
-async function generate(provider: Provider, lang: string, source: Flat, previous: Flat, seeds: Flat, force: boolean) {
+async function generate(
+  provider: Provider,
+  lang: string,
+  source: Flat,
+  previous: Flat,
+  owed: string[],
+  seeds: Flat,
+  force: boolean,
+) {
   const file = resolve(OUT_DIR, `${lang}.json`)
   const onDisk = existsSync(file) ? flatten(JSON.parse(readFileSync(file, 'utf8'))) : undefined
   // A string the catalog no longer has goes, and that alone is a reason to write the file.
   const existing = onDisk && Object.fromEntries(Object.entries(onDisk).filter(([path]) => path in source))
   const dropped = onDisk ? Object.keys(onDisk).length - Object.keys(existing ?? {}).length : 0
-  const paths = stale(source, previous, existing, force)
+  const paths = stale(source, previous, existing, owed, force)
   if (paths.length === 0 && dropped === 0) return { lang, status: 'kept' as const }
   const pending: Flat = {}
   const seeded: Flat = {}
@@ -439,6 +456,9 @@ async function main() {
   mkdirSync(OUT_DIR, { recursive: true })
   const source = flatten(defaultMessages)
   const previous: Flat = existsSync(SOURCE_FILE) ? flatten(JSON.parse(readFileSync(SOURCE_FILE, 'utf8'))) : {}
+  const pending: Record<string, string[]> = existsSync(PENDING_FILE)
+    ? JSON.parse(readFileSync(PENDING_FILE, 'utf8'))
+    : {}
   const seeds = await loadEmbedSeeds()
   console.log(
     `${Object.keys(source).length} strings, ${langs.length} languages, ${provider === 'openai' ? OPENAI_MODEL : BEDROCK_MODEL}`,
@@ -451,8 +471,9 @@ async function main() {
     Array.from({ length: CONCURRENCY }, async () => {
       for (let lang = queue.shift(); lang; lang = queue.shift()) {
         try {
-          const r = await generate(provider, lang, source, previous, seeds[lang] ?? {}, force)
+          const r = await generate(provider, lang, source, previous, pending[lang] ?? [], seeds[lang] ?? {}, force)
           results.push(r)
+          delete pending[lang]
           if (r.status === 'written') {
             console.log(
               `${lang}: ${r.seeded} from embed, ${r.generated} generated${r.retried ? ' (retried)' : ''}${r.warnings.length ? `, ${r.warnings.length} identical to English` : ''}`,
@@ -472,9 +493,19 @@ async function main() {
   console.log(
     `${provider === 'openai' ? OPENAI_MODEL : BEDROCK_MODEL}: ${usage.input} in / ${usage.output} out tokens, ~$${cost.toFixed(3)}`,
   )
+  // A language not brought current this run (failed, or outside --only) owes
+  // the strings whose English changed, on top of what it already owed.
+  const done = new Set(results.map((r) => r.lang))
+  const changed = Object.keys(source).filter((path) => previous[path] !== source[path])
+  for (const lang of Object.keys(LANGUAGES)) {
+    if (done.has(lang)) continue
+    const owed = [...new Set([...(pending[lang] ?? []), ...changed])].filter((path) => path in source)
+    if (owed.length) pending[lang] = owed
+  }
+  if (Object.keys(pending).length) writeFileSync(PENDING_FILE, `${JSON.stringify(pending, null, 2)}\n`)
+  else rmSync(PENDING_FILE, { force: true })
+  writeFileSync(SOURCE_FILE, `${JSON.stringify(unflatten(source), null, 2)}\n`)
   if (failures.length) process.exit(1)
-  // Only once every pack is current: a failed language must still see the old English next run.
-  if (!only) writeFileSync(SOURCE_FILE, `${JSON.stringify(unflatten(source), null, 2)}\n`)
 }
 
 main().catch((err) => {

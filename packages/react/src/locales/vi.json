@@ -109,19 +109,25 @@
       "unspecified": "Ưu đãi giảm giá",
       "nextRenewal": "{discount} cho lần gia hạn tiếp theo",
       "forLife": "{discount} trọn đời",
-      "forMonths": "{discount} trong {months} {unit}"
+      "forMonths": "{discount} trong {duration}"
+    },
+    "planInterval": {
+      "day": "ngày",
+      "week": "tuần",
+      "month": "tháng",
+      "year": "năm"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Giảm {percent}% nhé?",
-        "body": "Chúng tôi muốn tặng bạn ưu đãi giảm {percent}% trong {months} {unit}.",
+        "body": "Chúng tôi muốn tặng bạn ưu đãi giảm {percent}% trong {duration}.",
         "headlineNoAmount": "Ưu đãi đặc biệt",
         "bodyNoAmount": "Chúng tôi muốn tặng bạn một ưu đãi giảm giá.",
         "cta": "Nhận ưu đãi"
       },
       "pause": {
         "headline": "Tạm nghỉ thay vì hủy?",
-        "body": "Tạm dừng gói đăng ký của bạn tối đa {months} {unit}.",
+        "body": "Tạm dừng gói đăng ký của bạn tối đa {duration}.",
         "cta": "Tạm dừng đăng ký"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Cần thêm thời gian?",
-        "body": "Chúng tôi sẽ gia hạn dùng thử của bạn thêm {days} {unit}.",
+        "body": "Chúng tôi sẽ gia hạn thời gian dùng thử của bạn thêm {duration}.",
         "cta": "Gia hạn dùng thử"
       },
       "contact": {

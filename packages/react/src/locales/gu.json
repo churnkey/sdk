@@ -109,19 +109,25 @@
       "unspecified": "છૂટ",
       "nextRenewal": "તમારા આગામી રિન્યુઅલ પર {discount}",
       "forLife": "આજીવન {discount}",
-      "forMonths": "{months} {unit} માટે {discount}"
+      "forMonths": "{duration} માટે {discount}"
+    },
+    "planInterval": {
+      "day": "દિવસ",
+      "week": "અઠવાડિયું",
+      "month": "મહિનો",
+      "year": "વર્ષ"
     },
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% છૂટ કેવી રહેશે?",
-        "body": "અમે તમને {months} {unit} માટે {percent}% છૂટ આપવા માગીએ છીએ.",
+        "body": "અમે તમને {duration} માટે {percent}% છૂટ આપવા માંગીએ છીએ.",
         "headlineNoAmount": "ખાસ ઓફર",
         "bodyNoAmount": "અમે તમને છૂટ આપવા માગીએ છીએ.",
         "cta": "ઓફર સ્વીકારો"
       },
       "pause": {
         "headline": "તેના બદલે વિરામ લેશો?",
-        "body": "તમારું સબ્સ્ક્રિપ્શન {months} {unit} સુધી થોભાવો.",
+        "body": "તમારું સબ્સ્ક્રિપ્શન {duration} સુધી થોભાવો.",
         "cta": "સબ્સ્ક્રિપ્શન થોભાવો"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "વધુ સમય જોઈએ છે?",
-        "body": "અમે તમારો ટ્રાયલ {days} {unit} લંબાવીશું.",
+        "body": "અમે તમારો ટ્રાયલ {duration} લંબાવીશું.",
         "cta": "ટ્રાયલ લંબાવો"
       },
       "contact": {

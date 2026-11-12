@@ -109,19 +109,25 @@
       "unspecified": "Zniżka",
       "nextRenewal": "{discount} przy następnym odnowieniu",
       "forLife": "{discount} na zawsze",
-      "forMonths": "{discount} przez {months} {unit}"
+      "forMonths": "{discount} przez {duration}"
+    },
+    "planInterval": {
+      "day": "dzień",
+      "week": "tydzień",
+      "month": "miesiąc",
+      "year": "rok"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Co powiecie na {percent}% zniżki?",
-        "body": "Chcemy zaproponować Wam {percent}% zniżki przez {months} {unit}.",
+        "body": "Chcemy zaproponować {percent}% zniżki przez {duration}.",
         "headlineNoAmount": "Oferta specjalna",
         "bodyNoAmount": "Chcemy zaproponować Wam zniżkę.",
         "cta": "Skorzystaj z oferty"
       },
       "pause": {
         "headline": "Może zamiast tego przerwa?",
-        "body": "Wstrzymaj subskrypcję nawet na {months} {unit}.",
+        "body": "Możliwość wstrzymania subskrypcji na okres do {duration}.",
         "cta": "Wstrzymaj subskrypcję"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Potrzebujecie więcej czasu?",
-        "body": "Przedłużymy Wasz okres próbny o {days} {unit}.",
+        "body": "Przedłużymy okres próbny o {duration}.",
         "cta": "Przedłuż okres próbny"
       },
       "contact": {

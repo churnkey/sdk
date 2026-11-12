@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { discountPhrase, formatPeriodEnd, formatPrice, formatShortDate } from '../../src/core/format'
+import { discountPhrase, formatDuration, formatPeriodEnd, formatPrice, formatShortDate } from '../../src/core/format'
 import { defaultMessages, mergeMessages } from '../../src/core/messages'
 
 describe('discountPhrase', () => {
@@ -16,13 +16,20 @@ describe('discountPhrase', () => {
 
   it('takes its words and its number formats from the catalog and the locale', () => {
     const de = mergeMessages(defaultMessages, {
-      common: { month: 'Monat', months: 'Monate' },
-      offer: { discount: { percentOff: '{percent} % Rabatt', forMonths: '{months} {unit} lang {discount}' } },
+      offer: { discount: { percentOff: '{percent} % Rabatt', forMonths: '{duration} lang {discount}' } },
     })
     expect(discountPhrase({ percentOff: 25, durationInMonths: 3 }, de, 'de')).toBe('3 Monate lang 25 % Rabatt')
     expect(discountPhrase({ amountOff: 500, currency: 'EUR', durationInMonths: 1 }, de, 'de')).toBe(
       '1 Monat lang 5\u00a0€ off',
     )
+  })
+
+  it('pluralize the duration by the language, not a singular/plural pair', () => {
+    const pl = mergeMessages(defaultMessages, { offer: { discount: { forMonths: '{discount} przez {duration}' } } })
+    expect(discountPhrase({ percentOff: 25, durationInMonths: 3 }, pl, 'pl')).toBe('25% off przez 3 miesiące')
+    expect(discountPhrase({ percentOff: 25, durationInMonths: 5 }, pl, 'pl')).toBe('25% off przez 5 miesięcy')
+    expect(formatDuration(1, 'day', 'en')).toBe('1 day')
+    expect(formatDuration(3, 'month', 'en_US')).toBe(formatDuration(3, 'month'))
   })
 })
 

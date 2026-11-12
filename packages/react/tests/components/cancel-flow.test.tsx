@@ -422,6 +422,43 @@ describe('CancelFlow', () => {
     expect(screen.queryByText(/access continues until/i)).not.toBeInTheDocument()
   })
 
+  it('labels each plan interval from the catalog', async () => {
+    const user = userEvent.setup()
+    render(
+      <CancelFlow
+        steps={[
+          {
+            type: 'survey',
+            reasons: [
+              {
+                id: 'r',
+                label: 'Too pricey',
+                offer: {
+                  type: 'plan_change',
+                  plans: [
+                    { id: 'm', name: 'Monthly', amount: { value: 900, currency: 'USD' } },
+                    {
+                      id: 'y',
+                      name: 'Yearly',
+                      amount: { value: 9000, currency: 'USD' },
+                      duration: { interval: 'year' },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        ]}
+        onCancel={vi.fn().mockResolvedValue(undefined)}
+        i18n={{ locale: 'en-GB', messages: { 'en-GB': { offer: { planInterval: { month: 'mth', year: 'yr' } } } } }}
+      />,
+    )
+    await user.click(screen.getByText('Too pricey'))
+    await user.click(screen.getByText('Continue'))
+    expect(screen.getByText('/mth')).toBeInTheDocument()
+    expect(screen.getByText('/yr')).toBeInTheDocument()
+  })
+
   it("marks the customer's current plan and excludes it from preselection", async () => {
     const user = userEvent.setup()
     const planChangeSteps: Step[] = [

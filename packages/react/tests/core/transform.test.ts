@@ -30,15 +30,14 @@ describe('defaultOfferCopy', () => {
 
   it("is in the catalog's language", () => {
     const es = mergeMessages(defaultMessages, {
-      common: { month: 'mes', months: 'meses' },
       offer: {
         defaultCopy: {
-          pause: { headline: '¿Mejor una pausa?', body: 'Pausa tu suscripción hasta {months} {unit}.' },
+          pause: { headline: '¿Mejor una pausa?', body: 'Pausa tu suscripción hasta {duration}.' },
           declineCta: 'No, gracias',
         },
       },
     })
-    expect(defaultOfferCopy({ type: 'pause', months: 2 }, es)).toEqual({
+    expect(defaultOfferCopy({ type: 'pause', months: 2 }, es, 'es')).toEqual({
       headline: '¿Mejor una pausa?',
       body: 'Pausa tu suscripción hasta 2 meses.',
       cta: 'Pause subscription',

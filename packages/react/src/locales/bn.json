@@ -109,19 +109,25 @@
       "unspecified": "একটি ছাড়",
       "nextRenewal": "আপনার পরবর্তী নবায়নে {discount}",
       "forLife": "আজীবন {discount}",
-      "forMonths": "{months} {unit} ধরে {discount}"
+      "forMonths": "{duration} এর জন্য {discount}"
+    },
+    "planInterval": {
+      "day": "দিন",
+      "week": "সপ্তাহ",
+      "month": "মাস",
+      "year": "বছর"
     },
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% ছাড় পেলে কেমন হয়?",
-        "body": "আমরা আপনাকে {months} {unit} ধরে {percent}% ছাড় দিতে চাই।",
+        "body": "আমরা আপনাকে {duration}-এর জন্য {percent}% ছাড় দিতে চাই।",
         "headlineNoAmount": "বিশেষ অফার",
         "bodyNoAmount": "আমরা আপনাকে একটি ছাড় দিতে চাই।",
         "cta": "অফারটি নিন"
       },
       "pause": {
         "headline": "বরং কিছুদিন বিরতি নেবেন?",
-        "body": "আপনার সাবস্ক্রিপশন সর্বোচ্চ {months} {unit} পর্যন্ত স্থগিত রাখুন।",
+        "body": "আপনার সাবস্ক্রিপশন সর্বোচ্চ {duration} পর্যন্ত বিরতিতে রাখুন।",
         "cta": "সাবস্ক্রিপশন স্থগিত করুন"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "আরও সময় দরকার?",
-        "body": "আমরা আপনার ট্রায়াল {days} {unit} বাড়িয়ে দেব।",
+        "body": "আমরা আপনার ট্রায়াল {duration} বাড়িয়ে দেব।",
         "cta": "ট্রায়াল বাড়ান"
       },
       "contact": {

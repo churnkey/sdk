@@ -109,19 +109,25 @@
       "unspecified": "ការបញ្ចុះតម្លៃ",
       "nextRenewal": "{discount} សម្រាប់ការបន្តលើកក្រោយរបស់អ្នក",
       "forLife": "{discount} ជារៀងរហូត",
-      "forMonths": "{discount} រយៈពេល {months} {unit}"
+      "forMonths": "{discount} សម្រាប់រយៈពេល {duration}"
+    },
+    "planInterval": {
+      "day": "ថ្ងៃ",
+      "week": "សប្តាហ៍",
+      "month": "ខែ",
+      "year": "ឆ្នាំ"
     },
     "defaultCopy": {
       "discount": {
         "headline": "បញ្ចុះតម្លៃ {percent}% យ៉ាងម៉េច?",
-        "body": "យើងចង់ផ្តល់ជូនអ្នកនូវការបញ្ចុះតម្លៃ {percent}% រយៈពេល {months} {unit}។",
+        "body": "យើងចង់ផ្តល់ជូនអ្នកនូវការបញ្ចុះតម្លៃ {percent}% សម្រាប់រយៈពេល {duration}។",
         "headlineNoAmount": "ការផ្តល់ជូនពិសេស",
         "bodyNoAmount": "យើងចង់ផ្តល់ជូនអ្នកនូវការបញ្ចុះតម្លៃ។",
         "cta": "ទទួលយកការផ្តល់ជូន"
       },
       "pause": {
         "headline": "សម្រាកសិនវិញ ទេ?",
-        "body": "ផ្អាកការជាវរបស់អ្នករហូតដល់ {months} {unit}។",
+        "body": "ផ្អាកការជាវរបស់អ្នករហូតដល់ {duration}។",
         "cta": "ផ្អាកការជាវ"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "ត្រូវការពេលបន្ថែម?",
-        "body": "យើងនឹងបន្ថែមការសាកល្បងរបស់អ្នក {days} {unit}។",
+        "body": "យើងនឹងពន្យារការសាកល្បងរបស់អ្នកបន្ថែម {duration}។",
         "cta": "បន្ថែមការសាកល្បង"
       },
       "contact": {

@@ -109,19 +109,25 @@
       "unspecified": "Bir indirim",
       "nextRenewal": "Bir sonraki yenilemenizde {discount}",
       "forLife": "Ömür boyu {discount}",
-      "forMonths": "{months} {unit} boyunca {discount}"
+      "forMonths": "{duration} boyunca {discount}"
+    },
+    "planInterval": {
+      "day": "gün",
+      "week": "hafta",
+      "month": "ay",
+      "year": "yıl"
     },
     "defaultCopy": {
       "discount": {
         "headline": "%{percent} indirime ne dersiniz?",
-        "body": "Size {months} {unit} boyunca %{percent} indirim sunmak isteriz.",
+        "body": "Size {duration} boyunca %{percent} indirim sunmak isteriz.",
         "headlineNoAmount": "Özel teklif",
         "bodyNoAmount": "Size bir indirim sunmak isteriz.",
         "cta": "Teklifi kabul et"
       },
       "pause": {
         "headline": "Bunun yerine ara vermeye ne dersiniz?",
-        "body": "Aboneliğinizi en fazla {months} {unit} duraklatın.",
+        "body": "Aboneliğinizi {duration} süreye kadar duraklatın.",
         "cta": "Aboneliği duraklat"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Daha fazla zamana mı ihtiyacınız var?",
-        "body": "Deneme sürenizi {days} {unit} uzatacağız.",
+        "body": "Deneme sürenizi {duration} uzatacağız.",
         "cta": "Denemeyi uzat"
       },
       "contact": {

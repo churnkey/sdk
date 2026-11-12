@@ -109,19 +109,25 @@
       "unspecified": "Знижка",
       "nextRenewal": "{discount} на наступне продовження",
       "forLife": "{discount} назавжди",
-      "forMonths": "{discount} на {months} {unit}"
+      "forMonths": "{discount} на {duration}"
+    },
+    "planInterval": {
+      "day": "день",
+      "week": "тиждень",
+      "month": "місяць",
+      "year": "рік"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Що скажете про знижку {percent}%?",
-        "body": "Ми хочемо запропонувати вам знижку {percent}% на {months} {unit}.",
+        "body": "Ми пропонуємо вам знижку {percent}% на {duration}.",
         "headlineNoAmount": "Особлива пропозиція",
         "bodyNoAmount": "Ми хочемо запропонувати вам знижку.",
         "cta": "Прийняти пропозицію"
       },
       "pause": {
         "headline": "Може, краще зробити перерву?",
-        "body": "Призупиніть підписку до {months} {unit}.",
+        "body": "Призупиніть підписку не більше ніж на {duration}.",
         "cta": "Призупинити підписку"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Потрібно більше часу?",
-        "body": "Ми продовжимо ваш пробний період на {days} {unit}.",
+        "body": "Ми подовжимо ваш пробний період на {duration}.",
         "cta": "Продовжити пробний період"
       },
       "contact": {

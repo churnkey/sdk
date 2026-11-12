@@ -109,19 +109,25 @@
       "unspecified": "割引",
       "nextRenewal": "次回更新時に{discount}",
       "forLife": "ずっと{discount}",
-      "forMonths": "{months}{unit}間{discount}"
+      "forMonths": "{duration}間{discount}"
+    },
+    "planInterval": {
+      "day": "日",
+      "week": "週",
+      "month": "月",
+      "year": "年"
     },
     "defaultCopy": {
       "discount": {
         "headline": "{percent}%オフはいかがですか？",
-        "body": "{months}{unit}間、{percent}%オフでご利用いただけます。",
+        "body": "{duration}間、{percent}%割引でご利用いただけます。",
         "headlineNoAmount": "特別なご案内",
         "bodyNoAmount": "割引をご用意しました。",
         "cta": "特典を受け取る"
       },
       "pause": {
         "headline": "代わりに一時休止しませんか？",
-        "body": "最長{months}{unit}間、サブスクリプションを一時停止できます。",
+        "body": "最長{duration}、サブスクリプションを一時停止できます。",
         "cta": "サブスクリプションを一時停止"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "もう少し時間が必要ですか？",
-        "body": "トライアルを{days}{unit}延長します。",
+        "body": "トライアル期間を{duration}延長します。",
         "cta": "トライアルを延長"
       },
       "contact": {

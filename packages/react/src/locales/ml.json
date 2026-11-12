@@ -109,19 +109,25 @@
       "unspecified": "ഒരു കിഴിവ്",
       "nextRenewal": "അടുത്ത പുതുക്കലിന് {discount}",
       "forLife": "ആജീവനാന്തം {discount}",
-      "forMonths": "{months} {unit}-ലേക്ക് {discount}"
+      "forMonths": "{duration}ത്തേക്ക് {discount}"
+    },
+    "planInterval": {
+      "day": "ദിവസം",
+      "week": "ആഴ്ച",
+      "month": "മാസം",
+      "year": "വർഷം"
     },
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% കിഴിവ് ആയാലോ?",
-        "body": "{months} {unit}-ലേക്ക് {percent}% കിഴിവ് നൽകാൻ ഞങ്ങൾ ആഗ്രഹിക്കുന്നു.",
+        "body": "{duration} നേരത്തേക്ക് {percent}% കിഴിവ് നൽകാൻ ഞങ്ങൾ ആഗ്രഹിക്കുന്നു.",
         "headlineNoAmount": "പ്രത്യേക ഓഫർ",
         "bodyNoAmount": "നിങ്ങൾക്ക് ഒരു കിഴിവ് നൽകാൻ ഞങ്ങൾ ആഗ്രഹിക്കുന്നു.",
         "cta": "ഓഫർ സ്വീകരിക്കൂ"
       },
       "pause": {
         "headline": "പകരം ഒരു ഇടവേള എടുത്താലോ?",
-        "body": "നിങ്ങളുടെ സബ്സ്ക്രിപ്ഷൻ {months} {unit} വരെ താൽക്കാലികമായി നിർത്തിവയ്ക്കൂ.",
+        "body": "നിങ്ങളുടെ സബ്സ്ക്രിപ്ഷൻ {duration} വരെ താൽക്കാലികമായി നിർത്തിവയ്ക്കാം.",
         "cta": "സബ്സ്ക്രിപ്ഷൻ താൽക്കാലികമായി നിർത്തൂ"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "കൂടുതൽ സമയം വേണോ?",
-        "body": "നിങ്ങളുടെ ട്രയൽ {days} {unit} കൂടി ഞങ്ങൾ നീട്ടിനൽകാം.",
+        "body": "നിങ്ങളുടെ ട്രയൽ ഞങ്ങൾ {duration} കൂടി നീട്ടിനൽകാം.",
         "cta": "ട്രയൽ നീട്ടൂ"
       },
       "contact": {

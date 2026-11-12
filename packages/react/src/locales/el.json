@@ -109,19 +109,25 @@
       "unspecified": "Μια έκπτωση",
       "nextRenewal": "{discount} στην επόμενη ανανέωσή σας",
       "forLife": "{discount} για πάντα",
-      "forMonths": "{discount} για {months} {unit}"
+      "forMonths": "{discount} για {duration}"
+    },
+    "planInterval": {
+      "day": "ημέρα",
+      "week": "εβδομάδα",
+      "month": "μήνας",
+      "year": "έτος"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Τι θα λέγατε για {percent}% έκπτωση;",
-        "body": "Θα θέλαμε να σας προσφέρουμε {percent}% έκπτωση για {months} {unit}.",
+        "body": "Θέλουμε να σας προσφέρουμε {percent}% έκπτωση για {duration}.",
         "headlineNoAmount": "Ειδική προσφορά",
         "bodyNoAmount": "Θα θέλαμε να σας προσφέρουμε μια έκπτωση.",
         "cta": "Αποδοχή προσφοράς"
       },
       "pause": {
         "headline": "Μια παύση αντί για ακύρωση;",
-        "body": "Θέστε τη συνδρομή σας σε παύση για έως {months} {unit}.",
+        "body": "Θέστε τη συνδρομή σας σε παύση για έως {duration}.",
         "cta": "Παύση συνδρομής"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Χρειάζεστε περισσότερο χρόνο;",
-        "body": "Θα παρατείνουμε τη δοκιμαστική σας περίοδο κατά {days} {unit}.",
+        "body": "Θα παρατείνουμε τη δοκιμαστική σας περίοδο κατά {duration}.",
         "cta": "Παράταση δοκιμής"
       },
       "contact": {

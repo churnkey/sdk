@@ -109,19 +109,25 @@
       "unspecified": "یک تخفیف",
       "nextRenewal": "{discount} برای تمدید بعدی شما",
       "forLife": "{discount} برای همیشه",
-      "forMonths": "{discount} برای {months} {unit}"
+      "forMonths": "{discount} برای {duration}"
+    },
+    "planInterval": {
+      "day": "روز",
+      "week": "هفته",
+      "month": "ماه",
+      "year": "سال"
     },
     "defaultCopy": {
       "discount": {
         "headline": "{percent}٪ تخفیف چطور است؟",
-        "body": "می‌خواهیم برای {months} {unit} به شما {percent}٪ تخفیف بدهیم.",
+        "body": "می‌خواهیم برای {duration}، {percent}٪ تخفیف به شما بدهیم.",
         "headlineNoAmount": "پیشنهاد ویژه",
         "bodyNoAmount": "می‌خواهیم به شما تخفیف بدهیم.",
         "cta": "پذیرش پیشنهاد"
       },
       "pause": {
         "headline": "به‌جایش کمی استراحت کنید؟",
-        "body": "اشتراک خود را تا {months} {unit} متوقف کنید.",
+        "body": "اشتراک خود را تا {duration} متوقف کنید.",
         "cta": "توقف اشتراک"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "به زمان بیشتری نیاز دارید؟",
-        "body": "دوره آزمایشی شما را {days} {unit} تمدید می‌کنیم.",
+        "body": "دوره آزمایشی شما را {duration} تمدید می‌کنیم.",
         "cta": "تمدید دوره آزمایشی"
       },
       "contact": {

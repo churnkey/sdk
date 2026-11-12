@@ -109,19 +109,25 @@
       "unspecified": "Скидка",
       "nextRenewal": "{discount} на следующее продление",
       "forLife": "{discount} навсегда",
-      "forMonths": "{discount} на {months} {unit}"
+      "forMonths": "{discount} на {duration}"
+    },
+    "planInterval": {
+      "day": "день",
+      "week": "неделя",
+      "month": "месяц",
+      "year": "год"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Как насчёт скидки {percent}%?",
-        "body": "Мы хотим предложить вам скидку {percent}% на {months} {unit}.",
+        "body": "Мы предлагаем вам скидку {percent}% на {duration}.",
         "headlineNoAmount": "Специальное предложение",
         "bodyNoAmount": "Мы хотим предложить вам скидку.",
         "cta": "Принять предложение"
       },
       "pause": {
         "headline": "Может, сделаете паузу?",
-        "body": "Приостановите подписку до {months} {unit}.",
+        "body": "Приостановите подписку на срок до {duration}.",
         "cta": "Приостановить подписку"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Нужно больше времени?",
-        "body": "Мы продлим ваш пробный период на {days} {unit}.",
+        "body": "Мы продлим ваш пробный период на {duration}.",
         "cta": "Продлить пробный период"
       },
       "contact": {

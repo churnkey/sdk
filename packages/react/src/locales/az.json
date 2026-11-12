@@ -109,19 +109,25 @@
       "unspecified": "Endirim",
       "nextRenewal": "Növbəti yenilənmədə {discount}",
       "forLife": "Ömürlük {discount}",
-      "forMonths": "{months} {unit} üçün {discount}"
+      "forMonths": "{duration} üçün {discount}"
+    },
+    "planInterval": {
+      "day": "gün",
+      "week": "həftə",
+      "month": "ay",
+      "year": "il"
     },
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% endirimə nə deyirsiniz?",
-        "body": "Sizə {months} {unit} üçün {percent}% endirim təklif etmək istəyirik.",
+        "body": "Sizə {duration} üçün {percent}% endirim təklif etmək istərdik.",
         "headlineNoAmount": "Xüsusi təklif",
         "bodyNoAmount": "Sizə endirim təklif etmək istəyirik.",
         "cta": "Təklifi qəbul et"
       },
       "pause": {
         "headline": "Əvəzinə fasilə verək?",
-        "body": "Abunəliyinizi {months} {unit}dək dayandırın.",
+        "body": "Abunəliyinizi {duration} müddətinədək dayandırın.",
         "cta": "Abunəliyi dayandır"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Daha çox vaxt lazımdır?",
-        "body": "Sınaq müddətinizi {days} {unit} uzadacağıq.",
+        "body": "Sınaq müddətinizi {duration} uzadacağıq.",
         "cta": "Sınağı uzat"
       },
       "contact": {

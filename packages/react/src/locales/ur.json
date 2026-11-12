@@ -109,19 +109,25 @@
       "unspecified": "رعایت",
       "nextRenewal": "اگلی تجدید پر {discount}",
       "forLife": "{discount}، ہمیشہ کے لیے",
-      "forMonths": "{discount}، {months} {unit} کے لیے"
+      "forMonths": "{duration} کے لیے {discount}"
+    },
+    "planInterval": {
+      "day": "دن",
+      "week": "ہفتہ",
+      "month": "مہینہ",
+      "year": "سال"
     },
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% رعایت کیسی رہے گی؟",
-        "body": "ہم آپ کو {months} {unit} کے لیے {percent}% رعایت دینا چاہتے ہیں۔",
+        "body": "ہم آپ کو {duration} کے لیے {percent}% رعایت دینا چاہتے ہیں۔",
         "headlineNoAmount": "خصوصی پیشکش",
         "bodyNoAmount": "ہم آپ کو رعایت دینا چاہتے ہیں۔",
         "cta": "پیشکش قبول کریں"
       },
       "pause": {
         "headline": "اس کے بجائے وقفہ لیں؟",
-        "body": "اپنی سبسکرپشن کو {months} {unit} تک موقوف کریں۔",
+        "body": "اپنی سبسکرپشن کو {duration} تک روکیں۔",
         "cta": "سبسکرپشن موقوف کریں"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "مزید وقت چاہیے؟",
-        "body": "ہم آپ کا ٹرائل {days} {unit} بڑھا دیں گے۔",
+        "body": "ہم آپ کا ٹرائل {duration} بڑھا دیں گے۔",
         "cta": "ٹرائل بڑھائیں"
       },
       "contact": {

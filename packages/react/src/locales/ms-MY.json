@@ -109,19 +109,25 @@
       "unspecified": "Diskaun",
       "nextRenewal": "{discount} untuk pembaharuan seterusnya",
       "forLife": "{discount} seumur hidup",
-      "forMonths": "{discount} selama {months} {unit}"
+      "forMonths": "{discount} selama {duration}"
+    },
+    "planInterval": {
+      "day": "hari",
+      "week": "minggu",
+      "month": "bulan",
+      "year": "tahun"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Bagaimana dengan diskaun {percent}%?",
-        "body": "Kami ingin menawarkan diskaun {percent}% selama {months} {unit}.",
+        "body": "Kami ingin menawarkan diskaun {percent}% selama {duration}.",
         "headlineNoAmount": "Tawaran istimewa",
         "bodyNoAmount": "Kami ingin menawarkan diskaun kepada anda.",
         "cta": "Terima tawaran"
       },
       "pause": {
         "headline": "Berehat sebentar?",
-        "body": "Jeda langganan anda sehingga {months} {unit}.",
+        "body": "Jeda langganan anda sehingga {duration}.",
         "cta": "Jeda langganan"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Perlukan lebih masa?",
-        "body": "Kami akan lanjutkan percubaan anda selama {days} {unit}.",
+        "body": "Kami akan melanjutkan percubaan anda selama {duration}.",
         "cta": "Lanjutkan percubaan"
       },
       "contact": {

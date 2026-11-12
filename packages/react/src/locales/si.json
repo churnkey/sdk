@@ -109,19 +109,25 @@
       "unspecified": "වට්ටමක්",
       "nextRenewal": "ඔබේ ඊළඟ අලුත් කිරීමට {discount}",
       "forLife": "ජීවිත කාලයටම {discount}",
-      "forMonths": "{months} {unit} සඳහා {discount}"
+      "forMonths": "{duration}ක් සඳහා {discount}"
+    },
+    "planInterval": {
+      "day": "දින",
+      "week": "සතිය",
+      "month": "මාසය",
+      "year": "වසර"
     },
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% වට්ටමක් ගැන කුමක් කියනවාද?",
-        "body": "{months} {unit} සඳහා {percent}% වට්ටමක් ඔබට පිරිනමන්නට කැමතියි.",
+        "body": "{duration}ක් සඳහා {percent}% ක වට්ටමක් ඔබට පිරිනැමීමට කැමැතියි.",
         "headlineNoAmount": "විශේෂ දීමනාවක්",
         "bodyNoAmount": "ඔබට වට්ටමක් පිරිනමන්නට කැමතියි.",
         "cta": "දීමනාව භාර ගන්න"
       },
       "pause": {
         "headline": "ඒ වෙනුවට විවේකයක් ගමුද?",
-        "body": "ඔබේ දායකත්වය {months} {unit} දක්වා විරාම කරන්න.",
+        "body": "ඔබේ දායකත්වය {duration}ක් දක්වා විරාම කරන්න.",
         "cta": "දායකත්වය විරාම කරන්න"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "තව කාලයක් අවශ්‍යද?",
-        "body": "ඔබේ අත්හදා බැලීම {days} {unit} කින් දීර්ඝ කරන්නෙමු.",
+        "body": "ඔබේ අත්හදා බැලීමේ කාලය {duration}කින් දීර්ඝ කරන්නෙමු.",
         "cta": "අත්හදා බැලීම දීර්ඝ කරන්න"
       },
       "contact": {

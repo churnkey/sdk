@@ -4,6 +4,7 @@
 // as DirectPrice[], so this layer is a pure shape projection.
 
 import type { SdkConfig, SdkCustomOffer, SdkDiscountOffer, SdkOffer, SdkReason, SdkStep } from './api-types'
+import { formatDuration } from './format'
 import { type CancelFlowMessages, formatMessage } from './messages'
 import type { BuiltInOfferConfig, OfferConfig, OfferCopy, OfferDecision, ReasonConfig, Step } from './types'
 import { BUILT_IN_OFFER_TYPES } from './utils'
@@ -149,7 +150,7 @@ function transformOfferConfig(o: SdkOffer): OfferConfig {
  * `offer.defaultCopy`, so it is in the chrome's language. Connected-mode
  * offers arrive with copy from the server.
  */
-export function defaultOfferCopy(offer: OfferConfig, messages: CancelFlowMessages): OfferCopy {
+export function defaultOfferCopy(offer: OfferConfig, messages: CancelFlowMessages, locale?: string): OfferCopy {
   const o = offer as BuiltInOfferConfig
   const text = messages.offer.defaultCopy
   const declineCta = text.declineCta
@@ -163,12 +164,7 @@ export function defaultOfferCopy(offer: OfferConfig, messages: CancelFlowMessage
           declineCta,
         }
       }
-      const months = o.durationInMonths ?? 1
-      const vars = {
-        percent: o.percentOff,
-        months,
-        unit: months === 1 ? messages.common.month : messages.common.months,
-      }
+      const vars = { percent: o.percentOff, duration: formatDuration(o.durationInMonths ?? 1, 'month', locale) }
       return {
         headline: formatMessage(text.discount.headline, vars),
         body: formatMessage(text.discount.body, vars),
@@ -177,16 +173,15 @@ export function defaultOfferCopy(offer: OfferConfig, messages: CancelFlowMessage
       }
     }
     case 'pause': {
-      const unit = o.months === 1 ? messages.common.month : messages.common.months
-      return { ...text.pause, body: formatMessage(text.pause.body, { months: o.months, unit }), declineCta }
+      const duration = formatDuration(o.months, 'month', locale)
+      return { ...text.pause, body: formatMessage(text.pause.body, { duration }), declineCta }
     }
     case 'plan_change':
       return { ...text.plan_change, declineCta }
     case 'trial_extension': {
-      const unit = o.days === 1 ? messages.common.day : messages.common.days
       return {
         ...text.trial_extension,
-        body: formatMessage(text.trial_extension.body, { days: o.days, unit }),
+        body: formatMessage(text.trial_extension.body, { duration: formatDuration(o.days, 'day', locale) }),
         declineCta,
       }
     }

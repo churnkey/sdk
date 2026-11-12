@@ -644,7 +644,8 @@ export class CancelFlowMachine {
   }
 
   // Read at build time, so the copy is in whatever language the catalog is in then.
-  private offerCopy = (offer: OfferConfig): OfferCopy => defaultOfferCopy(offer, this.resolvedMessages)
+  private offerCopy = (offer: OfferConfig): OfferCopy =>
+    defaultOfferCopy(offer, this.resolvedMessages, this.currentLocale)
 
   private buildLocalGraph(): StepGraph {
     const merged = applyMergeFieldsToSteps(this.localSteps ?? [], this.directCustomer, this.customerAttributes)

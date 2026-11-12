@@ -109,19 +109,25 @@
       "unspecified": "Sleva",
       "nextRenewal": "{discount} na další obnovení",
       "forLife": "{discount} navždy",
-      "forMonths": "{discount} na {months} {unit}"
+      "forMonths": "{discount} na {duration}"
+    },
+    "planInterval": {
+      "day": "den",
+      "week": "týden",
+      "month": "měsíc",
+      "year": "rok"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Co říkáte na slevu {percent} %?",
-        "body": "Rádi bychom vám nabídli slevu {percent} % na {months} {unit}.",
+        "body": "Rádi vám nabídneme slevu {percent} % na {duration}.",
         "headlineNoAmount": "Speciální nabídka",
         "bodyNoAmount": "Rádi bychom vám nabídli slevu.",
         "cta": "Přijmout nabídku"
       },
       "pause": {
         "headline": "Dát si raději pauzu?",
-        "body": "Pozastavte předplatné až na {months} {unit}.",
+        "body": "Pozastavte si předplatné až na {duration}.",
         "cta": "Pozastavit předplatné"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Potřebujete více času?",
-        "body": "Prodloužíme vám zkušební období o {days} {unit}.",
+        "body": "Prodloužíme vám zkušební dobu o {duration}.",
         "cta": "Prodloužit zkušební období"
       },
       "contact": {

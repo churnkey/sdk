@@ -109,19 +109,25 @@
       "unspecified": "ส่วนลด",
       "nextRenewal": "{discount}สำหรับการต่ออายุครั้งถัดไป",
       "forLife": "{discount}ตลอดชีพ",
-      "forMonths": "{discount} เป็นเวลา {months} {unit}"
+      "forMonths": "{discount} เป็นเวลา {duration}"
+    },
+    "planInterval": {
+      "day": "วัน",
+      "week": "สัปดาห์",
+      "month": "เดือน",
+      "year": "ปี"
     },
     "defaultCopy": {
       "discount": {
         "headline": "ลด {percent}% สนใจไหม?",
-        "body": "เรามีส่วนลด {percent}% ให้คุณเป็นเวลา {months} {unit}",
+        "body": "เรามีส่วนลด {percent}% ให้คุณเป็นเวลา {duration}",
         "headlineNoAmount": "ข้อเสนอพิเศษ",
         "bodyNoAmount": "เรามีส่วนลดพิเศษมอบให้คุณ",
         "cta": "รับข้อเสนอ"
       },
       "pause": {
         "headline": "พักไว้ก่อนดีไหม?",
-        "body": "พักการสมัครสมาชิกได้นานสูงสุด {months} {unit}",
+        "body": "พักการสมัครสมาชิกได้นานสูงสุด {duration}",
         "cta": "พักการสมัครสมาชิก"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "ต้องการเวลาเพิ่มไหม?",
-        "body": "เราจะขยายช่วงทดลองใช้ให้คุณอีก {days} {unit}",
+        "body": "เราจะขยายระยะเวลาทดลองใช้ให้คุณอีก {duration}",
         "cta": "ขยายช่วงทดลองใช้"
       },
       "contact": {

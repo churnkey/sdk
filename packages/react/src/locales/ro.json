@@ -109,19 +109,25 @@
       "unspecified": "O reducere",
       "nextRenewal": "{discount} la următoarea reînnoire",
       "forLife": "{discount} pe viață",
-      "forMonths": "{discount} timp de {months} {unit}"
+      "forMonths": "{discount} timp de {duration}"
+    },
+    "planInterval": {
+      "day": "zi",
+      "week": "săptămână",
+      "month": "lună",
+      "year": "an"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Ce zici de {percent}% reducere?",
-        "body": "Vrem să-ți oferim {percent}% reducere timp de {months} {unit}.",
+        "body": "Vrem să îți oferim {percent}% reducere timp de {duration}.",
         "headlineNoAmount": "Ofertă specială",
         "bodyNoAmount": "Vrem să-ți oferim o reducere.",
         "cta": "Acceptă oferta"
       },
       "pause": {
         "headline": "Preferi o pauză?",
-        "body": "Pune abonamentul în pauză până la {months} {unit}.",
+        "body": "Pune abonamentul în pauză pentru maximum {duration}.",
         "cta": "Pauză abonament"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Ai nevoie de mai mult timp?",
-        "body": "Îți prelungim perioada de probă cu {days} {unit}.",
+        "body": "Îți prelungim perioada de probă cu {duration}.",
         "cta": "Prelungește proba"
       },
       "contact": {

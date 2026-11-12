@@ -109,19 +109,25 @@
       "unspecified": "छुट",
       "nextRenewal": "तपाईंको अर्को नवीकरणमा {discount}",
       "forLife": "जीवनभरका लागि {discount}",
-      "forMonths": "{months} {unit}का लागि {discount}"
+      "forMonths": "{duration}को लागि {discount}"
+    },
+    "planInterval": {
+      "day": "दिन",
+      "week": "हप्ता",
+      "month": "महिना",
+      "year": "वर्ष"
     },
     "defaultCopy": {
       "discount": {
         "headline": "{percent}% छुट भए कस्तो होला?",
-        "body": "हामी तपाईंलाई {months} {unit}सम्म {percent}% छुट दिन चाहन्छौं।",
+        "body": "हामी तपाईंलाई {duration}को लागि {percent}% छुट दिन चाहन्छौं।",
         "headlineNoAmount": "विशेष अफर",
         "bodyNoAmount": "हामी तपाईंलाई छुट दिन चाहन्छौं।",
         "cta": "अफर स्वीकार्नुहोस्"
       },
       "pause": {
         "headline": "बरु केही समय विश्राम लिने?",
-        "body": "आफ्नो सदस्यता {months} {unit}सम्मका लागि रोक्नुहोस्।",
+        "body": "आफ्नो सदस्यता {duration}सम्म रोक्नुहोस्।",
         "cta": "सदस्यता रोक्नुहोस्"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "थप समय चाहिन्छ?",
-        "body": "हामी तपाईंको परीक्षण अवधि {days} {unit} थप गरिदिनेछौं।",
+        "body": "हामी तपाईंको ट्रायल {duration}ले बढाइदिनेछौं।",
         "cta": "परीक्षण अवधि बढाउनुहोस्"
       },
       "contact": {

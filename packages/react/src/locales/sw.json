@@ -109,19 +109,25 @@
       "unspecified": "Punguzo",
       "nextRenewal": "{discount} katika kusasisha kwako kujacho",
       "forLife": "{discount} maishani",
-      "forMonths": "{discount} kwa {months} {unit}"
+      "forMonths": "{discount} kwa {duration}"
+    },
+    "planInterval": {
+      "day": "siku",
+      "week": "wiki",
+      "month": "mwezi",
+      "year": "mwaka"
     },
     "defaultCopy": {
       "discount": {
         "headline": "Je, punguzo la {percent}%?",
-        "body": "Tungependa kukupa punguzo la {percent}% kwa {months} {unit}.",
+        "body": "Tungependa kukupa punguzo la {percent}% kwa {duration}.",
         "headlineNoAmount": "Ofa maalum",
         "bodyNoAmount": "Tungependa kukupa punguzo.",
         "cta": "Kubali ofa"
       },
       "pause": {
         "headline": "Pumzika badala yake?",
-        "body": "Sitisha usajili wako hadi kwa {months} {unit}.",
+        "body": "Sitisha usajili wako kwa hadi {duration}.",
         "cta": "Sitisha usajili"
       },
       "plan_change": {
@@ -131,7 +137,7 @@
       },
       "trial_extension": {
         "headline": "Unahitaji muda zaidi?",
-        "body": "Tutaongeza muda wa jaribio lako kwa {days} {unit}.",
+        "body": "Tutaongeza muda wa jaribio lako kwa {duration}.",
         "cta": "Ongeza muda wa jaribio"
       },
       "contact": {

@@ -90,7 +90,7 @@ export function PlanGrid({
 
             <div className="ck-plan-price-row">
               <span className="ck-plan-amount">{formatPriceFromMinor(plan.amount.value, currency, locale)}</span>
-              <span className="ck-plan-period">/{interval}</span>
+              <span className="ck-plan-period">/{msg.offer.planInterval[interval] ?? interval}</span>
               {plan.msrp && <span className="ck-plan-msrp">{plan.msrp}</span>}
             </div>
 
