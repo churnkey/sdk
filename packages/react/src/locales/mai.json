@@ -122,7 +122,7 @@
     },
     "defaultCopy": {
       "discount": {
-        "headline": "{percent}% छूट कেমন रहत?",
+        "headline": "{percent}% छूट भेटय तऽ केहन रहत?",
         "headlineNoAmount": "विशेष प्रस्ताव",
         "bodyNoAmount": "हम अहाँकेँ छूट दिअय चाहैत छी।",
         "cta": "प्रस्ताव स्वीकार करू",

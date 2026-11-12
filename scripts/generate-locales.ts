@@ -33,6 +33,7 @@ import { tmpdir } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { defaultMessages, expandPluralPaths, PLURAL_PATHS } from '../packages/react/src/core/messages'
+import { scriptProblem } from '../packages/react/src/locales/script-check'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT_DIR = resolve(ROOT, 'packages/react/src/locales')
@@ -209,6 +210,8 @@ function validate(lang: string, source: Flat, pack: Flat): { errors: string[]; w
     // Only placeholders and punctuation left is fine.
     const letters = value.replace(/\{\w+\}/g, '')
     const hasLetters = /\p{L}/u.test(letters)
+    const mixed = scriptProblem(value)
+    if (mixed) errors.push(`${path}: ${mixed}: ${value}`)
     if (NON_LATIN.has(lang) && hasLetters && ![...letters].some((ch) => ch.charCodeAt(0) > 127))
       errors.push(`${path}: still Latin script: ${value}`)
     else if (value === english && english.length > 3) warnings.push(`${path}: identical to English`)
@@ -360,6 +363,7 @@ async function translate(provider: Provider, lang: string, text: Flat): Promise<
 4. Keep every {placeholder} token exactly as written, in braces, untranslated. Reorder it in the sentence if the grammar needs that.
    Placeholders are filled with finished phrases in ${LANGUAGES[lang]}: {discount} a whole discount phrase ("25% off"), {amount} a formatted price, {date} a formatted date. Never attach a suffix, case ending or particle to one of those; when the grammar needs a case marker or postposition, use a separate word or rephrase so the placeholder stands alone. {count} is a bare number: write the unit next to it yourself, in the form the number and the sentence need.
    A key ending in .zero, .one, .two, .few, .many or .other is one message in a CLDR plural category of ${LANGUAGES[lang]}: write the whole string as it reads for a {count} in that category (the English given is its "one" or "other" form).
+   Write every word in ${LANGUAGES[lang]} and its own script: no English left untranslated, no letters from another writing system.
 5. Keep punctuation style (a trailing period or ellipsis stays).
 ${REGISTER[lang] ? `6. ${REGISTER[lang]}` : ''}
 Return a JSON object with exactly the same keys as the input.`

@@ -15,6 +15,7 @@ import {
 } from '../../src/core/messages'
 import { createLocaleLoader, hasLocalePack, loadLocaleMessages, packs, peekLocaleMessages } from '../../src/locales'
 import source from '../../src/locales/en.json'
+import { scriptProblem } from '../../src/locales/script-check'
 
 const esPack = { default: { common: { back: 'Atrás' } } }
 
@@ -240,6 +241,7 @@ describe('built-in packs', () => {
         const numberOptional = /\.(zero|one|two)$/.test(path) && PLURAL_PATHS.has(path.replace(/\.\w+$/, ''))
         const strip = (names: string[]) => names.filter((name) => !(numberOptional && name === 'count'))
         expect(strip(placeholders(value)), `${tag} ${path}`).toEqual(strip(placeholders(expected[path])))
+        expect(scriptProblem(value), `${tag} ${path}: ${value}`).toBeUndefined()
       }
     }
   })

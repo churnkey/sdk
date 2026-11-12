@@ -104,9 +104,9 @@
       "withPlanChange": "Ọ metụtara atụmatụ ọhụrụ gị."
     },
     "discount": {
-      "percentOff": "Nkwụsị {percent}%",
-      "amountOff": "Nkwụsị {amount}",
-      "unspecified": "Nkwụsị price",
+      "percentOff": "Mbelata {percent}%",
+      "amountOff": "Mbelata {amount}",
+      "unspecified": "Mbelata ọnụ ahịa",
       "nextRenewal": "{discount} n'ọhụrụ gị nke na-abịa",
       "forLife": "{discount} ruo mgbe ndụ gị",
       "forMonths": {
@@ -121,12 +121,12 @@
     },
     "defaultCopy": {
       "discount": {
-        "headline": "Kedu ka {percent}% nkwụsị si dị?",
+        "headline": "Ọ ga-adị gị mma ka e wepụ {percent}%?",
         "headlineNoAmount": "Onyinye pụrụ iche",
-        "bodyNoAmount": "Anyị chọrọ inye gị nkwụsị price.",
+        "bodyNoAmount": "Anyị chọrọ inye gị mbelata ọnụ ahịa.",
         "cta": "Nabata onyinye",
         "body": {
-          "other": "Anyị chọrọ inye gị ndakpọ {percent}% maka ọnwa {count}."
+          "other": "Anyị chọrọ iwepụ {percent}% n'ọnụahịa gị ruo ọnwa {count}."
         }
       },
       "pause": {

@@ -122,13 +122,13 @@
     },
     "defaultCopy": {
       "discount": {
-        "headline": "%{percent} hir'ata taanaan how ta'a?",
+        "headline": "Hir'ina {percent}% ilaalchisee maal jettu?",
         "headlineNoAmount": "Dhiyeessii addaa",
         "bodyNoAmount": "Hir'ina gatii sif kennuu feena.",
         "cta": "Dhiyeessii fudhadhu",
         "body": {
-          "one": "Ji'a {count} f hanga hanga %{percent} irraa gadi buusuu siif dhiyeessuu barbaadna.",
-          "other": "Ji'a {count} f hanga hanga %{percent} irraa gadi buusuu siif dhiyeessuu barbaadna."
+          "one": "Ji'a {count} tiif hir'ina {percent}% si gochuu barbaanna.",
+          "other": "Ji'oota {count} tiif hir'ina {percent}% si gochuu barbaanna."
         }
       },
       "pause": {
