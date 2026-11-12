@@ -13,6 +13,7 @@ export function DefaultDiscountOffer({
   isProcessing,
   classNames,
   messages,
+  locale,
 }: OfferStepProps) {
   const msg = messages ?? defaultMessages
   const o = offer as OfferDecision & {
@@ -23,7 +24,7 @@ export function DefaultDiscountOffer({
   }
   const headline = title ?? offer.copy.headline
   const body = description ?? offer.copy.body
-  const phrase = discountPhrase(o)
+  const phrase = discountPhrase(o, msg, locale)
 
   return (
     <div className={cn('ck-step ck-step-offer', classNames?.root)}>

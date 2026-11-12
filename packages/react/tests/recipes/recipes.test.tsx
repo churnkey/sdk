@@ -45,6 +45,18 @@ describe('TermExtensionOffer', () => {
     expect(screen.getByText('Aug 31')).toBeInTheDocument()
   })
 
+  it('takes its strings and date format from the flow language', () => {
+    const messages = {
+      ...defaultMessages,
+      common: { ...defaultMessages.common, days: 'días' },
+      offer: { ...defaultMessages.offer, newEndDateLabel: 'Nueva fecha de fin' },
+    }
+    render(<TermExtensionOffer {...makeProps({ messages, locale: 'es' })} />)
+    expect(screen.getByText('días')).toBeInTheDocument()
+    expect(screen.getByText('Nueva fecha de fin')).toBeInTheDocument()
+    expect(screen.getByText('31 ago')).toBeInTheDocument()
+  })
+
   it('omits the date when no subscription period end is available', () => {
     render(<TermExtensionOffer {...makeProps({ subscriptions: [] })} />)
     expect(screen.getByText('+30')).toBeInTheDocument()

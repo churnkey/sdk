@@ -1,9 +1,9 @@
 // Message catalog for every string the SDK renders that isn't flow content.
 // Flow content (step titles, offer copy) is authored per-org in the dashboard
 // and arrives resolved in token mode; this catalog covers the chrome around
-// it. Overrides layer lowest-to-highest: built-in defaults, then each entry
-// in the locale fallback chain of `i18n.messages`, and per-step props
-// (confirmLabel, savedTitle, …) win over everything at the render site.
+// it. `buildMessages` layers the built-in translation, dashboard overrides and
+// `i18n.messages` over these defaults; per-step props (confirmLabel,
+// savedTitle, …) win over everything at the render site.
 
 /** Both timing variants of a message. Which one renders is decided by the
  *  flow's effective cancel timing (`FlowState.cancelAtPeriodEnd`). */
@@ -19,10 +19,35 @@ export interface TimingVariants {
  */
 export type TimingAware = string | TimingVariants
 
+/**
+ * One message in each plural form a language has, by CLDR category. English
+ * has `one` and `other`; Polish adds `few` and `many`, Arabic `zero` and
+ * `two`. `{count}` is the number; the form is picked with `Intl.PluralRules`
+ * for the language the forms are in, and a form a translation lacks falls
+ * back to `other`. An override that sets `other` (or a plain string)
+ * replaces every form, so it is never mixed with another language's; one
+ * without `other` edits only the forms it names. Render one with `formatPlural`.
+ */
+export interface PluralForms {
+  zero?: string
+  one?: string
+  two?: string
+  few?: string
+  many?: string
+  other: string
+}
+
 /** Success-screen copy for one accepted offer type. */
 export interface SavedOfferCopy {
   title: string
   description: string
+}
+
+/** Default copy for one offer type in local mode. */
+export interface OfferCopyDefaults {
+  headline: string
+  body: string
+  cta: string
 }
 
 export interface CancelFlowMessages {
@@ -100,6 +125,8 @@ export interface CancelFlowMessages {
   }
   offer: {
     limitedTimeEyebrow: string
+    /** Over the resume date on the pause card. Supports `{date}`; a value
+     *  without it gets the date after it. */
     pauseEyebrow: string
     newEndDateLabel: string
     currentPlanBadge: string
@@ -144,6 +171,53 @@ export interface CancelFlowMessages {
       afterTrial: string
       withPlanChange: string
     }
+    /** The discount in one phrase ("25% off for 3 months"): the amount, then
+     *  how long it lasts. */
+    discount: {
+      /** Supports `{percent}`. */
+      percentOff: string
+      /** Supports `{amount}`, already formatted. */
+      amountOff: string
+      /** When the offer carries neither a percentage nor an amount. */
+      unspecified: string
+      /** Supports `{discount}`, one of the three above. */
+      nextRenewal: string
+      /** Supports `{discount}`. */
+      forLife: string
+      /** Supports `{discount}` and `{count}` (the number of months). */
+      forMonths: PluralForms
+    }
+    /** After a plan's price and a slash ("$29/month"), by billing interval. */
+    planInterval: {
+      day: string
+      week: string
+      month: string
+      year: string
+    }
+    /** Copy for a local-mode offer declared without `copy`. Connected mode
+     *  gets its copy from the server. */
+    defaultCopy: {
+      /** `headline` supports `{percent}`; `body` `{percent}` and `{count}`
+       *  (months). The `NoAmount` pair is used when the offer has no `percentOff`. */
+      discount: Omit<OfferCopyDefaults, 'body'> & {
+        body: PluralForms
+        headlineNoAmount: string
+        bodyNoAmount: string
+      }
+      /** The body supports `{count}` (months). */
+      pause: Omit<OfferCopyDefaults, 'body'> & { body: PluralForms }
+      plan_change: OfferCopyDefaults
+      /** The body supports `{count}` (days). */
+      trial_extension: Omit<OfferCopyDefaults, 'body'> & { body: PluralForms }
+      /** The offer's `label`, when set, replaces the CTA. */
+      contact: OfferCopyDefaults
+      /** The CTA is the offer's `label`. */
+      redirect: Omit<OfferCopyDefaults, 'cta'>
+      rebate: OfferCopyDefaults
+      /** Any other offer type. */
+      custom: OfferCopyDefaults
+      declineCta: string
+    }
   }
 }
 
@@ -157,14 +231,25 @@ export type MessagesPatch<T = CancelFlowMessages> = {
     ? string
     : T[K] extends TimingAware
       ? string | Partial<TimingVariants>
-      : MessagesPatch<T[K]>
+      : T[K] extends PluralForms
+        ? string | Partial<PluralForms>
+        : MessagesPatch<T[K]>
 }
 
 export interface I18nConfig {
   /**
-   * UI language. Defaults to the browser language, falling back to `'en'`.
-   * In connected mode it's also sent with the config request, so flow content
-   * comes back in this language when the org's Automatic Translations cover it.
+   * Language of the SDK's own strings. The SDK ships them in the embed's 50
+   * languages and loads the matching one on demand.
+   *
+   * Set it to the language your flow is in; it is the chrome language even
+   * when the content is not translated into it. Left unset, connected mode
+   * sends the browser language with the config request and the chrome
+   * follows the content: it switches language only when the server
+   * translated the flow into it (the org's Automatic Translations), so a
+   * visitor never sees Spanish buttons around English copy. Local mode
+   * without a locale stays English, since your steps are in whatever
+   * language you wrote them. Dates and amounts are formatted in the same
+   * language.
    */
   locale?: string
   /** Per-locale message overrides, e.g. `{ en: { confirm: { cta: 'Turn off auto-renew' } } }`. */
@@ -250,7 +335,7 @@ export const defaultMessages: CancelFlowMessages = {
   },
   offer: {
     limitedTimeEyebrow: 'Limited-time offer',
-    pauseEyebrow: "We'll see you back on",
+    pauseEyebrow: "We'll see you back on {date}",
     newEndDateLabel: 'New end date',
     currentPlanBadge: 'Current',
     switchToCta: 'Switch to {planName}',
@@ -280,6 +365,70 @@ export const defaultMessages: CancelFlowMessages = {
       afterTrial: 'Starts with your first paid billing period.',
       withPlanChange: 'Applies to your new plan.',
     },
+    discount: {
+      percentOff: '{percent}% off',
+      amountOff: '{amount} off',
+      unspecified: 'A discount',
+      nextRenewal: '{discount} your next renewal',
+      forLife: '{discount} for life',
+      forMonths: { one: '{discount} for {count} month', other: '{discount} for {count} months' },
+    },
+    planInterval: {
+      day: 'day',
+      week: 'week',
+      month: 'month',
+      year: 'year',
+    },
+    defaultCopy: {
+      discount: {
+        headline: 'How about {percent}% off?',
+        body: {
+          one: "We'd like to offer you {percent}% off for {count} month.",
+          other: "We'd like to offer you {percent}% off for {count} months.",
+        },
+        headlineNoAmount: 'Special offer',
+        bodyNoAmount: "We'd like to offer you a discount.",
+        cta: 'Accept offer',
+      },
+      pause: {
+        headline: 'Take a break instead?',
+        body: {
+          one: 'Pause your subscription for up to {count} month.',
+          other: 'Pause your subscription for up to {count} months.',
+        },
+        cta: 'Pause subscription',
+      },
+      plan_change: {
+        headline: 'Switch to a different plan?',
+        body: 'We have other plans that might be a better fit.',
+        cta: 'Switch plan',
+      },
+      trial_extension: {
+        headline: 'Need more time?',
+        body: { one: "We'll extend your trial by {count} day.", other: "We'll extend your trial by {count} days." },
+        cta: 'Extend trial',
+      },
+      contact: {
+        headline: 'Talk to us first?',
+        body: 'Our team would love to help resolve any issues.',
+        cta: 'Contact support',
+      },
+      redirect: {
+        headline: 'Before you go...',
+        body: 'Check this out — it might change your mind.',
+      },
+      rebate: {
+        headline: 'Get money back',
+        body: "Stay subscribed and we'll refund part of your most recent payment.",
+        cta: 'Accept refund',
+      },
+      custom: {
+        headline: 'Before you go...',
+        body: "We'd like to offer you something.",
+        cta: 'Accept',
+      },
+      declineCta: 'No thanks',
+    },
   },
 }
 
@@ -300,6 +449,103 @@ function isTimingVariants(value: unknown): value is Partial<TimingVariants> {
 export function selectTiming(value: TimingAware, cancelAtPeriodEnd: boolean | null): string {
   if (typeof value === 'string') return value
   return (cancelAtPeriodEnd ?? true) ? value.atPeriodEnd : value.immediate
+}
+
+const PLURAL_CATEGORIES = ['zero', 'one', 'two', 'few', 'many', 'other'] as const
+
+/** The form of `forms` for `count` in `locale`, with `{count}` and `vars` filled in. */
+// The language each plural leaf from `buildMessages` is in, so English forms
+// are never picked with Croatian rules ("21 month") when only part of the
+// catalog is translated. Kept beside the catalog, not in it, so the catalog
+// stays plain strings.
+const pluralLanguage = new WeakMap<PluralForms, string>()
+
+/**
+ * The form of `forms` for `count`, with `{count}` and `vars` filled in. The
+ * plural rules are those of the language the forms are in when they came
+ * from `buildMessages`, else `locale`. That language is tracked by object
+ * identity, so a copy (structuredClone, a JSON round trip) loses it: pass the
+ * forms from `messages` itself.
+ */
+export function formatPlural(
+  forms: PluralForms,
+  count: number,
+  locale?: string,
+  vars: Record<string, string | number> = {},
+): string {
+  let category: Intl.LDMLPluralRule = 'other'
+  try {
+    category = new Intl.PluralRules(pluralLanguage.get(forms) ?? locale).select(count)
+  } catch {
+    // A malformed tag: `other`.
+  }
+  return formatMessage(forms[category] ?? forms.other, { ...vars, count })
+}
+
+/** Plural categories `locale` uses, for the pack generator and its test. */
+export function pluralCategories(locale: string): Intl.LDMLPluralRule[] {
+  return new Intl.PluralRules(locale).resolvedOptions().pluralCategories
+}
+
+/** Leaves holding `PluralForms`, by dot-path. */
+export const PLURAL_PATHS: ReadonlySet<string> = new Set([
+  'offer.discount.forMonths',
+  'offer.defaultCopy.discount.body',
+  'offer.defaultCopy.pause.body',
+  'offer.defaultCopy.trial_extension.body',
+])
+
+// The defaults are English.
+for (const path of PLURAL_PATHS) {
+  const forms = path.split('.').reduce<unknown>((node, key) => (node as Record<string, unknown>)[key], defaultMessages)
+  pluralLanguage.set(forms as PluralForms, 'en')
+}
+
+/**
+ * The flattened English catalog as `locale` needs it translated: each plural
+ * leaf in that language's own forms (`.one` text for `one`, `.other` for the
+ * rest). For the pack generator and its test.
+ */
+export function expandPluralPaths(flat: Record<string, string>, locale: string): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const [path, text] of Object.entries(flat)) {
+    const base = path.slice(0, path.lastIndexOf('.'))
+    if (!PLURAL_PATHS.has(base)) out[path] = text
+  }
+  for (const base of PLURAL_PATHS) {
+    if (!(`${base}.other` in flat)) continue
+    for (const category of pluralCategories(locale)) {
+      out[`${base}.${category}`] = flat[`${base}.${category === 'one' ? 'one' : 'other'}`] ?? flat[`${base}.other`]
+    }
+  }
+  return out
+}
+
+function mergePlural(base: PluralForms, patch: unknown, language: string | undefined): PluralForms {
+  let merged: PluralForms
+  let replaced = false
+  if (typeof patch === 'string') {
+    if (patch === '') return base
+    merged = { other: patch }
+    replaced = true
+  } else if (typeof patch === 'object' && patch !== null && !Array.isArray(patch)) {
+    const forms: Partial<PluralForms> = {}
+    for (const category of PLURAL_CATEGORIES) {
+      const value = (patch as Record<string, unknown>)[category]
+      if (typeof value === 'string' && value) forms[category] = value
+    }
+    if (Object.keys(forms).length === 0) return base
+    // With `other`, a whole set in this layer's language; without, an edit of the forms underneath.
+    replaced = forms.other !== undefined
+    merged = replaced ? (forms as PluralForms) : { ...base, ...forms }
+  } else {
+    return base
+  }
+  // An edit in another language than the forms underneath (a Polish
+  // `{ few, many }` over English after the pack failed) takes its own rules.
+  const tag = replaced || (language && pluralLanguage.get(base) !== language) ? language : pluralLanguage.get(base)
+  if (tag) pluralLanguage.set(merged, tag)
+  return merged
 }
 
 /** Replace `{name}` tokens. Unknown tokens are left in place. */
@@ -327,7 +573,8 @@ const TIMING_AWARE_PATHS: ReadonlySet<string> = new Set([
 // the catalog is closed. Empty-string overrides are also dropped (a blank
 // dashboard field must not clobber a real string — same rule as the embed),
 // which is why defaults may legitimately hold '' but patches never land one.
-function mergeValue(base: unknown, patch: unknown, path: string): unknown {
+function mergeValue(base: unknown, patch: unknown, path: string, language?: string): unknown {
+  if (PLURAL_PATHS.has(path)) return mergePlural(base as PluralForms, patch, language)
   if (typeof base === 'string' || isTimingVariants(base)) {
     if (typeof patch === 'string') return patch === '' ? base : patch
     if (isTimingVariants(patch) && TIMING_AWARE_PATHS.has(path)) {
@@ -359,58 +606,87 @@ function mergeValue(base: unknown, patch: unknown, path: string): unknown {
     const merged: Record<string, unknown> = { ...(base as Record<string, unknown>) }
     for (const [key, value] of Object.entries(patch)) {
       if (value == null || !(key in merged)) continue
-      merged[key] = mergeValue(merged[key], value, path ? `${path}.${key}` : key)
+      merged[key] = mergeValue(merged[key], value, path ? `${path}.${key}` : key, language)
     }
     return merged
   }
   return base
 }
 
-export function mergeMessages(base: CancelFlowMessages, patch: MessagesPatch | undefined): CancelFlowMessages {
+/** `language` is the language `patch` is in, for its plural forms. */
+export function mergeMessages(
+  base: CancelFlowMessages,
+  patch: MessagesPatch | undefined,
+  language?: string,
+): CancelFlowMessages {
   if (!patch) return base
-  return mergeValue(base, patch, '') as CancelFlowMessages
+  return mergeValue(base, patch, '', language) as CancelFlowMessages
 }
 
+/** Language to ask the server for: the explicit locale, else the browser's. */
 export function resolveLocale(explicit?: string): string {
   if (explicit) return explicit
   if (typeof navigator !== 'undefined' && navigator.language) return navigator.language
   return 'en'
 }
 
-// Fallback chain, least to most specific: 'en' first so an English override
-// still shows through a partial regional catalog, then the base language,
-// then the exact tag. Keys are matched case-insensitively ('pt-BR' ≡ 'pt-br').
-function localeChain(locale: string): string[] {
-  const exact = locale.toLowerCase()
-  const base = exact.split('-')[0]
-  const chain = ['en']
-  if (base !== 'en') chain.push(base)
-  if (exact !== base) chain.push(exact)
-  return chain
-}
-
-function applyLocaleLayer(
-  base: CancelFlowMessages,
-  byLang: Record<string, MessagesPatch> | undefined,
-  chain: string[],
-): CancelFlowMessages {
-  if (!byLang) return base
-  const byLowerKey = new Map(Object.entries(byLang).map(([k, v]) => [k.toLowerCase(), v]))
-  let resolved = base
-  for (const lang of chain) {
-    resolved = mergeMessages(resolved, byLowerKey.get(lang))
-  }
-  return resolved
+function lowerKeys(byLang: Record<string, MessagesPatch> | undefined): Map<string, MessagesPatch> {
+  return new Map(Object.entries(byLang ?? {}).map(([k, v]) => [k.toLowerCase(), v]))
 }
 
 /**
- * Resolve the full catalog for a locale. Layers, lowest to highest: built-in
- * defaults, then `orgMessages` (dashboard-configured overrides delivered on
- * the token-mode config), then the config's own per-locale messages — the
- * developer's overrides always end up on top. Both per-language layers run
- * through the same locale fallback chain.
+ * Resolve the full catalog for `i18n.locale` (English when unset; the hook
+ * passes the language it settled on). Layers, lowest to highest:
+ *
+ *   1. built-in English defaults
+ *   2. the `en` entries of `orgMessages` (dashboard SDK translations) and
+ *      `i18n.messages`: edits to the English baseline
+ *   3. `localePack`, the built-in translation of that baseline
+ *   4. the base-language, then exact-tag entries of `orgMessages`
+ *   5. the same entries of `i18n.messages`: the developer always ends up on top
+ *
+ * English overrides sit under the pack so a customized `en` string does not
+ * surface in another language where a translation exists; it still shows
+ * through for strings no pack carries (the empty-by-design ones). Keys are
+ * matched case-insensitively (`pt-BR` ≡ `pt-br`).
  */
-export function buildMessages(i18n?: I18nConfig, orgMessages?: Record<string, MessagesPatch>): CancelFlowMessages {
-  const chain = localeChain(resolveLocale(i18n?.locale))
-  return applyLocaleLayer(applyLocaleLayer(defaultMessages, orgMessages, chain), i18n?.messages, chain)
+/**
+ * The language a catalog from `buildMessages` is actually in: `locale` when
+ * its built-in translation or an override entry for it went on, else
+ * English. Dates and durations are formatted in it, so an English sentence
+ * doesn't carry a Swedish date when there is no Swedish to put around it.
+ */
+export function catalogLocale(
+  locale: string,
+  orgMessages: Record<string, MessagesPatch> | undefined,
+  devMessages: Record<string, MessagesPatch> | undefined,
+  localePack: MessagesPatch | undefined,
+): string {
+  const exact = locale.toLowerCase()
+  const base = exact.split('-')[0]
+  if (base === 'en' || localePack) return locale
+  const covers = (byLang?: Record<string, MessagesPatch>) => {
+    const keys = lowerKeys(byLang)
+    return keys.has(base) || keys.has(exact)
+  }
+  return covers(orgMessages) || covers(devMessages) ? locale : 'en'
+}
+
+export function buildMessages(
+  i18n?: I18nConfig,
+  orgMessages?: Record<string, MessagesPatch>,
+  localePack?: MessagesPatch,
+): CancelFlowMessages {
+  const exact = (i18n?.locale ?? 'en').toLowerCase()
+  const base = exact.split('-')[0]
+  // The `en` entries are already on; a regional English tag still gets its own.
+  const tags = [...new Set([base, exact])].filter((tag) => tag !== 'en')
+  const org = lowerKeys(orgMessages)
+  const dev = lowerKeys(i18n?.messages)
+  let resolved = mergeMessages(defaultMessages, org.get('en'), 'en')
+  resolved = mergeMessages(resolved, dev.get('en'), 'en')
+  resolved = mergeMessages(resolved, localePack, i18n?.locale)
+  for (const tag of tags) resolved = mergeMessages(resolved, org.get(tag), tag)
+  for (const tag of tags) resolved = mergeMessages(resolved, dev.get(tag), tag)
+  return resolved
 }

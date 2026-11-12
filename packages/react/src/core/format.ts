@@ -1,3 +1,4 @@
+import { type CancelFlowMessages, formatMessage, formatPlural } from './messages'
 import type { DirectSubscription } from './types'
 
 // Currencies whose smallest unit equals one major unit (no fractional part).
@@ -59,15 +60,25 @@ export function convertFromMinorUnits(value: number, currency = 'USD'): number {
  * whole amounts render compactly.
  */
 export function formatPrice(amount: number, currency = 'USD', locale?: string): string {
+  // Whole amounts print without a fraction ("$29", "29 €"). Asking Intl for
+  // it, rather than trimming "00" from the output, leaves digit groups alone
+  // ("₹1,00,000" in hi).
+  const options: Intl.NumberFormatOptions = {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'narrowSymbol',
+    ...(Number.isInteger(amount) && { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+  }
+  const format = (tag: string | undefined) => new Intl.NumberFormat(tag, options).format(amount)
   try {
-    const formatted = new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency,
-      currencyDisplay: 'narrowSymbol',
-    }).format(amount)
-    return formatted.replace(/[.,]00$/, '')
+    return format(locale)
   } catch {
-    return `${currency} ${amount.toFixed(2)}`
+    // A malformed tag (`en_US`) throws; the runtime default beats a crashed step.
+    try {
+      return format(undefined)
+    } catch {
+      return `${currency} ${amount.toFixed(2)}`
+    }
   }
 }
 
@@ -81,20 +92,31 @@ export function calculateDiscountedPrice(originalPrice: number, percentOff: numb
 }
 
 // ─── Dates ────────────────────────────────────────────────────────────────
+//
+// `locale` is the language the chrome renders in. A malformed tag (`en_US`)
+// throws, so these fall back to the runtime default rather than crash a step.
+
+function localeDate(date: Date, locale: string | undefined, options: Intl.DateTimeFormatOptions): string {
+  try {
+    return date.toLocaleDateString(locale, options)
+  } catch {
+    return date.toLocaleDateString(undefined, options)
+  }
+}
 
 /** "Apr 30, 2026" — used for resume dates and other full-date contexts. */
 export function formatShortDate(date: Date, locale?: string): string {
-  return date.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })
+  return localeDate(date, locale, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 /** "Apr 30" — used when the year is implied by context. */
 export function formatMonthDay(date: Date, locale?: string): string {
-  return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
+  return localeDate(date, locale, { month: 'short', day: 'numeric' })
 }
 
 /** "April 30" — long month form for prominent date displays. */
 export function formatMonthDayLong(date: Date, locale?: string): string {
-  return date.toLocaleDateString(locale, { month: 'long', day: 'numeric' })
+  return localeDate(date, locale, { month: 'long', day: 'numeric' })
 }
 
 /**
@@ -112,40 +134,40 @@ export function formatPeriodEnd(
   const end = status.currentPeriod.end
   const d = end instanceof Date ? end : new Date(end)
   if (Number.isNaN(d.getTime())) return null
-  return d.toLocaleDateString(locale, { month: 'long', day: 'numeric', year: 'numeric' })
+  return localeDate(d, locale, { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
 // ─── Discount phrasing ─────────────────────────────────────────────────────
 
 /**
- * Renders the discount as a single human-readable sentence:
+ * The discount as one phrase, from the catalog's `offer.discount` strings:
  *   "25% off for 3 months" / "$5 off your next renewal" / "20% off for life"
  *
- * Mirrors the embed's couponToString helper so SDK and embed use the same
- * phrasing for the same offer shape.
+ * Same shapes as the embed's couponToString, so both surfaces describe the
+ * same offer the same way.
  */
-export function discountPhrase(opts: {
-  percentOff?: number
-  /** Smallest currency unit (cents for USD). */
-  amountOff?: number
-  currency?: string
-  duration?: 'once' | 'repeating' | 'forever'
-  durationInMonths?: number
-}): string {
+export function discountPhrase(
+  opts: {
+    percentOff?: number
+    /** Smallest currency unit (cents for USD). */
+    amountOff?: number
+    currency?: string
+    duration?: 'once' | 'repeating' | 'forever'
+    durationInMonths?: number
+  },
+  messages: CancelFlowMessages,
+  locale?: string,
+): string {
   const { percentOff, amountOff, currency, duration, durationInMonths } = opts
-  const amount =
+  const text = messages.offer.discount
+  const discount =
     percentOff != null
-      ? `${percentOff}% off`
+      ? formatMessage(text.percentOff, { percent: percentOff })
       : amountOff != null
-        ? `${formatPriceFromMinor(amountOff, currency)} off`
-        : 'discount'
-  const tail =
-    duration === 'once'
-      ? 'your next renewal'
-      : duration === 'forever'
-        ? 'for life'
-        : durationInMonths
-          ? `for ${durationInMonths} ${durationInMonths === 1 ? 'month' : 'months'}`
-          : ''
-  return tail ? `${amount} ${tail}` : amount
+        ? formatMessage(text.amountOff, { amount: formatPriceFromMinor(amountOff, currency, locale) })
+        : text.unspecified
+  if (duration === 'once') return formatMessage(text.nextRenewal, { discount })
+  if (duration === 'forever') return formatMessage(text.forLife, { discount })
+  if (!durationInMonths) return discount
+  return formatPlural(text.forMonths, durationInMonths, locale, { discount })
 }

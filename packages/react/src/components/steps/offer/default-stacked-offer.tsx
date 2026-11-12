@@ -4,7 +4,7 @@ import { type CancelFlowMessages, defaultMessages, formatMessage } from '../../.
 import type { OfferDecision, OfferStepProps, PlanOption } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { RichText } from '../../rich-text'
-import { PauseChips, PlanGrid } from './offer-controls'
+import { PauseChips, PlanGrid, pauseResumeLine } from './offer-controls'
 
 type PartDecision = OfferDecision & {
   months?: number
@@ -30,6 +30,7 @@ export function DefaultStackedOffer({
   isProcessing,
   classNames,
   messages,
+  locale,
 }: OfferStepProps) {
   const msg = messages ?? defaultMessages
   const parts = (offer.stackedOffer ? [offer, offer.stackedOffer] : [offer]) as PartDecision[]
@@ -57,11 +58,11 @@ export function DefaultStackedOffer({
 
       {parts.map((part, i) => (
         <div key={part.decisionId ?? part.type} className={cn('ck-offer-card ck-stacked-part', classNames?.card)}>
-          <div className="ck-stacked-part-title">{partTitle(part, msg)}</div>
+          <div className="ck-stacked-part-title">{partTitle(part, msg, locale)}</div>
           {part.type === 'pause' && (
             <>
               <div className="ck-stacked-part-detail">
-                {msg.offer.pauseEyebrow} {formatMonthDayLong(resume)}
+                {pauseResumeLine(msg.offer.pauseEyebrow, formatMonthDayLong(resume, locale))}
               </div>
               {(part.months ?? 1) > 1 && (
                 <PauseChips
@@ -81,6 +82,7 @@ export function DefaultStackedOffer({
               selectedPlanId={selectedPlanId}
               onSelect={setSelectedPlanId}
               msg={msg}
+              locale={locale}
             />
           )}
           {i === 1 && timing && <div className="ck-stacked-part-timing">{timing}</div>}
@@ -102,10 +104,10 @@ export function DefaultStackedOffer({
   )
 }
 
-function partTitle(part: PartDecision, msg: CancelFlowMessages): string {
+function partTitle(part: PartDecision, msg: CancelFlowMessages, locale?: string): string {
   switch (part.type) {
     case 'discount':
-      return discountPhrase(part)
+      return discountPhrase(part, msg, locale)
     case 'pause':
       return msg.offer.stacked.pauseTitle
     case 'plan_change':
@@ -121,7 +123,7 @@ function partTitle(part: PartDecision, msg: CancelFlowMessages): string {
           ? part.amountPaidMinor - part.netAfterRebateMinor
           : (part.amountMinor ?? 0)
       return formatMessage(msg.offer.stacked.rebateTitle, {
-        amount: formatPriceFromMinor(refund, part.currency ?? 'usd'),
+        amount: formatPriceFromMinor(refund, part.currency ?? 'usd', locale),
       })
     }
     default:

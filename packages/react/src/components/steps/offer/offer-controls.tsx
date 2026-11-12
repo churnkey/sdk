@@ -1,8 +1,31 @@
 import { formatPriceFromMinor } from '../../../core/format'
-import type { CancelFlowMessages } from '../../../core/messages'
+import { type CancelFlowMessages, formatMessage } from '../../../core/messages'
 import type { OfferClassNames, PlanOption } from '../../../core/types'
 import { cn } from '../../../core/utils'
 import { Checkmark } from '../shared'
+
+// `offer.pauseEyebrow` carries the date as `{date}`, so a language that puts
+// the verb last can put the date first. An override written before the
+// token existed gets the date after it, as it always did.
+
+/** The eyebrow and date as one line. */
+export function pauseResumeLine(template: string, date: string): string {
+  return template.includes('{date}') ? formatMessage(template, { date }) : `${template} ${date}`
+}
+
+/**
+ * The words before and after the date, for a card that shows the date on its
+ * own line; null when a word is glued to the date (Korean "{date}에", Amharic
+ * "በ{date}"), which can't be split without leaving a particle on its own line.
+ */
+export function pauseResumeParts(template: string): [string, string] | null {
+  const at = template.indexOf('{date}')
+  if (at < 0) return [template, '']
+  const before = template.slice(0, at)
+  const after = template.slice(at + '{date}'.length)
+  if (/\S$/.test(before) || /^[^\s.,!?。、！？]/.test(after)) return null
+  return [before.trim(), after.trim()]
+}
 
 export function PauseChips({
   max,
@@ -40,12 +63,14 @@ export function PlanGrid({
   selectedPlanId,
   onSelect,
   msg,
+  locale,
 }: {
   plans: PlanOption[]
   currentPlanId?: string
   selectedPlanId: string | null
   onSelect: (planId: string) => void
   msg: CancelFlowMessages
+  locale?: string
 }) {
   return (
     <div className="ck-offer-details ck-plan-grid">
@@ -71,8 +96,8 @@ export function PlanGrid({
             {plan.tagline && <div className="ck-plan-tagline">{plan.tagline}</div>}
 
             <div className="ck-plan-price-row">
-              <span className="ck-plan-amount">{formatPriceFromMinor(plan.amount.value, currency)}</span>
-              <span className="ck-plan-period">/{interval}</span>
+              <span className="ck-plan-amount">{formatPriceFromMinor(plan.amount.value, currency, locale)}</span>
+              <span className="ck-plan-period">/{msg.offer.planInterval[interval] ?? interval}</span>
               {plan.msrp && <span className="ck-plan-msrp">{plan.msrp}</span>}
             </div>
 

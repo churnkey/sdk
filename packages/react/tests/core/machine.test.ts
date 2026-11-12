@@ -2278,6 +2278,32 @@ describe('i18n / messages', () => {
     expect(machine.messages.common.back).toBe('Back')
   })
 
+  it('local-mode offers without copy take it from the catalog, in the language that settles', () => {
+    const machine = new CancelFlowMachine({
+      ...baseConfig,
+      steps: [{ type: 'offer', offer: { type: 'pause', months: 2 } }, { type: 'confirm' }],
+    })
+    expect(machine.currentOffer?.copy.declineCta).toBe('No thanks')
+    machine.setLocale('es', {
+      offer: { defaultCopy: { pause: { headline: '¿Una pausa?' }, declineCta: 'No, gracias' } },
+    })
+    expect(machine.locale).toBe('es')
+    expect(machine.currentOffer?.copy).toMatchObject({ headline: '¿Una pausa?', declineCta: 'No, gracias' })
+    expect(machine.getSnapshot().currentStepId).toBe('step-0-offer')
+  })
+
+  it('stays English, durations and all, when the requested language has no translation', () => {
+    const machine = new CancelFlowMachine({
+      ...baseConfig,
+      i18n: { locale: 'sv' },
+      steps: [{ type: 'offer', offer: { type: 'pause', months: 3 } }, { type: 'confirm' }],
+    })
+    // No Swedish pack and no Swedish overrides: "3 months", not "3 månader".
+    machine.setLocale('sv', undefined)
+    expect(machine.locale).toBe('en')
+    expect(machine.currentOffer?.copy.body).toBe('Pause your subscription for up to 3 months.')
+  })
+
   it('leaves cancelAtPeriodEnd null in local mode', () => {
     const machine = new CancelFlowMachine(baseConfig)
     expect(machine.getSnapshot().cancelAtPeriodEnd).toBeNull()

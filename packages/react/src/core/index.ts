@@ -18,11 +18,12 @@ export type {
   CancelFlowMessages,
   I18nConfig,
   MessagesPatch,
+  PluralForms,
   SavedOfferCopy,
   TimingAware,
   TimingVariants,
 } from './messages'
-export { buildMessages, defaultMessages, formatMessage, selectTiming } from './messages'
+export { buildMessages, defaultMessages, formatMessage, formatPlural, selectTiming } from './messages'
 export type { ResolvedStep } from './step-graph'
 export type { SessionCredentials } from './token'
 export { decodeSessionToken } from './token'

@@ -4,6 +4,7 @@
 // as DirectPrice[], so this layer is a pure shape projection.
 
 import type { SdkConfig, SdkCustomOffer, SdkDiscountOffer, SdkOffer, SdkReason, SdkStep } from './api-types'
+import { type CancelFlowMessages, formatMessage, formatPlural } from './messages'
 import type { BuiltInOfferConfig, OfferConfig, OfferCopy, OfferDecision, ReasonConfig, Step } from './types'
 import { BUILT_IN_OFFER_TYPES } from './utils'
 
@@ -144,74 +145,51 @@ function transformOfferConfig(o: SdkOffer): OfferConfig {
 }
 
 /**
- * Default offer copy used by step-graph.ts when a local-mode offer doesn't
- * include explicit copy. Token-mode offers come with copy already filled in
- * by the server, so this only fires for local mode.
+ * Copy for a local-mode offer declared without `copy`, from the catalog's
+ * `offer.defaultCopy`, so it is in the chrome's language. Connected-mode
+ * offers arrive with copy from the server.
  */
-export function defaultOfferCopy(offer: OfferConfig): OfferCopy {
+export function defaultOfferCopy(offer: OfferConfig, messages: CancelFlowMessages, locale?: string): OfferCopy {
   const o = offer as BuiltInOfferConfig
+  const text = messages.offer.defaultCopy
+  const declineCta = text.declineCta
   switch (o.type) {
-    case 'discount':
-      return {
-        headline: o.percentOff != null ? `How about ${o.percentOff}% off?` : 'Special offer',
-        body: discountBody(o),
-        cta: 'Accept offer',
-        declineCta: 'No thanks',
+    case 'discount': {
+      if (o.percentOff == null) {
+        return {
+          headline: text.discount.headlineNoAmount,
+          body: text.discount.bodyNoAmount,
+          cta: text.discount.cta,
+          declineCta,
+        }
       }
-    case 'pause':
+      const vars = { percent: o.percentOff }
       return {
-        headline: 'Take a break instead?',
-        body: `Pause your subscription for up to ${o.months} month${o.months === 1 ? '' : 's'}.`,
-        cta: 'Pause subscription',
-        declineCta: 'No thanks',
+        headline: formatMessage(text.discount.headline, vars),
+        body: formatPlural(text.discount.body, o.durationInMonths ?? 1, locale, vars),
+        cta: text.discount.cta,
+        declineCta,
       }
+    }
+    case 'pause': {
+      return { ...text.pause, body: formatPlural(text.pause.body, o.months, locale), declineCta }
+    }
     case 'plan_change':
+      return { ...text.plan_change, declineCta }
+    case 'trial_extension': {
       return {
-        headline: 'Switch to a different plan?',
-        body: 'We have other plans that might be a better fit.',
-        cta: 'Switch plan',
-        declineCta: 'No thanks',
+        ...text.trial_extension,
+        body: formatPlural(text.trial_extension.body, o.days, locale),
+        declineCta,
       }
-    case 'trial_extension':
-      return {
-        headline: 'Need more time?',
-        body: `We'll extend your trial by ${o.days} day${o.days === 1 ? '' : 's'}.`,
-        cta: 'Extend trial',
-        declineCta: 'No thanks',
-      }
+    }
     case 'contact':
-      return {
-        headline: 'Talk to us first?',
-        body: 'Our team would love to help resolve any issues.',
-        cta: o.label ?? 'Contact support',
-        declineCta: 'No thanks',
-      }
+      return { ...text.contact, cta: o.label ?? text.contact.cta, declineCta }
     case 'redirect':
-      return {
-        headline: 'Before you go...',
-        body: 'Check this out — it might change your mind.',
-        cta: o.label,
-        declineCta: 'No thanks',
-      }
+      return { ...text.redirect, cta: o.label, declineCta }
     case 'rebate':
-      return {
-        headline: 'Get money back',
-        body: "Stay subscribed and we'll refund part of your most recent payment.",
-        cta: 'Accept refund',
-        declineCta: 'No thanks',
-      }
+      return { ...text.rebate, declineCta }
     default:
-      return {
-        headline: 'Before you go...',
-        body: "We'd like to offer you something.",
-        cta: 'Accept',
-        declineCta: 'No thanks',
-      }
+      return { ...text.custom, declineCta }
   }
-}
-
-function discountBody(o: { percentOff?: number; durationInMonths?: number }): string {
-  if (o.percentOff == null) return "We'd like to offer you a discount."
-  const months = o.durationInMonths ?? 1
-  return `We'd like to offer you ${o.percentOff}% off for ${months} month${months === 1 ? '' : 's'}.`
 }
