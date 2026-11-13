@@ -23,7 +23,15 @@ export type {
   TimingAware,
   TimingVariants,
 } from './messages'
-export { buildMessages, defaultMessages, formatMessage, formatPlural, selectTiming } from './messages'
+export {
+  buildMessages,
+  defaultMessages,
+  formatMessage,
+  formatPlural,
+  PLURAL_PATHS,
+  selectTiming,
+  TIMING_AWARE_PATHS,
+} from './messages'
 export type { ResolvedStep } from './step-graph'
 export type { SessionCredentials } from './token'
 export { decodeSessionToken } from './token'
