@@ -2,6 +2,13 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Expect breaking changes in minor versions while we're pre-1.0.
 
+## 0.11.1 - 2026-11-14
+
+### Added
+
+- `TIMING_AWARE_PATHS` is exported from `@churnkey/react/core`: the dot-paths of the catalog keys that accept an `{ immediate, atPeriodEnd }` pair. The Churnkey dashboard reads it to show those keys as pairs in its SDK translations editor.
+- `PLURAL_PATHS` is exported from `@churnkey/react/core`: the dot-paths of the catalog keys that hold `PluralForms`. The Churnkey dashboard reads it to leave those keys out of its SDK translations editor, which edits plain strings only.
+
 ## 0.11.0 - 2026-11-12
 
 ### Added
