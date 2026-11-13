@@ -28,6 +28,7 @@ export {
   defaultMessages,
   formatMessage,
   formatPlural,
+  PLURAL_PATHS,
   selectTiming,
   TIMING_AWARE_PATHS,
 } from './messages'
