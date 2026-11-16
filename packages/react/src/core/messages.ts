@@ -560,7 +560,7 @@ export function formatMessage(template: string, vars: Record<string, string | nu
 // base value alone can't identify them — most default to a plain string —
 // and pair patches must be rejected everywhere else: a pair landing on a
 // plain leaf would reach the renderer as an object child and throw.
-const TIMING_AWARE_PATHS: ReadonlySet<string> = new Set([
+export const TIMING_AWARE_PATHS: ReadonlySet<string> = new Set([
   'confirm.cta',
   'confirm.periodEndNotice',
   'success.cancelled.title',
