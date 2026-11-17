@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - `update_segment_filter` saves the new audience rules as a draft. Routing keeps using the segment's published rules until `publish_blueprint` publishes its flow, as the dashboard builder now does. The tool no longer takes `confirmLiveChange`: an edit can't change who sees a live flow until it is published.
 - `list_segments` describes `publishedFilter`, the rules routing uses now, next to `filter`, which includes unpublished edits.
+- `reorder_segments` says that an org on automatic routing rejects reorders with 409, since Churnkey sets its order, so the agent tells the user instead of retrying.
 
 ## 2.5.0 - 2026-11-09
 
