@@ -4,6 +4,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## Unreleased
 
+### Added
+
+- `test_routing`: which cancel flow or payment recovery campaign a customer gets today, per live subscription, with plan, price and start date. It answers "why did this customer see that flow" without the dashboard.
+- `estimate_audience`: what publishing audience rules would do, from the org's own customers: how many match, how many the flow or campaign would get once Churnkey orders it, which live flows or campaigns lose customers, and whether one already has the same audience. Under automatic routing the agent no longer sets the order, so this is how it sees where a new or edited audience lands before publishing.
+- `get_account` describes `automaticRouting`, the products Churnkey orders itself, and `list_segments` says that their order is computed and cannot be changed.
+
 ### Changed
 
 - `update_segment_filter` saves the new audience rules as a draft. Routing keeps using the segment's published rules until `publish_blueprint` publishes its flow, as the dashboard builder now does. The tool no longer takes `confirmLiveChange`: an edit can't change who sees a live flow until it is published.

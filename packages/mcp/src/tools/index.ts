@@ -8,6 +8,7 @@ import { dsrTools } from './dsr'
 import { metricsTools } from './metrics'
 import { paymentRecoveryTools } from './payment-recovery'
 import { recoveryTools } from './recoveries'
+import { routingTools } from './routing'
 import { segmentTools } from './segments'
 import { sessionTools } from './sessions'
 import { settingsTools } from './settings'
@@ -24,6 +25,7 @@ export function allTools(client: ChurnkeyClient): ToolDefinition[] {
     ...paymentRecoveryTools(client),
     ...blueprintTools(client),
     ...segmentTools(client),
+    ...routingTools(client),
     ...abTestTools(client),
     ...settingsTools(client),
     ...dnsTools(client),
