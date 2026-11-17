@@ -80,13 +80,7 @@ const updateFilterInput = z.object({
   confirm: z
     .literal('update_segment_filter')
     .describe(
-      'Required confirmation. Editing the filter changes which customers the flow targets; pass exactly "update_segment_filter".',
-    ),
-  confirmLiveChange: z
-    .boolean()
-    .optional()
-    .describe(
-      'Extra acknowledgment required only when the target segment is currently live (enabled AND published): editing its audience changes which customers see the flow immediately. The API rejects the edit with an instruction to re-send with confirmLiveChange: true. Omit (or false) for disabled/unpublished segments.',
+      'Required confirmation. Once published, the new filter changes which customers the flow targets; pass exactly "update_segment_filter".',
     ),
 })
 
@@ -154,7 +148,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'list_segments',
       title: 'List cancel flow segments',
       description: [
-        'List cancel flow segment metadata for the authenticated org in priority order (the response order IS the priority — first = highest priority; the 0-based `priority` field mirrors it). Includes disabled segments (each has an `enabled` boolean). Each segment also returns its audience `filter` rules ([{ attribute, operand, value }]) so you can reason about which customers a flow targets.',
+        'List cancel flow segment metadata for the authenticated org in priority order (the response order IS the priority — first = highest priority; the 0-based `priority` field mirrors it). Includes disabled segments (each has an `enabled` boolean). Each segment also returns its audience rules ([{ attribute, operand, value }]) so you can reason about which customers a flow targets: `publishedFilter` is what routing uses now (null until the flow is first published), and `filter` includes edits not yet published.',
         '',
         'A/B test variant segments appear as separate top-level entries here (the dashboard folds them under their parent test). Unfinished A/B test segments cannot be archived, enabled/disabled, or have their audience edited, and reorder_segments must keep test pairs together.',
       ].join('\n'),
@@ -225,7 +219,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'update_segment_filter',
       title: 'Update a cancel flow segment audience filter',
       description: [
-        'Replace the audience filter rules for a cancel flow segment. This sends the COMPLETE new filter array and fully replaces the existing rules (it is not an add/remove patch) — include every rule you want to keep. If the segment is live (enabled AND published), editing its audience changes targeting immediately, so the API requires an extra acknowledgment: re-send with confirmLiveChange: true. Segments in unfinished A/B tests cannot have their audience edited.',
+        'Replace the audience filter rules for a cancel flow segment. This sends the COMPLETE new filter array and fully replaces the existing rules (it is not an add/remove patch), so include every rule you want to keep. The new rules are a draft: routing keeps using the segment’s `publishedFilter` until you publish its flow with publish_blueprint (the segment’s `activeBlueprint` resolves to its working copy). Segments in unfinished A/B tests cannot have their audience edited.',
         '',
         'Each rule is { attribute, operand, value, type? }. operand is one of INCLUDES, GTE, LTE, BETWEEN, NOT_INCLUDES, NOT_BETWEEN (GT/LT are NOT supported — use GTE/LTE). STRING/BOOLEAN attributes use INCLUDES/NOT_INCLUDES; NUMBER/DATE use GTE/LTE/BETWEEN/NOT_BETWEEN. For BETWEEN/NOT_BETWEEN, value has exactly two entries [low, high]; for GTE/LTE, one entry; for INCLUDES/NOT_INCLUDES, the list of matching values. See the `attribute` field for the catalog of built-in targeting attributes and which operands apply to each (custom customer attributes are also accepted). Call list_segments first to read the current rules.',
       ].join('\n'),
@@ -233,7 +227,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
       handler: async (args) =>
         client.post(`/data/segments/${args.segmentId}/filter`, {
-          body: { filter: args.filter, confirm: args.confirm, confirmLiveChange: args.confirmLiveChange },
+          body: { filter: args.filter, confirm: args.confirm },
         }),
     },
   ]
