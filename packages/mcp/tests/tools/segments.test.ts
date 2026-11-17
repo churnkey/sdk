@@ -63,7 +63,7 @@ describe('segmentTools', () => {
     expect(enableTool.description).toContain('requires at least one audience filter rule')
   })
 
-  it('documents A/B test and live audience guardrails', () => {
+  it('documents A/B test guardrails and that audience edits wait for publish', () => {
     const { tool: listTool } = findTool('list_segments')
     const { tool: reorderTool } = findTool('reorder_segments')
     const { tool: archiveTool } = findTool('archive_segment')
@@ -71,30 +71,28 @@ describe('segmentTools', () => {
     const { tool: filterTool } = findTool('update_segment_filter')
 
     expect(listTool.description).toContain('Unfinished A/B test segments cannot be archived')
+    expect(listTool.description).toContain('`publishedFilter` is what routing uses now')
     expect(reorderTool.description).toContain('keep the control immediately followed by its variant')
     expect(archiveTool.description).toContain('Segments in unfinished A/B tests cannot be archived')
     expect(enableTool.description).toContain('unfinished A/B tests cannot be enabled or disabled')
-    expect(filterTool.description).toContain('changes targeting immediately')
-    expect(filterTool.description).toContain('confirmLiveChange: true')
+    expect(filterTool.description).toContain('The new rules are a draft')
+    expect(filterTool.description).toContain('publish_blueprint')
   })
 
-  it('passes confirmLiveChange through for live segment audience edits', async () => {
+  it('sends the audience edit with its confirmation', async () => {
     const { tool, post } = findTool('update_segment_filter')
     const args = {
       segmentId: 'seg_1',
       filter: [{ attribute: 'SUBSCRIPTION_AGE_MONTHS', operand: 'GTE' as const, value: [3] }],
       confirm: 'update_segment_filter' as const,
-      confirmLiveChange: true,
     }
 
     await tool.handler(args)
 
     expect(post).toHaveBeenCalledWith('/data/segments/seg_1/filter', {
-      body: { filter: args.filter, confirm: 'update_segment_filter', confirmLiveChange: true },
+      body: { filter: args.filter, confirm: 'update_segment_filter' },
     })
     expect(() => tool.inputSchema.parse(args)).not.toThrow()
-    // confirmLiveChange is optional
-    expect(() => tool.inputSchema.parse({ ...args, confirmLiveChange: undefined })).not.toThrow()
   })
 
   it('routes reorder_segments with the full confirmed body', async () => {
