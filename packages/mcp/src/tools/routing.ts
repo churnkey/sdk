@@ -89,7 +89,7 @@ export function routingTools(client: ChurnkeyClient): ToolDefinition[] {
         '- `changes`: live flows or campaigns (and the primary, `id: null`) whose audience would change, with `before` and `after` counts.',
         '- `duplicateOf`: a live flow or campaign with the same audience. Suggest using it, or an A/B test, instead of a copy.',
         '',
-        'Counts are active subscriptions for cancel_flows and distinct failed invoices from the last `periodDays` (up to 90) days for payment_recovery, out of `total`. `sampled` means counts scale up from a random 10,000 (`approximate`). `sessionOnly` marks conditions only known during a session: the count covers the conditions checked ahead of time. `upperBound` means the count is the most it can get, because of its own session-only conditions or a session-only flow ahead.',
+        'Counts are active subscriptions for cancel_flows and distinct failed invoices from the last `periodDays` (up to 90) days for payment_recovery, out of `total`. `sampled` means counts scale up from a random 10,000 (`approximate`). `sessionOnly` marks conditions only known during a session: the count covers the conditions checked ahead of time, and `uncounted` means none can be, so there is no count. `upperBound` means the count is the most it can get, because of its own session-only conditions or a session-only flow ahead.',
         '',
         'Call it before update_segment_filter or update_recovery_audience and publishing, and tell the user which flows or campaigns lose customers. The first call for an org can take about 20 seconds. Rate limited to 120 previews per hour.',
       ].join('\n'),
