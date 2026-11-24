@@ -73,6 +73,7 @@ describe('segmentTools', () => {
     expect(listTool.description).toContain('Unfinished A/B test segments cannot be archived')
     expect(listTool.description).toContain('`publishedFilter` is what routing uses now')
     expect(reorderTool.description).toContain('keep the control immediately followed by its variant')
+    expect(reorderTool.description).toContain('rejects a reorder with 409')
     expect(archiveTool.description).toContain('Segments in unfinished A/B tests cannot be archived')
     expect(enableTool.description).toContain('unfinished A/B tests cannot be enabled or disabled')
     expect(filterTool.description).toContain('The new rules are a draft')

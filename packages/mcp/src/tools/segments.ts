@@ -186,7 +186,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       name: 'reorder_segments',
       title: 'Reorder cancel flow segments',
       description:
-        'Reorder cancel flow segment priority. This is a live-impacting configuration change, so it requires explicit confirmation and records an audit log. If an unfinished A/B test is involved, include both test segments together and keep the control immediately followed by its variant, matching the dashboard grouping.',
+        'Reorder cancel flow segment priority. This is a live-impacting configuration change, so it requires explicit confirmation and records an audit log. If an unfinished A/B test is involved, include both test segments together and keep the control immediately followed by its variant, matching the dashboard grouping. For an org on automatic routing, Churnkey sets the order itself and the API rejects a reorder with 409: tell the user instead of retrying.',
       inputSchema: reorderInput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
       handler: async (args) => client.post('/data/segments/reorder', { body: args }),
