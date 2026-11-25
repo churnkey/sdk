@@ -158,7 +158,7 @@ const publishInput = blueprintIdInput.extend({
     .array(z.string())
     .optional()
     .describe(
-      "Segment ids from estimate_audience's `incomparable` to put this flow below; [] puts it above all of them. Omit to keep an edited flow where it is today (a new flow goes above them).",
+      "Segment ids from estimate_audience's `incomparable` to put this flow below; [] puts it above all of them. Required when the flow's audience rules are new or changed and `incomparable` is not empty.",
     ),
 })
 
@@ -513,7 +513,7 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Publish an unlocked draft blueprint as the live version for its org or segment. If you pass a published blueprint ID, the API resolves it to the corresponding unlocked working copy. This is separate from draft updates and requires explicit confirmation.',
         '',
-        "Under automatic routing, a new segment flow goes above the flows Churnkey can't compare it with (estimate_audience lists them as `incomparable`), and an edited one keeps its place; `placeBelow` changes that. Before publishing, ask the user whether customers who match both should see this flow or the one they see today.",
+        "Under automatic routing, a segment flow with new or changed audience rules may share customers with flows Churnkey can't compare it with (estimate_audience lists them as `incomparable`). Ask the user whether customers who match both should see this flow or the one they see today, and pass the answer as `placeBelow`. Without it the publish is refused, nothing goes live, and the error lists the flows to ask about. After publishing, test_routing on a customer the flow targets shows which flow they get.",
         '',
         WRITE_NOTE,
       ].join('\n'),
