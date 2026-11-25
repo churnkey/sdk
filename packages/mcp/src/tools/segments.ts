@@ -151,6 +151,8 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
         'List cancel flow segment metadata for the authenticated org in priority order (the response order IS the priority — first = highest priority; the 0-based `priority` field mirrors it). Includes disabled segments (each has an `enabled` boolean). Each segment also returns its audience rules ([{ attribute, operand, value }]) so you can reason about which customers a flow targets: `publishedFilter` is what routing uses now (null until the flow is first published), and `filter` includes edits not yet published.',
         '',
         'A/B test variant segments appear as separate top-level entries here (the dashboard folds them under their parent test). Unfinished A/B test segments cannot be archived, enabled/disabled, or have their audience edited, and reorder_segments must keep test pairs together.',
+        '',
+        'When get_account shows `automaticRouting.cancelFlows`, Churnkey computes this order (narrower audiences first, then smaller ones) and it cannot be changed. Where no rule separates two flows, the order the merchant picked when publishing stays.',
       ].join('\n'),
       inputSchema: z.object({}),
       annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
