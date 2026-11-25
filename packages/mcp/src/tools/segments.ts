@@ -152,7 +152,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
         '',
         'A/B test variant segments appear as separate top-level entries here (the dashboard folds them under their parent test). Unfinished A/B test segments cannot be archived, enabled/disabled, or have their audience edited, and reorder_segments must keep test pairs together.',
         '',
-        'When get_account shows `automaticRouting.cancelFlows`, Churnkey computes this order (narrower audiences first, overlapping ones newest published first) and it cannot be changed.',
+        'When get_account shows `automaticRouting.cancelFlows`, Churnkey computes this order (narrower audiences first, then smaller ones) and it cannot be changed. Where no rule separates two flows, the order the merchant picked when publishing stays.',
       ].join('\n'),
       inputSchema: z.object({}),
       annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },

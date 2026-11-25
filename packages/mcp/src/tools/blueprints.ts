@@ -154,6 +154,12 @@ const publishInput = blueprintIdInput.extend({
   confirm: z
     .literal('publish')
     .describe('Required confirmation. Publishing affects the live cancel flow; pass exactly "publish".'),
+  placeBelow: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "Segment ids from estimate_audience's `incomparable` to put this flow below. Omit to put it above all of them.",
+    ),
 })
 
 const WRITE_NOTE =
@@ -507,12 +513,16 @@ export function blueprintTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Publish an unlocked draft blueprint as the live version for its org or segment. If you pass a published blueprint ID, the API resolves it to the corresponding unlocked working copy. This is separate from draft updates and requires explicit confirmation.',
         '',
+        "Under automatic routing, a segment flow published with new audience rules goes above the flows Churnkey can't compare it with (estimate_audience lists them as `incomparable`), unless `placeBelow` names the ones it goes below. Ask the user where it goes before publishing.",
+        '',
         WRITE_NOTE,
       ].join('\n'),
       inputSchema: publishInput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
       handler: async (args) =>
-        client.post(`/data/blueprints/${args.blueprintId}/publish`, { body: { confirm: args.confirm } }),
+        client.post(`/data/blueprints/${args.blueprintId}/publish`, {
+          body: { confirm: args.confirm, placeBelow: args.placeBelow },
+        }),
     },
   ]
 }
