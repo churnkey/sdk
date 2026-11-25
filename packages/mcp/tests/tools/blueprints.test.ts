@@ -200,6 +200,15 @@ describe('blueprintTools', () => {
     expect(post).toHaveBeenCalledWith('/data/blueprints/bp_123/publish', { body: { confirm: 'publish' } })
   })
 
+  it("sends the user's placement answer with publish_blueprint, an empty list included", async () => {
+    const { tool, post } = findTool('publish_blueprint')
+
+    await tool.handler({ blueprintId: 'bp_123', confirm: 'publish', placeBelow: [] })
+    await tool.handler({ blueprintId: 'bp_123', confirm: 'publish', placeBelow: ['seg_1'] })
+
+    expect(post.mock.calls.map(([, options]) => options.body.placeBelow)).toStrictEqual([[], ['seg_1']])
+  })
+
   it('requires the publish confirmation literal', () => {
     const { tool } = findTool('publish_blueprint')
 
