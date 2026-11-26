@@ -113,8 +113,10 @@ const audienceFilter = z
       .string()
       .describe('Attribute name from list_recovery_audience_attributes (built-in or org custom attribute).'),
     operand: z
-      .enum(['INCLUDES', 'NOT_INCLUDES', 'GTE', 'LTE', 'BETWEEN', 'NOT_BETWEEN'])
-      .describe('Strings/booleans use INCLUDES/NOT_INCLUDES; numbers/dates use GTE/LTE/BETWEEN/NOT_BETWEEN.'),
+      .enum(['INCLUDES', 'NOT_INCLUDES', 'GTE', 'LTE', 'LT', 'BETWEEN', 'NOT_BETWEEN'])
+      .describe(
+        'Strings/booleans use INCLUDES/NOT_INCLUDES; numbers use GTE/LTE/LT/BETWEEN/NOT_BETWEEN; dates use GTE/LTE/BETWEEN/NOT_BETWEEN.',
+      ),
     value: z
       .array(z.union([z.string(), z.number(), z.boolean()]))
       .describe('Match values. BETWEEN/NOT_BETWEEN take exactly 2 entries.'),
