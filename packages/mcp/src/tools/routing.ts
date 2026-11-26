@@ -17,8 +17,10 @@ const rule = z
         'Attribute name: from list_segment_attributes for cancel_flows, list_recovery_audience_attributes for payment_recovery (built-in or org custom attribute).',
       ),
     operand: z
-      .enum(['INCLUDES', 'NOT_INCLUDES', 'GTE', 'LTE', 'BETWEEN', 'NOT_BETWEEN'])
-      .describe('Strings/booleans use INCLUDES/NOT_INCLUDES; numbers/dates use GTE/LTE/BETWEEN/NOT_BETWEEN.'),
+      .enum(['INCLUDES', 'NOT_INCLUDES', 'GTE', 'LTE', 'LT', 'BETWEEN', 'NOT_BETWEEN'])
+      .describe(
+        'Strings/booleans use INCLUDES/NOT_INCLUDES; numbers use GTE/LTE/LT/BETWEEN/NOT_BETWEEN; dates use GTE/LTE/BETWEEN/NOT_BETWEEN.',
+      ),
     value: z
       .array(z.union([z.string(), z.number(), z.boolean()]))
       .describe(
@@ -102,6 +104,26 @@ export function routingTools(client: ChurnkeyClient): ToolDefinition[] {
           body: product === 'cancel_flows' ? { filter, segmentId } : { filter, blueprintId },
         })
       },
+    },
+    {
+      name: 'recommend_segments',
+      title: 'Recommend cancel flow segments',
+      description: [
+        "Check Churnkey's cancel flow segment library against the org's own subscriptions: trial, monthly subscriptions by age (new, early, established, long term), and annual and quarterly subscriptions with their age bands. Saves nothing. Returns:",
+        '- `segments`: every library segment with its `key`, `label`, `parent` and `filter` (the conditions to create it with), and:',
+        "  - `active`: live subscriptions that match. `cancellations`: voluntary cancellations, subscriptions that ended in the last `windowDays` days and matched when they ended, leaving out those that ended with their last invoice unpaid (after failed payments). For a parent segment, both leave out the customers its supported child segments take. Both are null when the org's data lacks a field the segment needs.",
+        '  - `reason`: null when the data supports a flow for the segment. Otherwise `no_active_audience` (no live subscription matches), `no_cancellation_evidence` (none was canceled voluntarily in the window; trial only needs live trials), `data_unknown` (the data lacks a field the segment needs) or `integration_disconnected`.',
+        "  - `resolvesTo`: where the segment's customers are best served: the segment itself, its nearest parent the data supports, or null for the default flow.",
+        "  - `preview`: for a supported segment, what estimate_audience returns for its `filter` as a new flow (`matching`, `allocated`, `changes`, `duplicateOf`, `incomparable`). Each preview adds that segment alone to today's live flows, so two previews don't account for each other.",
+        '- `reason`: set when nothing can be recommended for the org: `integration_disconnected`, or `data_unknown` when Churnkey holds no live subscriptions for it.',
+        '',
+        'Offer the segments with `reason: null`; for one that `resolvesTo` its parent, offer the parent. When `preview.duplicateOf` is set, suggest that flow or an A/B test instead of a copy. Create the chosen segment with create_segment_flow and its `filter` unchanged; its preview already stands in for estimate_audience. When `preview.incomparable` is not empty, ask the user which flow customers who match both should see and pass the answer to publish_blueprint as `placeBelow`. Once one flow is published, call estimate_audience for the next before publishing it.',
+        '',
+        'Counts are as of `asOf`, out of `total` live subscriptions; `sampled` means they scale up from 10,000 (`approximate`). The first call for an org can take about 20 seconds. Rate limited to 120 previews per hour.',
+      ].join('\n'),
+      inputSchema: z.object({}),
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+      handler: async () => client.get('/data/segments/recommendations'),
     },
   ]
 }

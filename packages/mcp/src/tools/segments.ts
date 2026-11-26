@@ -28,7 +28,7 @@ const setEnabledInput = z.object({
     ),
 })
 
-const SEGMENT_OPERANDS = ['INCLUDES', 'GTE', 'LTE', 'BETWEEN', 'NOT_INCLUDES', 'NOT_BETWEEN'] as const
+const SEGMENT_OPERANDS = ['INCLUDES', 'GTE', 'LTE', 'LT', 'BETWEEN', 'NOT_INCLUDES', 'NOT_BETWEEN'] as const
 
 // Catalog of the cancel-flow audience attributes, grouped by value type and the operands that apply.
 // This is the cancel-flow palette (mirrors the dashboard's getEnabledSegmentAttributes('cancel-flows')).
@@ -37,8 +37,8 @@ const SEGMENT_OPERANDS = ['INCLUDES', 'GTE', 'LTE', 'BETWEEN', 'NOT_INCLUDES', '
 // built-ins. Org-defined custom attributes are still accepted.
 const SEGMENT_ATTRIBUTE_CATALOG = [
   'Targeting attribute. Call list_segment_attributes for the supported list (with the exact allowed `values` for enum attributes) plus your org-specific custom attributes. The built-in attributes available for cancel flow segments are:',
-  '• Text/ID (operand INCLUDES or NOT_INCLUDES, value is a list): CUSTOMER_EMAIL, PLAN_ID, PRODUCT_ID, CURRENCY, BILLING_INTERVAL (DAY/WEEK/MONTH/YEAR), SUBSCRIPTION_STATUS (ACTIVE/TRIALING/PAST_DUE), SUBSCRIPTION_DISCOUNT (ONCE/REPEATING/FOREVER).',
-  '• Number (operand GTE/LTE/BETWEEN/NOT_BETWEEN — note GT/LT are NOT supported): PRICE (major currency units, e.g. dollars, not cents), BILLING_INTERVAL_COUNT, SUBSCRIPTION_AGE_MONTHS.',
+  '• Text/ID (operand INCLUDES or NOT_INCLUDES, value is a list): CUSTOMER_EMAIL, PLAN_ID, PRODUCT_ID, CURRENCY, BILLING_INTERVAL (DAY/WEEK/MONTH/YEAR), SUBSCRIPTION_STATUS (ACTIVE/TRIALING/PAST_DUE/NON_RENEWING), SUBSCRIPTION_DISCOUNT (ONCE/REPEATING/FOREVER).',
+  '• Number (operand GTE/LTE/LT/BETWEEN/NOT_BETWEEN; GT is NOT supported): PRICE (major currency units, e.g. dollars, not cents), BILLING_INTERVAL_COUNT, SUBSCRIPTION_AGE_MONTHS.',
   '• Date as an ISO-8601 string (operand GTE/LTE/BETWEEN/NOT_BETWEEN): SUBSCRIPTION_START_DATE.',
   '• Boolean (operand INCLUDES with value [true] or [false]): CANCEL_FLOW_WILL_SHOW_CLICK_TO_CANCEL.',
   'Fixed-enum attributes (BILLING_INTERVAL, SUBSCRIPTION_STATUS, SUBSCRIPTION_DISCOUNT) require their exact dashboard value (e.g. "MONTH", not "month") and the set can be provider-specific — call list_segment_attributes for the exact `values` allowed for this org.',
@@ -51,12 +51,12 @@ const filterRule = z
     operand: z
       .enum(SEGMENT_OPERANDS)
       .describe(
-        'Comparison operand, scoped to the attribute value type: STRING/BOOLEAN use INCLUDES/NOT_INCLUDES; NUMBER/DATE use GTE/LTE/BETWEEN/NOT_BETWEEN. GT/LT and EQUAL/NOT_EQUAL are NOT supported (use GTE/LTE or INCLUDES/NOT_INCLUDES).',
+        'Comparison operand, scoped to the attribute value type: STRING/BOOLEAN use INCLUDES/NOT_INCLUDES; NUMBER uses GTE/LTE/LT/BETWEEN/NOT_BETWEEN; DATE uses GTE/LTE/BETWEEN/NOT_BETWEEN. GT, and LT on dates, are NOT supported, nor are EQUAL/NOT_EQUAL (use INCLUDES/NOT_INCLUDES).',
       ),
     value: z
       .array(z.unknown())
       .describe(
-        'Comparison value(s). BETWEEN/NOT_BETWEEN need exactly 2; GTE/LTE need 1; INCLUDES/NOT_INCLUDES is a list.',
+        'Comparison value(s). BETWEEN/NOT_BETWEEN need exactly 2; GTE/LTE/LT need 1; INCLUDES/NOT_INCLUDES is a list.',
       ),
     type: z
       .enum(['STRING', 'NUMBER', 'BOOLEAN', 'DATE'])
@@ -166,7 +166,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
         '- `builtIn`: the attributes available for cancel flow segments (the cancel-flow palette, mirroring the dashboard), each with its `valueType` (STRING/NUMBER/DATE/BOOLEAN) and the `operands` that apply. Fixed-enum attributes (e.g. BILLING_INTERVAL, SUBSCRIPTION_STATUS, SUBSCRIPTION_DISCOUNT) also include a `values` array of `{ value, label }` — use the exact `value` (provider-specific). Built-in attributes scoped to other products (e.g. CUSTOMER_HAS_PHONE, INVOICE_AMOUNT_DUE) are not included and are rejected by update_segment_filter.',
         "- `custom`: your organization's own custom customer attributes (by `attribute` name, with `label`, `valueType`, and `operands`).",
         '',
-        'Use this before update_segment_filter so you target real attributes with valid operands. STRING/BOOLEAN use INCLUDES/NOT_INCLUDES; NUMBER/DATE use GTE/LTE/BETWEEN/NOT_BETWEEN (GT/LT are NOT supported). Numeric money attributes (PRICE) are compared in major currency units (e.g. dollars, not cents); dates are ISO-8601 strings.',
+        'Use this before update_segment_filter so you target real attributes with valid operands. STRING/BOOLEAN use INCLUDES/NOT_INCLUDES; NUMBER uses GTE/LTE/LT/BETWEEN/NOT_BETWEEN and DATE the same without LT (GT is NOT supported). Numeric money attributes (PRICE) are compared in major currency units (e.g. dollars, not cents); dates are ISO-8601 strings.',
       ].join('\n'),
       inputSchema: z.object({}),
       annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
@@ -223,7 +223,7 @@ export function segmentTools(client: ChurnkeyClient): ToolDefinition[] {
       description: [
         'Replace the audience filter rules for a cancel flow segment. This sends the COMPLETE new filter array and fully replaces the existing rules (it is not an add/remove patch), so include every rule you want to keep. The new rules are a draft: routing keeps using the segment’s `publishedFilter` until you publish its flow with publish_blueprint (the segment’s `activeBlueprint` resolves to its working copy). Segments in unfinished A/B tests cannot have their audience edited.',
         '',
-        'Each rule is { attribute, operand, value, type? }. operand is one of INCLUDES, GTE, LTE, BETWEEN, NOT_INCLUDES, NOT_BETWEEN (GT/LT are NOT supported — use GTE/LTE). STRING/BOOLEAN attributes use INCLUDES/NOT_INCLUDES; NUMBER/DATE use GTE/LTE/BETWEEN/NOT_BETWEEN. For BETWEEN/NOT_BETWEEN, value has exactly two entries [low, high]; for GTE/LTE, one entry; for INCLUDES/NOT_INCLUDES, the list of matching values. See the `attribute` field for the catalog of built-in targeting attributes and which operands apply to each (custom customer attributes are also accepted). Call list_segments first to read the current rules.',
+        'Each rule is { attribute, operand, value, type? }. operand is one of INCLUDES, GTE, LTE, LT, BETWEEN, NOT_INCLUDES, NOT_BETWEEN (GT is NOT supported). STRING/BOOLEAN attributes use INCLUDES/NOT_INCLUDES; NUMBER uses GTE/LTE/LT/BETWEEN/NOT_BETWEEN and DATE the same without LT. For BETWEEN/NOT_BETWEEN, value has exactly two entries [low, high]; for GTE/LTE/LT, one entry; for INCLUDES/NOT_INCLUDES, the list of matching values. See the `attribute` field for the catalog of built-in targeting attributes and which operands apply to each (custom customer attributes are also accepted). Call list_segments first to read the current rules.',
       ].join('\n'),
       inputSchema: updateFilterInput,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },

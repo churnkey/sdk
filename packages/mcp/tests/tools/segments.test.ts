@@ -161,6 +161,14 @@ describe('segmentTools', () => {
         confirm: 'update_segment_filter',
       }),
     ).toThrow()
+    // less than, for an age band that excludes its upper bound
+    expect(() =>
+      tool.inputSchema.parse({
+        segmentId: 'seg_1',
+        filter: [{ attribute: 'SUBSCRIPTION_AGE_MONTHS', operand: 'LT', value: [4] }],
+        confirm: 'update_segment_filter',
+      }),
+    ).not.toThrow()
     // empty filter (clear all) is allowed
     expect(() =>
       tool.inputSchema.parse({ segmentId: 'seg_1', filter: [], confirm: 'update_segment_filter' }),

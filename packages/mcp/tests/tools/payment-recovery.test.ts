@@ -235,4 +235,14 @@ describe('payment recovery parity tools (XDEV-2332 follow-up)', () => {
       byName.update_recovery_audience.inputSchema.parse({ blueprintId: 'b', name: 'n'.repeat(61) }),
     ).toThrow()
   })
+
+  it('accepts less than on a number condition, not greater than', () => {
+    const byName = Object.fromEntries(paymentRecoveryTools(makeClient()).map((t) => [t.name, t]))
+    const audience = (operand: string) => ({
+      blueprintId: 'b',
+      filters: [{ attribute: 'INVOICE_AMOUNT_DUE', operand, value: [50] }],
+    })
+    expect(() => byName.update_recovery_audience.inputSchema.parse(audience('LT'))).not.toThrow()
+    expect(() => byName.update_recovery_audience.inputSchema.parse(audience('GT'))).toThrow()
+  })
 })

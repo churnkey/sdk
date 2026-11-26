@@ -8,7 +8,7 @@ function findTool(name: string) {
   const client = { get, post } as unknown as ChurnkeyClient
   const tool = routingTools(client).find((candidate) => candidate.name === name)
   if (!tool) throw new Error(`Missing tool ${name}`)
-  return { tool, post }
+  return { tool, get, post }
 }
 
 const rule = { attribute: 'BILLING_INTERVAL', operand: 'INCLUDES' as const, value: ['MONTH'] }
@@ -41,5 +41,21 @@ describe('routingTools', () => {
     })
     expect(() => tool.inputSchema.parse({ product: 'cancel_flows', filter: [] })).toThrow()
     expect(() => tool.inputSchema.parse({ product: 'cancel_flows', filter: [{ ...rule, operand: 'GT' }] })).toThrow()
+    expect(() =>
+      tool.inputSchema.parse({
+        product: 'cancel_flows',
+        filter: [{ attribute: 'SUBSCRIPTION_AGE_MONTHS', operand: 'LT', value: [2] }],
+      }),
+    ).not.toThrow()
+  })
+
+  it('reads recommend_segments from the cancel flow recommendations endpoint without writing', async () => {
+    const { tool, get, post } = findTool('recommend_segments')
+
+    await tool.handler({})
+
+    expect(get).toHaveBeenCalledWith('/data/segments/recommendations')
+    expect(post).not.toHaveBeenCalled()
+    expect(tool.annotations?.readOnlyHint).toBe(true)
   })
 })
